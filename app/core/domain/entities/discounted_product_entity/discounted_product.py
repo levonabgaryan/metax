@@ -13,12 +13,14 @@ class DiscountedProduct(AggregateRootEntity):
         category_uuid: UUID,
         retailer_uuid: UUID,
         price_details: PriceDetails,
+        name: str,
         url: str,
     ) -> None:
         super().__init__(_uuid=uuid_)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details
+        self.__name = name
         self.__url = url
 
     def get_url(self) -> str:
@@ -30,6 +32,8 @@ class DiscountedProduct(AggregateRootEntity):
     def get_retailer_uuid(self) -> UUID:
         return self.__retailer_uuid
 
+    def get_name(self) -> str:
+        return self.__name
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
