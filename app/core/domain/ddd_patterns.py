@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from uuid import UUID
-from typing import Final
+from typing import Final, override
 
 
 class ValueObject:
@@ -31,11 +31,13 @@ class Entity:
     def __init__(self, _uuid: UUID) -> None:
         self._uuid: Final[UUID] = _uuid
 
+    @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self._uuid == other._uuid
 
+    @override
     def __hash__(self) -> int:
         """
         Generates a hash based on the entity's ID.
