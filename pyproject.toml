@@ -1,0 +1,32 @@
+[tool.mypy]
+strict = true
+show_error_codes = true
+
+# Warns if function parameters and return value is not annotated
+disallow_untyped_defs = true
+
+# Warns if module components have not type hints
+disallow_any_unimported = true
+
+# Doesn't warn if function body is not annotated
+check_untyped_defs = true
+
+# Warns if function parameter by default is None, but it was not annotated
+# def greet(name: str = None):  # Error!
+#    print(f"Hello, {name}")
+no_implicit_optional = true
+
+# Warns if function return Any
+warn_return_any = true
+
+# Warns if there are unused `type: ignore`
+warn_unused_ignores = true
+
+# Warns if some package or library has not stubs
+ignore_missing_imports = false
+
+# Warns about redundant 'cast' calls
+warn_redundant_casts = true
+
+# Warns if code is unreachable.
+warn_unreachable = true
