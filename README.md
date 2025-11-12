@@ -18,4 +18,8 @@ Current version of Python: **3.14**
     pip install -r requirements.txt
 ```
 
+```bash
+pre-commit install
+```
+
 * Select interpreter from .venv
