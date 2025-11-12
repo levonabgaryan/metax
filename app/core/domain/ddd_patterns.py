@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from uuid import UUID
 from typing import Final, override
 
