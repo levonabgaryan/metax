@@ -9,5 +9,5 @@ class ICategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def add(self, category: Category) -> None:
+    async def save(self, category: Category) -> None:
         pass
