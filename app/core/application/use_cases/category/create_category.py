@@ -18,7 +18,7 @@ class CreateCategoryUseCase:
             name=request.name,
             helper_words=helper_words
         )
-        await self.category_repository.add(category)
+        await self.category_repository.save(category)
         response = CreateCategoryResponse(
             request.category_uuid,
             request.name,
