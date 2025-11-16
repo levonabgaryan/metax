@@ -3,7 +3,7 @@ from uuid import UUID
 
 from app.core.domain.entities.category_entity.category import Category
 
-class CategoryRepository(ABC):
+class ICategoryRepository(ABC):
     @abstractmethod
     async def get_by_uuid(self, category_uuid: UUID) -> Category:
         pass
