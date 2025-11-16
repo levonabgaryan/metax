@@ -1,4 +1,4 @@
-from app.core.application.patterns.discounted_product_factory import IDiscountedProductFactory
+from app.core.application.ports.discounted_product_factory import IDiscountedProductFactory
 from app.core.application.patterns.result_type import Result
 from app.core.application.ports.repositories.discounted_product import IDiscountedProductRepository
 from app.core.application.use_cases.discounted_product.dtos import CreateDiscountedProductsResponse

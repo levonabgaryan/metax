@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator
 
 from app.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 
