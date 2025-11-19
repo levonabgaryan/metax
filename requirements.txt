@@ -1,6 +1,7 @@
 # Primary dependencies (directly required by the project)
 mypy==1.18.2
 pre_commit==4.4.0
+ruff==0.14.5
 
 # Installed dependencies (transitive / installed automatically)
 cfgv==3.4.0

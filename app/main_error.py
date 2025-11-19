@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 
-class MainException(Exception):
+class MainError(Exception):
     def __init__(
         self,
         message: str = "An error occurred",
@@ -15,10 +15,7 @@ class MainException(Exception):
         self.exc_type = self.__class__.__name__
 
     def __repr__(self) -> str:
-        return (
-            f"{self.exc_type}"
-            f"(message={self.message}, error_code={self.error_code}, details={self.details})"
-        )
+        return f"{self.exc_type}(message={self.message}, error_code={self.error_code}, details={self.details})"  # noqa: E501
 
     def __str__(self) -> str:
         return f"[{self.error_code}] {self.message}" + (

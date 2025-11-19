@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 
-from app.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from app.core.domain.entities.discounted_product_entity.discounted_product import (
+    DiscountedProduct,
+)
 
 
 class IDiscountedProductFactory(ABC):

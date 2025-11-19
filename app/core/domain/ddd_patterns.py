@@ -1,5 +1,5 @@
-from uuid import UUID
 from typing import Final, override
+from uuid import UUID
 
 
 class ValueObject:

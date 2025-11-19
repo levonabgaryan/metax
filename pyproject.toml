@@ -30,3 +30,80 @@ warn_redundant_casts = true
 
 # Warns if code is unreachable.
 warn_unreachable = true
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+ignore = [
+    "COM812" # check commas in collections
+]
+
+extend-select = [
+    "E",      # PyCodeStyle errors
+    "W",      # PyCodeStyle warnings
+    "I",      # Rules for sorting imports
+    "S",      # flake8-bandit
+    "B",      # flake8-bugbear
+    "A",      # flake8-builtins
+    "COM",    # flake8-commas
+    "C4",     # flake8-comprehensions
+    "PTH",    # Using Pathlib instead of os.path
+    "SLF",    # Access protected member
+    "ASYNC",  # flake8-async
+    "DJ",     # flake8-django
+    "DTZ",    # flake8-datetimez
+    "EM",     # flake8-errmsg
+    "FA",     # flake8-future-annotations
+    "ISC",    # flake8-implicit-str-concat
+    "ICN",    # flake8-import-conventions
+    "PIE",    # flake8-pie
+    "RSE",    # flake8-raise
+    "RET",    # flake8-return
+    "SIM",    # flake8-simplify
+    "TID",    # flake8-tidy-imports
+    "ARG",    # flake8-unused-arguments
+    "FLY",    # flynt
+    "N",      # pep8-naming
+    "PERF101",# Avoid creating list/tuple from iterable unnecessarily
+    "F",      # Pyflakes
+    "PGH",    # pygrep-hooks
+    "UP006",  # Use list/dict instead of typing.List/Dict
+    "RUF007", # Prefer itertools.pairwise() over zip()
+    "RUF008", # Avoid mutable default in dataclasses.field
+    "RUF049", # Enum should not be a dataclass
+]
+
+[tool.ruff.format]
+docstring-code-format = true
+indent-style = "space"
