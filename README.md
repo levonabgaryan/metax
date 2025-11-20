@@ -19,7 +19,7 @@ Current version of Python: **3.14**
 ```
 
 ```bash
-pre-commit install
+    pre-commit install
 ```
 
 * Select interpreter from .venv

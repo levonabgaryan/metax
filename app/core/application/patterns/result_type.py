@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field, InitVar
+from dataclasses import dataclass, field
 from typing import Any, Self
 
-from app.main_exception import MainException
+from app.main_error import MainError
 
 
 @dataclass(frozen=True)
@@ -11,12 +11,8 @@ class Error:
     details: dict[str, Any] | None = field(default=None)
 
     @classmethod
-    def from_main_exception(cls, exc: MainException) -> Self:
-        return cls(
-            message=exc.message,
-            error_code=exc.error_code,
-            details=exc.details
-        )
+    def from_main_exception(cls, exc: MainError) -> Self:
+        return cls(message=exc.message, error_code=exc.error_code, details=exc.details)
 
 
 @dataclass(frozen=True)
@@ -26,7 +22,4 @@ class Result[T]:
 
     @property
     def is_succeed(self) -> bool:
-        return (
-            self.success_value is not None
-            and self.error_value is None
-        )
+        return self.success_value is not None and self.error_value is None

@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-from typing import AsyncIterator
 
-from app.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from app.core.domain.entities.discounted_product_entity.discounted_product import (
+    DiscountedProduct,
+)
 
 
 class IDiscountedProductRepository(ABC):
