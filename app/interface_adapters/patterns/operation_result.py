@@ -5,7 +5,7 @@ from app.main_error import MainError
 
 
 @dataclass(frozen=True)
-class Error:
+class ErrorViewModel:
     message: str
     error_code: str | None = field(default=None)
     details: dict[str, Any] | None = field(default=None)
@@ -18,7 +18,7 @@ class Error:
 @dataclass(frozen=True)
 class Result[T]:
     success_value: T | None = field(default=None)
-    error_value: Error | None = field(default=None)
+    error_value: ErrorViewModel | None = field(default=None)
 
     @property
     def is_succeed(self) -> bool:
