@@ -15,15 +15,15 @@ class CreateCategoryUseCase:
         self.category_repository = category_repository
 
     async def execute(self, request: CreateCategoryRequest) -> Result[CreateCategoryResponse]:
-        helper_words = CategoryHelperWords(request.helper_words)
+        category_helper_words = CategoryHelperWords(words=request.helper_words)
         category = Category(
             category_uuid=request.category_uuid,
             name=request.name,
-            helper_words=helper_words,
+            helper_words=category_helper_words,
         )
         await self.category_repository.save(category)
         response = CreateCategoryResponse(
             request.category_uuid,
             request.name,
         )
-        return Result(success_value=response)
+        return Result.from_success(response)

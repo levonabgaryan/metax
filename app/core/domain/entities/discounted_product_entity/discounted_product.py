@@ -5,7 +5,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from app.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
-from app.core.domain.entities.discounted_product_entity.exceptions import (
+from app.core.domain.entities.discounted_product_entity.errors.errors import (
     DiscountExceedsRealPriceError,
     NegativePriceError,
 )

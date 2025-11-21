@@ -1,7 +1,7 @@
 from typing import Any, Optional
 
 
-class MainError(Exception):
+class DomainError(Exception):
     def __init__(
         self,
         message: str = "An error occurred",
@@ -18,6 +18,4 @@ class MainError(Exception):
         return f"{self.exc_type}(message={self.message}, error_code={self.error_code}, details={self.details})"  # noqa: E501
 
     def __str__(self) -> str:
-        return f"[{self.error_code}] {self.message}" + (
-            f" | Details: {self.details}" if self.details else ""
-        )
+        return f"[{self.error_code}] {self.message}" + (f" | Details: {self.details}" if self.details else "")

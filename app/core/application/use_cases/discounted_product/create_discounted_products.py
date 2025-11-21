@@ -25,4 +25,4 @@ class CreateDiscountedProductsUseCase:
         response = CreateDiscountedProductsResponse(
             created_products_count=len(discounted_products),
         )
-        return Result(success_value=response)
+        return Result.from_success(response)
