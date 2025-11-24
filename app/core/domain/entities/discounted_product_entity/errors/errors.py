@@ -1,20 +1,17 @@
 from decimal import Decimal
 
-from app.main_error import MainError
+from app.core.domain.domain_error import DomainError
 
 
-class NegativePriceError(MainError):
+class NegativePriceError(DomainError):
     def __init__(self, incorrect_price: Decimal) -> None:
         super().__init__(
             message=f"Price {incorrect_price} cannot be negative.",
         )
 
 
-class DiscountExceedsRealPriceError(MainError):
+class DiscountExceedsRealPriceError(DomainError):
     def __init__(self, discounted_price: Decimal, real_price: Decimal) -> None:
         super().__init__(
-            message=(
-                f"Discounted price ({discounted_price}) "
-                f"cannot exceed the real price ({real_price})."
-            ),
+            message=f"Discounted price ({discounted_price}) cannot exceed the real price ({real_price}).",
         )
