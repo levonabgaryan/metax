@@ -44,12 +44,11 @@ class Result[T]:
         """
         return cls(_error_value=value)
 
-    @property
-    def success_value(self) -> T:
+    def get_success_value(self) -> T:
         """
         Returns the success value if present.
 
-        This property exists primarily for static type checkers (e.g., mypy), ensuring
+        This getter exists primarily for static type checkers (e.g., mypy), ensuring
         the value is not None when accessed. Raises AttributeError if no success value is set.
         """
         if self._success_value is None:
@@ -57,12 +56,11 @@ class Result[T]:
             raise AttributeError(msg)
         return self._success_value
 
-    @property
-    def error_value(self) -> Error:
+    def get_error_value(self) -> Error:
         """
         Returns the error object if present.
 
-        This property exists primarily for static type checkers (e.g., mypy), ensuring
+        This getter exists primarily for static type checkers (e.g., mypy), ensuring
         the value is not None when accessed. Raises AttributeError if no error is set.
         """
         if self._error_value is None:
