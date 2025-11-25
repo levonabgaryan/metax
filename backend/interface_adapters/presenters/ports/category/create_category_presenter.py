@@ -14,5 +14,5 @@ class ICreateCategoryPresenter[CreateCategoryViewModel](ABC):
         pass
 
     @abstractmethod
-    def present_error(self, error: Error) -> ErrorViewModel:
+    def present_error_view_model(self, error: Error) -> ErrorViewModel:
         pass

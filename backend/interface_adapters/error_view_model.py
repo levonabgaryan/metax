@@ -19,3 +19,7 @@ class ErrorViewModel:
     @classmethod
     def from_error(cls, exc: Error) -> Self:
         return cls(message=exc.message, error_code=exc.error_code, details=exc.details)
+
+    @classmethod
+    def is_error_view_model(cls, view_model: object) -> bool:
+        return isinstance(view_model, cls)

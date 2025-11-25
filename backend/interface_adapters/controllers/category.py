@@ -28,4 +28,4 @@ class CategoryController:
             return create_category_presenter.present_view_model(success_response)
 
         error_response: Error = result.get_error_value()
-        return create_category_presenter.present_error(error_response)
+        return create_category_presenter.present_error_view_model(error_response)
