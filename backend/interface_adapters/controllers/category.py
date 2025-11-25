@@ -14,13 +14,13 @@ class CategoryController:
     def __init__(self, create_category_use_case: CreateCategoryUseCase) -> None:
         self.create_category_use_case = create_category_use_case
 
-    async def handle_create(
+    async def create(
         self,
         create_category_presenter: ICreateCategoryPresenter[CreateCategoryViewModel],
         name: str,
-        helper_words: list[str],
+        helper_words: frozenset[str],
     ) -> CreateCategoryViewModel | ErrorViewModel:
-        request = CreateCategoryRequest(category_uuid=uuid4(), name=name, helper_words=frozenset(helper_words))
+        request = CreateCategoryRequest(category_uuid=uuid4(), name=name, helper_words=helper_words)
         result: Result[CreateCategoryResponse] = await self.create_category_use_case.execute(request)
 
         if result.is_succeed:
