@@ -18,3 +18,7 @@ class IDiscountedProductRepository(ABC):
     @abstractmethod
     async def save_many(self, discounted_products: list[DiscountedProduct]) -> None:
         pass
+
+    @abstractmethod
+    async def delete_all_and_return_count_of_deleted(self) -> int:
+        pass

@@ -1,17 +1,17 @@
 from decimal import Decimal
 
-from backend.core.domain.domain_error import DomainError
+from backend.main_error import MainError
+
+from .error_codes import DiscountedProductErrorCodes
 
 
-class NegativePriceError(DomainError):
+class NegativePriceError(MainError):
     def __init__(self, incorrect_price: Decimal) -> None:
-        super().__init__(
-            message=f"Price {incorrect_price} cannot be negative.",
-        )
+        msg = f"Price {incorrect_price} cannot be negative."
+        super().__init__(message=msg, error_code=DiscountedProductErrorCodes.NEGATIVE_PRICE)
 
 
-class DiscountExceedsRealPriceError(DomainError):
+class DiscountExceedsRealPriceError(MainError):
     def __init__(self, discounted_price: Decimal, real_price: Decimal) -> None:
-        super().__init__(
-            message=f"Discounted price ({discounted_price}) cannot exceed the real price ({real_price}).",
-        )
+        msg = f"Discounted price ({discounted_price}) cannot exceed the real price ({real_price})."
+        super().__init__(message=msg, error_code=DiscountedProductErrorCodes.DISCOUNT_EXCEEDS_PRICE)
