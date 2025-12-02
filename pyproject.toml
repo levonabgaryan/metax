@@ -31,6 +31,21 @@ warn_redundant_casts = true
 # Warns if code is unreachable.
 warn_unreachable = true
 
+# Warns if decorator function parameter is not annotated
+disallow_untyped_decorators = true
+
+# Warns if code is checking two different types equality (using == operator, but for None doesn't warn)
+strict_equality = true
+
+# Include None for strict_equality
+strict_equality_for_none = true
+
+# Warns if function's return is missed
+warn_no_return = true
+
+# See https://mypy.readthedocs.io/en/stable/config_file.html#confval-strict_equality:~:text=for%20more%20info.-,implicit_reexport,-%C2%B6
+implicit_reexport = false
+
 [tool.ruff]
 exclude = [
     ".bzr",
@@ -67,7 +82,7 @@ indent-width = 4
 [tool.ruff.lint]
 ignore = [
     "COM812", # check commas in collections
-    "RET504"
+    "RET504"  # see https://docs.astral.sh/ruff/rules/unnecessary-assign/
 ]
 
 extend-select = [
