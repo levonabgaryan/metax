@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Any, Self
 
-from backend.core.domain.domain_error import DomainError
+from backend.main_error import MainError
 
 
 @dataclass(frozen=True)
@@ -13,8 +13,17 @@ class Error:
     details: dict[str, Any] | None = field(default=None)
 
     @classmethod
-    def from_domain_error(cls, exc: DomainError) -> Self:
+    def is_error(cls, obj: object) -> bool:
+        return isinstance(obj, cls)
+
+    @classmethod
+    def from_main_error(cls, exc: MainError) -> Self:
         return cls(message=exc.message, error_code=exc.error_code, details=exc.details)
+
+
+class EmptyValue:
+    # If Result should return something, but there are no any payload use this class.
+    pass
 
 
 @dataclass(frozen=True)
@@ -25,6 +34,10 @@ class Result[T]:
     @property
     def is_succeed(self) -> bool:
         return self._success_value is not None and self._error_value is None
+
+    @property
+    def is_failure(self) -> bool:
+        return self._error_value is not None and self._success_value is None
 
     @classmethod
     def from_success(cls, value: T) -> Self:

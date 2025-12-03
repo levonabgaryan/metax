@@ -1,0 +1,6 @@
+from enum import StrEnum
+
+
+class CategoryErrorCodes(StrEnum):
+    DUPLICATE_HELPER_WORDS = "DUPLICATE_HELPER_WORDS"
+    WORDS_NOT_FOUND_FOR_DELETION = "WORDS_NOT_FOUND_FOR_DELETION"

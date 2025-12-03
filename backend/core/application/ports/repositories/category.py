@@ -12,3 +12,7 @@ class ICategoryRepository(ABC):
     @abstractmethod
     async def save(self, category: Category) -> None:
         pass
+
+    @abstractmethod
+    async def get_by_name(self, category_name: str) -> Category:
+        pass
