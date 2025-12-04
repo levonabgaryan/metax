@@ -4,7 +4,7 @@ from backend.core.application.ports.repositories.errors.errors import EntityWasN
 from backend.core.domain.entities.category_entity.category import Category
 
 
-async def process_get_category_by_name(
+async def process_getting_category_by_name(
     category_repository: ICategoryRepository, category_name: str
 ) -> Result[Category]:
     try:
