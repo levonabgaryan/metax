@@ -1,6 +1,6 @@
 from backend.core.application.patterns.empty_dto import EmptyResponse
 from backend.core.application.patterns.result_type import EmptyValue, Error, Result
-from backend.core.application.ports.repositories.category import ICategoryRepository
+from backend.core.application.ports.repositories.category import CategoryRepository
 from backend.core.application.use_cases.category.dtos import AddNewCategoryHelperWordsRequest
 from backend.core.application.use_cases.category.utils import process_getting_category_by_name
 from backend.core.domain.entities.category_entity.category import Category
@@ -8,7 +8,7 @@ from backend.core.domain.entities.category_entity.errors.errors import Duplicate
 
 
 class AddNewCategoryHelperWordsUseCase:
-    def __init__(self, category_repository: ICategoryRepository) -> None:
+    def __init__(self, category_repository: CategoryRepository) -> None:
         self.category_repository = category_repository
 
     async def execute(self, request: AddNewCategoryHelperWordsRequest) -> Result[EmptyResponse]:

@@ -1,5 +1,5 @@
 from backend.core.application.patterns.result_type import Result
-from backend.core.application.ports.repositories.category import ICategoryRepository
+from backend.core.application.ports.repositories.category import CategoryRepository
 from backend.core.application.use_cases.category.dtos import (
     CreateCategoryRequest,
     CreateCategoryResponse,
@@ -11,7 +11,7 @@ from backend.core.domain.entities.category_entity.category import (
 
 
 class CreateCategoryUseCase:
-    def __init__(self, category_repository: ICategoryRepository) -> None:
+    def __init__(self, category_repository: CategoryRepository) -> None:
         self.category_repository = category_repository
 
     async def execute(self, request: CreateCategoryRequest) -> Result[CreateCategoryResponse]:
