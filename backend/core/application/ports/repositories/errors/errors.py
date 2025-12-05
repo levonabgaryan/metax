@@ -1,7 +1,7 @@
 from backend.main_error import MainError
 
 
-class EntityWasNotFoundError(MainError):
+class EntityIsNotFoundError(MainError):
     def __init__(
         self, entity_name: str, searched_field_name: str, searched_field_value: str, error_code: str
     ) -> None:
