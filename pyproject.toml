@@ -82,8 +82,13 @@ indent-width = 4
 [tool.ruff.lint]
 ignore = [
     "COM812", # check commas in collections
-    "RET504"  # see https://docs.astral.sh/ruff/rules/unnecessary-assign/
+    "RET504",  # see https://docs.astral.sh/ruff/rules/unnecessary-assign/
+    "PGH003"
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+"*/test_*.py" = ["S101"]
 
 extend-select = [
     "E",      # PyCodeStyle errors

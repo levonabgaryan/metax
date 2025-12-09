@@ -53,11 +53,11 @@ class PriceDetails(ValueObject):
 
     def __validate_real_price(self) -> None:
         if self.real_price < Decimal("0.00"):
-            raise NegativePriceError(incorrect_price=self.real_price)
+            raise NegativePriceError(incorrect_price=self.real_price, price_type="Real price")
 
     def __validate_discounted_price(self) -> None:
         if self.discounted_price < Decimal("0.00"):
-            raise NegativePriceError(incorrect_price=self.discounted_price)
+            raise NegativePriceError(incorrect_price=self.discounted_price, price_type="Discounted price")
 
     def __validate_discount_is_less_than_real(self) -> None:
         if not self.discounted_price < self.real_price:

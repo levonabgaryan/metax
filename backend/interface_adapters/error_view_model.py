@@ -1,15 +1,15 @@
 from dataclasses import dataclass, field
 from typing import Any, Self
 
-from backend.core.application.patterns.result_type import Error
+from backend.main_error import MainError
 
 
 @dataclass(frozen=True)
 class ErrorViewModel:
     """
-    Represents a client-facing version of a domain error.
+    Represents a client-facing version of a `MaineError` class.
 
-    Use the `from_error` class-method to create an instance of this class from a domain Error.
+    Use the `from_error` class-method to create an instance of this class from a MainError.
     """
 
     message: str
@@ -17,8 +17,8 @@ class ErrorViewModel:
     details: dict[str, Any] | None = field(default=None)
 
     @classmethod
-    def from_error(cls, exc: Error) -> Self:
-        return cls(message=exc.message, error_code=exc.error_code, details=exc.details)
+    def from_error(cls, error: MainError) -> Self:
+        return cls(message=error.message, error_code=error.error_code, details=error.details)
 
     @classmethod
     def is_error_view_model(cls, obj: object) -> bool:

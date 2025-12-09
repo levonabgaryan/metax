@@ -1,31 +1,32 @@
-from uuid import uuid4
+from uuid import uuid4, UUID
 
-from backend.core.application.patterns.result_type import Error, Result
-from backend.core.application.use_cases.retailer.create_retailer import CreateRetailerUseCase
-from backend.core.application.use_cases.retailer.dtos import CreateRetailerRequest, CreateRetailerResponse
+from backend.core.application.commands_and_handlers.retailer import CreateRetailerCommand, UpdateRetailerCommand
+from backend.core.application.patterns.message_buss import MessageBus
+from backend.interface_adapters.empty_view_model import EmptyViewModel
 from backend.interface_adapters.error_view_model import ErrorViewModel
-from backend.interface_adapters.presenters.ports.retailer.create_retailer_presenter import (
-    CreateRetailerViewModel,
-    ICreateRetailerPresenter,
-)
 
 
 class RetailerController:
-    def __init__(self, create_retailer_use_case: CreateRetailerUseCase) -> None:
-        self.create_retailer_use_case = create_retailer_use_case
+    def __init__(self, message_bus: MessageBus) -> None:
+        self.message_bus = message_bus
 
-    async def create(
+    async def create(self, name: str, url: str, phone_number: str) -> EmptyViewModel | ErrorViewModel:
+        command = CreateRetailerCommand(retailer_uuid=uuid4(), name=name, url=url, phone_number=phone_number)
+        await self.message_bus.handle(command)
+        return EmptyViewModel()
+
+    async def update(
         self,
-        name: str,
-        url: str,
-        phone_number: str,
-        create_retailer_presenter: ICreateRetailerPresenter[CreateRetailerViewModel],
-    ) -> CreateRetailerViewModel | ErrorViewModel:
-        request = CreateRetailerRequest(retailer_uuid=uuid4(), name=name, url=url, phone_number=phone_number)
-        result: Result[CreateRetailerResponse] = await self.create_retailer_use_case.execute(request)
-        if result.is_succeed:
-            success_response: CreateRetailerResponse = result.get_success_value()
-            return create_retailer_presenter.present_view_model(success_response)
-
-        error_response: Error = result.get_error_value()
-        return create_retailer_presenter.present_error_view_model(error_response)
+        retailer_uuid: UUID,
+        retailer_name: str | None = None,
+        retailer_url: str | None = None,
+        retailer_phone_number: str | None = None,
+    ) -> EmptyViewModel | ErrorViewModel:
+        command = UpdateRetailerCommand(
+            retailer_uuid=retailer_uuid,
+            retailer_name=retailer_name,
+            retailer_url=retailer_url,
+            retailer_phone_number=retailer_phone_number,
+        )
+        await self.message_bus.handle(command)
+        return EmptyViewModel()
