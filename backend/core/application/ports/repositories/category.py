@@ -7,6 +7,9 @@ from backend.core.domain.entities.category_entity.category import Category
 
 
 class CategoryRepository(ABC):
+    def __init__(self) -> None:
+        self.seen: set[Category] = set()
+
     async def get_by_uuid(self, category_uuid: UUID) -> Category:
         category = await self._get_by_uuid(category_uuid=category_uuid)
         if category is None:
@@ -16,6 +19,7 @@ class CategoryRepository(ABC):
                 searched_field_value=str(category_uuid),
                 error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
+        self.seen.add(category)
         return category
 
     async def get_by_name(self, category_name: str) -> Category:
@@ -27,16 +31,25 @@ class CategoryRepository(ABC):
                 searched_field_value=category_name,
                 error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
+        self.seen.add(category)
         return category
+
+    async def add(self, category: Category) -> None:
+        await self._add(category)
+        self.seen.add(category)
 
     @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
 
     @abstractmethod
-    async def save(self, category: Category) -> None:
+    async def _add(self, category: Category) -> None:
         pass
 
     @abstractmethod
     async def _get_by_name(self, category_name: str) -> Category | None:
+        pass
+
+    @abstractmethod
+    async def update(self, updated_category: Category) -> None:
         pass

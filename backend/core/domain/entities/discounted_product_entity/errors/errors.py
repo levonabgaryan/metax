@@ -6,9 +6,10 @@ from .error_codes import DiscountedProductErrorCodes
 
 
 class NegativePriceError(MainError):
-    def __init__(self, incorrect_price: Decimal) -> None:
-        msg = f"Price {incorrect_price} cannot be negative."
-        super().__init__(message=msg, error_code=DiscountedProductErrorCodes.NEGATIVE_PRICE)
+    def __init__(self, price_type: str, incorrect_price: Decimal) -> None:
+        msg = f"{price_type} cannot be negative."
+        details = {"price_type": price_type, "incorrect_price": str(incorrect_price)}
+        super().__init__(message=msg, error_code=DiscountedProductErrorCodes.NEGATIVE_PRICE, details=details)
 
 
 class DiscountExceedsRealPriceError(MainError):

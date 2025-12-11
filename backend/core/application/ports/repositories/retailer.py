@@ -1,14 +1,55 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
+from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.retailer_entity.retailer import Retailer
 
 
-class IRetailerRepository(ABC):
-    @abstractmethod
+class RetailerRepository(ABC):
+    def __init__(self) -> None:
+        self.seen: set[Retailer] = set()
+
     async def get_by_uuid(self, retailer_uuid: UUID) -> Retailer:
+        retailer = await self._get_by_uuid(retailer_uuid=retailer_uuid)
+        if retailer is None:
+            raise EntityIsNotFoundError(
+                entity_name="retailer",
+                searched_field_name="uuid",
+                searched_field_value=str(retailer_uuid),
+                error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
+            )
+        self.seen.add(retailer)
+        return retailer
+
+    async def get_by_name(self, retailer_name: str) -> Retailer:
+        retailer = await self._get_by_name(retailer_name=retailer_name)
+        if retailer is None:
+            raise EntityIsNotFoundError(
+                entity_name="retailer",
+                searched_field_name="name",
+                searched_field_value=retailer_name,
+                error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
+            )
+        self.seen.add(retailer)
+        return retailer
+
+    async def add(self, retailer: Retailer) -> None:
+        await self._add(retailer)
+        self.seen.add(retailer)
+
+    @abstractmethod
+    async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
         pass
 
     @abstractmethod
-    async def save(self, retailer: Retailer) -> None:
+    async def _add(self, retailer: Retailer) -> None:
+        pass
+
+    @abstractmethod
+    async def _get_by_name(self, retailer_name: str) -> Retailer | None:
+        pass
+
+    @abstractmethod
+    async def update(self, updated_retailer: Retailer) -> None:
         pass

@@ -11,7 +11,7 @@ class MainError(Exception):
         super().__init__(
             message
         )  # https://peps.python.org/pep-0352/#:~:text=No%20restriction%20is,in%20a%20subclass.
-        self.message = message
+        self.message = super().args[0]
         self.error_code = error_code
         self.details = details or {}
         self.exc_type = self.__class__.__name__

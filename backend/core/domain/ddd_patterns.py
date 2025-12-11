@@ -1,6 +1,8 @@
 from typing import Final, override
 from uuid import UUID
 
+from backend.core.domain.domain_event import DomainEvent
+
 
 class ValueObject:
     """
@@ -60,3 +62,10 @@ class AggregateRootEntity(Entity):
     It inherits from the Entity class because an AggregateRootEntity is also an entity.
     This makes the design clearer.
     """
+
+    @property
+    def has_events(self) -> bool:
+        raise NotImplementedError
+
+    def get_one_event(self) -> DomainEvent:
+        raise NotImplementedError

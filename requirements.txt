@@ -1,18 +1,19 @@
 # Primary dependencies (directly required by the project)
-dependency-injector==4.48.2
-mypy==1.18.2
+dependency-injector==4.48.3
+mypy==1.19.0
 pre_commit==4.5.0
-ruff==0.14.6
+ruff==0.14.8
+pytest==9.0.2
 
 # Installed dependencies (transitive / installed automatically)
-cfgv==3.4.0
+cfgv==3.5.0
 distlib==0.4.0
 filelock==3.20.0
 identify==2.6.15
 mypy_extensions==1.1.0
 nodeenv==1.9.1
 pathspec==0.12.1
-platformdirs==4.5.0
+platformdirs==4.5.1
 PyYAML==6.0.3
 typing_extensions==4.15.0
 virtualenv==20.35.4
