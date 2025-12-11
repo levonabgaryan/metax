@@ -1,0 +1,2 @@
+ENV=dev
+DJANGO_SECRET_KEY="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"

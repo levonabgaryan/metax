@@ -1,0 +1,21 @@
+from __future__ import annotations
+from django_stubs_ext.db.models import TypedModelMeta
+
+from django.db import models
+
+from .base_model import BaseDbModel
+
+
+class RetailerModel(BaseDbModel):
+    retailer_uuid = models.UUIDField(primary_key=True, editable=False)
+    name = models.CharField(max_length=64, unique=True, null=False)
+    url = models.URLField(max_length=2048)
+    phone_number = models.CharField(max_length=64)
+
+    class Meta(TypedModelMeta):
+        db_table = "retailers"
+        verbose_name = "retailer"
+        verbose_name_plural = "retailers"
+
+    def __str__(self) -> str:
+        return f"{self.name} ({self.retailer_uuid})"
