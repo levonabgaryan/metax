@@ -2,6 +2,12 @@
 strict = true
 show_error_codes = true
 
+plugins = ["mypy_django_plugin.main"]
+
+[tool.django-stubs]
+django_settings_module = "backend.frameworks_and_drivers.django_framework.django_framework.settings.dev"
+strict_model_abstract_attrs = true
+
 # Warns if function parameters and return value is not annotated
 disallow_untyped_defs = true
 

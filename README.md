@@ -21,5 +21,7 @@ Current version of Python: **3.14**
 ```bash
     pre-commit install
 ```
+Select interpreter from .venv
 
-* Select interpreter from .venv
+
+Create .env using env_tmpl

@@ -3,19 +3,25 @@ repos:
     rev: v1.18.2
     hooks:
       - id: mypy
-        args:
-          - --config-file=./pyproject.toml
-          - --python-executable=./.venv/bin/python3
-          - --explicit-package-bases
-          - --show-traceback
-          - .
+        name: mypy (project venv)
+        entry: ./.venv/bin/mypy --config-file=./pyproject.toml --show-traceback .
+        language: system
+        types: [ python ]
         verbose: true
         require_serial: true
         pass_filenames: false
+
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.5
     hooks:
       - id: ruff-check
-        args:
-          - --fix
+        name: ruff check (project venv)
+        entry: ./.venv/bin/ruff check --fix .
+        language: system
+        pass_filenames: false
+
       - id: ruff-format
+        name: ruff format (project venv)
+        entry: ./.venv/bin/ruff format .
+        language: system
+        pass_filenames: false
