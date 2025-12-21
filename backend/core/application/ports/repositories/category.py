@@ -1,9 +1,15 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
+from dataclasses import dataclass, field
 
 from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.category_entity.category import Category
+
+
+@dataclass(frozen=True)
+class CategoryFieldsToUpdate:
+    name: bool = field(default=False)
 
 
 class CategoryRepository(ABC):
@@ -38,6 +44,14 @@ class CategoryRepository(ABC):
         await self._add(category)
         self.seen.add(category)
 
+    async def update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
+        await self._update(updated_category=updated_category, fields_to_update=fields_to_update)
+        self.seen.add(updated_category)
+
+    async def update_helper_words(self, updated_category: Category) -> None:
+        await self._update_helper_words(updated_category=updated_category)
+        self.seen.add(updated_category)
+
     @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
@@ -51,5 +65,9 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, updated_category: Category) -> None:
+    async def _update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
+        pass
+
+    @abstractmethod
+    async def _update_helper_words(self, updated_category: Category) -> None:
         pass

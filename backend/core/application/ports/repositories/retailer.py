@@ -1,9 +1,17 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
+from dataclasses import dataclass, field
 
 from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.retailer_entity.retailer import Retailer
+
+
+@dataclass
+class RetailerFieldsToUpdate:
+    name: bool = field(default=False)
+    url: bool = field(default=False)
+    phone_number: bool = field(default=False)
 
 
 class RetailerRepository(ABC):
@@ -38,6 +46,10 @@ class RetailerRepository(ABC):
         await self._add(retailer)
         self.seen.add(retailer)
 
+    async def update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
+        await self._update(updated_retailer, fields_to_update)
+        self.seen.add(updated_retailer)
+
     @abstractmethod
     async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
         pass
@@ -51,5 +63,5 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def update(self, updated_retailer: Retailer) -> None:
+    async def _update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
         pass

@@ -37,11 +37,11 @@ class Retailer(AggregateRootEntity):
 
     def update(self, new_data: dict[str, str]) -> None:
         dispatch_map: dict[str, Callable[[str], None]] = {
-            "retailer_name": self.set_name,
-            "retailer_url": self.set_url,
-            "retailer_phone_number": self.set_phone_number,
+            "new_name": self.set_name,
+            "new_url": self.set_url,
+            "new_phone_number": self.set_phone_number,
         }
         for key, value in new_data.items():
-            handler = dispatch_map.get(key)
+            handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler:
                 handler(value)

@@ -14,8 +14,8 @@ class AddHelperWordsCommand(Command):
 class AddHelperWordsCommandHandler(CommandHandler[AddHelperWordsCommand]):
     async def handle(self, command: AddHelperWordsCommand) -> None:
         async with self.unit_of_work as uow:
-            repo = uow.repositories.categories
+            repo = uow.repositories.category
             category = await repo.get_by_uuid(command.category_uuid)
             category.add_new_helper_words(command.new_helper_words)
-            await repo.update(updated_category=category)
+            await repo.update_helper_words(updated_category=category)
             await uow.commit()
