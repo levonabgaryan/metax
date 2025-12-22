@@ -5,10 +5,8 @@ from django.db.models import QuerySet
 
 from backend.core.application.ports.repositories.category import CategoryRepository, CategoryFieldsToUpdate
 from backend.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-from backend.frameworks_and_drivers.django_framework.django_framework.discount_service.models import (
-    CategoryModel,
-    CategoryHelperWordsModel,
-)
+from django_framework.discount_service.models.category import CategoryModel
+from django_framework.discount_service.models.category_helper_words import CategoryHelperWordsModel
 
 
 class DjangoSqlLiteCategoryRepository(CategoryRepository):
@@ -63,8 +61,7 @@ class DjangoSqlLiteCategoryRepository(CategoryRepository):
             .adelete()
         )
         to_create = [
-            CategoryHelperWordsModel(word=word, category_uuid=updated_category.get_uuid())
-            for word in updated_words
+            CategoryHelperWordsModel(word=word, category_id=updated_category.get_uuid()) for word in updated_words
         ]
         if to_create:
             await CategoryHelperWordsModel._default_manager.abulk_create(to_create, ignore_conflicts=True)
@@ -72,7 +69,7 @@ class DjangoSqlLiteCategoryRepository(CategoryRepository):
     @sync_to_async(thread_sensitive=True)
     def __get_helper_words_by_category_uuid(self, category_uuid: UUID) -> frozenset[str]:
         helper_words: QuerySet[CategoryHelperWordsModel, str] = CategoryHelperWordsModel._default_manager.filter(
-            category_uuid=category_uuid
+            category_id=category_uuid
         ).values_list("word", flat=True)
         return frozenset(helper_words)
 

@@ -25,3 +25,19 @@ Select interpreter from .venv
 
 
 Create .env using env_tmpl
+
+## Tests run
+**unit**
+```bash
+  pytest tests/unit
+```
+**integration**
+```bash
+  pytest tests/integration
+```
+
+## Django project location
+```bash
+  cd backend/frameworks_and_drivers/django_framework
+```
+Then use manage.py commands

@@ -13,9 +13,9 @@ class PatternsContainer(containers.DeclarativeContainer):
 
     unit_of_work: providers.Provider[UnitOfWork] = providers.Factory(
         DjangoUnitOfWork,
-        category_repo=repos.category_repository,
-        retailer_repo=repos.retailer_repository,
-        discounted_product_repo=repos.discounted_product_repository,
+        category_repository=repos.category_repository,
+        retailer_repository=repos.retailer_repository,
+        discounted_product_repository=repos.discounted_product_repository,
     )
     unit_of_work_factory: providers.Provider[IUnitOfWorkFactory] = providers.ThreadSafeSingleton(
         DjangoUnitOfWorkFactory

@@ -15,10 +15,8 @@ class DiscountedProductModel(BaseDbModel):
     name = models.CharField(max_length=64, unique=True, null=False)
     url = models.URLField(max_length=2048)
 
-    category = models.OneToOneField(
-        "CategoryModel", on_delete=models.SET_NULL, db_column="category_uuid", null=True
-    )
-    retailer = models.OneToOneField("RetailerModel", on_delete=models.CASCADE, db_column="retailer_uuid")
+    category = models.ForeignKey("CategoryModel", on_delete=models.SET_NULL, db_column="category_uuid", null=True)
+    retailer = models.ForeignKey("RetailerModel", on_delete=models.CASCADE, db_column="retailer_uuid")
 
     class Meta(TypedModelMeta):
         db_table = "discounted_products"
