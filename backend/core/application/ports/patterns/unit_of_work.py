@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 from types import TracebackType
-from typing import AsyncIterator, ClassVar, NamedTuple, Self
+from typing import AsyncIterator, NamedTuple, Self
 
 from backend.core.application.ports.repositories.category import CategoryRepository
 from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
 from backend.core.application.ports.repositories.retailer import RetailerRepository
-from backend.core.domain.domain_event import DomainEvent
+from backend.core.domain.event import Event
 
 
 class Repositories(NamedTuple):
-    categories: CategoryRepository
-    discounted_products: DiscountedProductRepository
-    retailers: RetailerRepository
+    category: CategoryRepository
+    discounted_product: DiscountedProductRepository
+    retailer: RetailerRepository
 
 
 class UnitOfWork(ABC):
@@ -23,7 +23,17 @@ class UnitOfWork(ABC):
 
     """
 
-    repositories: ClassVar[Repositories]
+    def __init__(
+        self,
+        category_repository: CategoryRepository,
+        discounted_product_repository: DiscountedProductRepository,
+        retailer_repository: RetailerRepository,
+    ):
+        self.repositories = Repositories(
+            category=category_repository,
+            discounted_product=discounted_product_repository,
+            retailer=retailer_repository,
+        )
 
     async def __aenter__(self) -> Self:
         return self
@@ -40,18 +50,15 @@ class UnitOfWork(ABC):
         """
         await self.rollback()
 
-    async def commit(self) -> None:
-        await self._commit()
-
     @abstractmethod
-    async def _commit(self) -> None:
+    async def commit(self) -> None:
         pass
 
     @abstractmethod
     async def rollback(self) -> None:
         pass
 
-    async def collect_new_events(self) -> AsyncIterator[DomainEvent]:
+    async def collect_new_events(self) -> AsyncIterator[Event]:
         for repo in self.repositories:
             for aggregate in repo.seen:
                 while aggregate.has_events:

@@ -24,9 +24,9 @@ class RetailerController:
     ) -> EmptyViewModel | ErrorViewModel:
         command = UpdateRetailerCommand(
             retailer_uuid=retailer_uuid,
-            retailer_name=retailer_name,
-            retailer_url=retailer_url,
-            retailer_phone_number=retailer_phone_number,
+            new_name=retailer_name,
+            new_url=retailer_url,
+            new_phone_number=retailer_phone_number,
         )
         await self.message_bus.handle(command)
         return EmptyViewModel()

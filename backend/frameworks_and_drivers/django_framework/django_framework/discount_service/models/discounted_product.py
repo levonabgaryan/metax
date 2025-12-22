@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+
 from django_stubs_ext.db.models import TypedModelMeta
 
 from django.db import models

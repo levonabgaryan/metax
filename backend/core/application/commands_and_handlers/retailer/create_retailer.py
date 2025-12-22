@@ -23,5 +23,5 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
                 phone_number=command.phone_number,
                 url=command.url,
             )
-            await uow.repositories.retailers.add(retailer)
+            await uow.repositories.retailer.add(retailer)
             await uow.commit()

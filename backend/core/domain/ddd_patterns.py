@@ -1,7 +1,7 @@
 from typing import Final, override
 from uuid import UUID
 
-from backend.core.domain.domain_event import DomainEvent
+from backend.core.domain.event import Event
 
 
 class ValueObject:
@@ -67,5 +67,5 @@ class AggregateRootEntity(Entity):
     def has_events(self) -> bool:
         raise NotImplementedError
 
-    def get_one_event(self) -> DomainEvent:
+    def get_one_event(self) -> Event:
         raise NotImplementedError

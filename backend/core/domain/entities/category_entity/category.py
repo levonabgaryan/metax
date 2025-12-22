@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
-from backend.core.domain.domain_event import DomainEvent
+from backend.core.domain.event import Event
 from backend.core.domain.entities.category_entity.errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
@@ -21,7 +22,7 @@ class Category(AggregateRootEntity):
         super().__init__(_uuid=category_uuid)
         self.__name = name
         self.__helper_words = helper_words
-        self.events: list[DomainEvent] = []
+        self.events: list[Event] = []
 
     def add_new_helper_words(self, new_words: frozenset[str]) -> None:
         existing_words = self.__helper_words.words
@@ -45,11 +46,26 @@ class Category(AggregateRootEntity):
     def has_events(self) -> bool:
         return bool(self.events)
 
-    def get_one_event(self) -> DomainEvent:
+    def get_one_event(self) -> Event:
         return self.events.pop(0)
 
     def set_name(self, new_name: str) -> None:
         self.__name = new_name
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def get_helper_words(self) -> frozenset[str]:
+        return self.__helper_words.words
+
+    def update(self, new_data: dict[str, str]) -> None:
+        dispatch_map: dict[str, Callable[[str], None]] = {
+            "new_name": self.set_name,
+        }
+        for key, value in new_data.items():
+            handler: Callable[[str], None] | None = dispatch_map.get(key)
+            if handler:
+                handler(value)
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

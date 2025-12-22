@@ -40,6 +40,12 @@ class DiscountedProduct(AggregateRootEntity):
     def get_name(self) -> str:
         return self.__name
 
+    def get_real_price(self) -> Decimal:
+        return self.__price_details.real_price
+
+    def get_discounted_price(self) -> Decimal:
+        return self.__price_details.real_price
+
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
 class PriceDetails(ValueObject):
