@@ -1,17 +1,17 @@
 from uuid import uuid4
 
-from backend.core.domain.entities.retailer_entity.retailer import Retailer
+from backend.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
 
 
 def test_retailer_update() -> None:
     # given
     retailer = Retailer(retailer_uuid=uuid4(), name="test_name", url="test_url", phone_number="test_number")
 
-    new_data = {
-        "new_name": "new_name",
-        "new_url": "new_url",
-        "new_phone_number": "new_phone_number",
-    }
+    new_data = DataForRetailerUpdate(
+        new_name="new_name",
+        new_url="new_url",
+        new_phone_number="new_phone_number",
+    )
 
     # when
     retailer.update(new_data)

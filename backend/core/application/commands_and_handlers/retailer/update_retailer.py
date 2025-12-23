@@ -5,6 +5,7 @@ from uuid import UUID
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler
 from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 
 
 @dataclass(frozen=True)
@@ -23,12 +24,12 @@ class UpdateRetailerCommand(Command):
         )
 
     @property
-    def new_data(self) -> dict[str, Any]:
-        new_data = {}
-        for key, value in self.__dict__.items():
-            if value is not None:
-                new_data.update({key: value})
-        return new_data
+    def new_data(self) -> DataForRetailerUpdate:
+        return DataForRetailerUpdate(
+            new_name=self.new_name,
+            new_url=self.new_url,
+            new_phone_number=self.new_phone_number,
+        )
 
 
 class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):

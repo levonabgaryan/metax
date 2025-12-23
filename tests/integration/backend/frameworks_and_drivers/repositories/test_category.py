@@ -5,7 +5,7 @@ import pytest
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.core.domain.entities.category_entity.category import Category, CategoryHelperWords
+from backend.core.domain.entities.category_entity.category import Category, CategoryHelperWords, DataForCategoryUpdate
 
 
 @pytest.mark.django_db(transaction=True)
@@ -47,7 +47,7 @@ async def test_category_repo_update(unit_of_work: UnitOfWork) -> None:
         await uow.repositories.category.add(category)
         await uow.commit()
 
-    new_data = {"new_name": "test_new_name"}
+    new_data = DataForCategoryUpdate(new_name="test_new_name")
     fields_to_update = CategoryFieldsToUpdate(name=True)
     # when
     category.update(new_data)

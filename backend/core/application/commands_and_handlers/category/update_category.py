@@ -5,6 +5,7 @@ from uuid import UUID
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler
 from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
+from backend.core.domain.entities.category_entity.category import DataForCategoryUpdate
 
 
 @dataclass(frozen=True)
@@ -17,12 +18,8 @@ class UpdateCategoryCommand(Command):
         return CategoryFieldsToUpdate(name=self.new_name is not None)
 
     @property
-    def new_data(self) -> dict[str, Any]:
-        new_data = {}
-        for key, value in self.__dict__.items():
-            if value is not None:
-                new_data.update({key: value})
-        return new_data
+    def new_data(self) -> DataForCategoryUpdate:
+        return DataForCategoryUpdate(new_name=self.new_name)
 
 
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):

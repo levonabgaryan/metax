@@ -5,7 +5,7 @@ import pytest
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
-from backend.core.domain.entities.retailer_entity.retailer import Retailer
+from backend.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
 
 
 @pytest.mark.django_db(transaction=True)
@@ -45,11 +45,11 @@ async def test_retailer_repo_update(unit_of_work: UnitOfWork) -> None:
         await uow.repositories.retailer.add(retailer)
         await uow.commit()
 
-    new_data = {
-        "new_name": "new_test_name",
-        "new_url": "new_test_url",
-        "new_phone_number": "new_test_phone_number",
-    }
+    new_data = DataForRetailerUpdate(
+        new_name="new_name",
+        new_url="new_url",
+        new_phone_number="new_phone_number",
+    )
     fields_to_update = RetailerFieldsToUpdate(
         name=True,
         url=True,

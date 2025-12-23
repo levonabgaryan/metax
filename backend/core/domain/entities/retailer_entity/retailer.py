@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, TypedDict
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity
@@ -35,7 +35,7 @@ class Retailer(AggregateRootEntity):
     def get_phone_number(self) -> str:
         return self.__phone_number
 
-    def update(self, new_data: dict[str, str]) -> None:
+    def update(self, new_data: DataForRetailerUpdate) -> None:
         dispatch_map: dict[str, Callable[[str], None]] = {
             "new_name": self.set_name,
             "new_url": self.set_url,
@@ -43,5 +43,13 @@ class Retailer(AggregateRootEntity):
         }
         for key, value in new_data.items():
             handler: Callable[[str], None] | None = dispatch_map.get(key)
-            if handler:
+            if (handler is not None
+                and value is not None
+                and isinstance(value, str)
+            ):
                 handler(value)
+
+class DataForRetailerUpdate(TypedDict):
+    new_name: str | None
+    new_url: str | None
+    new_phone_number: str | None

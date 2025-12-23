@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Callable
+from typing import Callable, TypedDict
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
@@ -58,16 +58,23 @@ class Category(AggregateRootEntity):
     def get_helper_words(self) -> frozenset[str]:
         return self.__helper_words.words
 
-    def update(self, new_data: dict[str, str]) -> None:
+    def update(self, new_data: DataForCategoryUpdate) -> None:
         dispatch_map: dict[str, Callable[[str], None]] = {
             "new_name": self.set_name,
         }
         for key, value in new_data.items():
             handler: Callable[[str], None] | None = dispatch_map.get(key)
-            if handler:
+            if (handler is not None
+                and value is not None
+                and isinstance(value, str)
+            ):
                 handler(value)
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
 class CategoryHelperWords(ValueObject):
     words: frozenset[str]
+
+
+class DataForCategoryUpdate(TypedDict):
+    new_name: str | None
