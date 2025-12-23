@@ -14,14 +14,14 @@ from backend.core.domain.entities.discounted_product_entity.errors.errors import
 class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
-        uuid_: UUID,
+        discounted_product_uuid: UUID,
         category_uuid: UUID,
         retailer_uuid: UUID,
         price_details: PriceDetails,
         name: str,
         url: str,
     ) -> None:
-        super().__init__(_uuid=uuid_)
+        super().__init__(_uuid=discounted_product_uuid)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details
@@ -44,7 +44,7 @@ class DiscountedProduct(AggregateRootEntity):
         return self.__price_details.real_price
 
     def get_discounted_price(self) -> Decimal:
-        return self.__price_details.real_price
+        return self.__price_details.discounted_price
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
