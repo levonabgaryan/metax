@@ -5,7 +5,11 @@ import pytest
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.core.domain.entities.category_entity.category import Category, CategoryHelperWords, DataForCategoryUpdate
+from backend.core.domain.entities.category_entity.category import (
+    Category,
+    CategoryHelperWords,
+    DataForCategoryUpdate,
+)
 
 
 @pytest.mark.django_db(transaction=True)

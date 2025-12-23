@@ -64,10 +64,7 @@ class Category(AggregateRootEntity):
         }
         for key, value in new_data.items():
             handler: Callable[[str], None] | None = dispatch_map.get(key)
-            if (handler is not None
-                and value is not None
-                and isinstance(value, str)
-            ):
+            if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
 
 

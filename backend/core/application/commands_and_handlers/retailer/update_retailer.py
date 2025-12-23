@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Any
 from uuid import UUID
 
 from backend.core.application.patterns.command import Command

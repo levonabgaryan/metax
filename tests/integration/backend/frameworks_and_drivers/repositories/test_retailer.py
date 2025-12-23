@@ -67,9 +67,9 @@ async def test_retailer_repo_update(unit_of_work: UnitOfWork) -> None:
         retailer = await uow.repositories.retailer.get_by_uuid(retailer_uuid)
         await uow.commit()
 
-    assert retailer.get_name() == "new_test_name"
-    assert retailer.get_url() == "new_test_url"
-    assert retailer.get_phone_number() == "new_test_phone_number"
+    assert retailer.get_name() == "new_name"
+    assert retailer.get_url() == "new_url"
+    assert retailer.get_phone_number() == "new_phone_number"
 
 
 @pytest.mark.django_db(transaction=True)
