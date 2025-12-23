@@ -14,8 +14,8 @@ from backend.core.domain.entities.category_entity.errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
-from backend.interface_adapters.empty_view_model import EmptyViewModel
-from backend.interface_adapters.error_view_model import ErrorViewModel
+from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
+from backend.interface_adapters.patterns.operation_result import ErrorViewModel, OperationResult
 
 
 class CategoryController:
@@ -35,37 +35,41 @@ class CategoryController:
         self,
         name: str,
         helper_words: frozenset[str],
-    ) -> EmptyViewModel | ErrorViewModel:
+    ) -> OperationResult[EmptyViewModel]:
         command = CreateCategoryCommand(name=name, helper_words=helper_words, category_uuid=uuid4())
         await self.message_bus.handle(command)
-        return EmptyViewModel()
+        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
 
     async def add_new_helper_words(
         self,
         category_uuid: UUID,
         new_words: frozenset[str],
-    ) -> EmptyViewModel | ErrorViewModel:
+    ) -> OperationResult[EmptyViewModel]:
         command = AddHelperWordsCommand(category_uuid=category_uuid, new_helper_words=new_words)
         try:
             await self.message_bus.handle(command)
         except DuplicateCategoryHelperWordsError as error:
-            return ErrorViewModel.from_error(error)
+            error_view_model = ErrorViewModel.from_error(error)
+            return OperationResult.from_error_view_model(error_view_model)
         except EntityIsNotFoundError as error:
-            return ErrorViewModel.from_error(error)
+            error_view_model = ErrorViewModel.from_error(error)
+            return OperationResult.from_error_view_model(error_view_model)
 
-        return EmptyViewModel()
+        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
 
     async def delete_helper_words(
         self,
         category_uuid: UUID,
         words_to_delete: frozenset[str],
-    ) -> EmptyViewModel | ErrorViewModel:
+    ) -> OperationResult[EmptyViewModel]:
         command = DeleteHelperWordsCommand(category_uuid=category_uuid, words_to_delete=words_to_delete)
         try:
             await self.message_bus.handle(command)
         except CategoryHelperWordsNotFoundForDeletionError as error:
-            return ErrorViewModel.from_error(error)
+            error_view_model = ErrorViewModel.from_error(error)
+            return OperationResult.from_error_view_model(error_view_model)
         except EntityIsNotFoundError as error:
-            return ErrorViewModel.from_error(error)
+            error_view_model = ErrorViewModel.from_error(error)
+            return OperationResult.from_error_view_model(error_view_model)
 
-        return EmptyViewModel()
+        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
