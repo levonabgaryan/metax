@@ -8,7 +8,7 @@ from backend.interface_adapters.patterns.operation_result import ErrorViewModel,
 
 class BasePresenter(ABC, Generic[GenericViewModel, GenericResponseDTO]):
     @staticmethod
-    def present_empty(response: EmptyResponseDTO) -> EmptyViewModel:
+    def present_empty(response: EmptyResponseDTO = EmptyResponseDTO()) -> EmptyViewModel:
         return EmptyViewModel()
 
     @staticmethod
