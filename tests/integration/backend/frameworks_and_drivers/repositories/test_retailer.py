@@ -2,19 +2,18 @@ from uuid import uuid4
 
 import pytest
 
-from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.core.application.input_ports.repositories.retailer import RetailerFieldsToUpdate
-from backend.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
+from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from tests.integration.conftest import make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_retailer_repo_add_and_get(unit_of_work: UnitOfWork) -> None:
     # given
-    retailer_uuid = uuid4()
-    name = "test_name"
-    retailer = Retailer(retailer_uuid=retailer_uuid, name=name, url="test_url", phone_number="test_number")
+    retailer = make_retailer_entity()
 
     # when
     async with unit_of_work as uow:
@@ -23,23 +22,21 @@ async def test_retailer_repo_add_and_get(unit_of_work: UnitOfWork) -> None:
 
     # then
     async with unit_of_work as uow:
-        got_retailer_by_uuid = await uow.repositories.retailer.get_by_uuid(retailer_uuid)
-        got_retailer_by_name = await uow.repositories.retailer.get_by_name(name)
+        got_retailer_by_uuid = await uow.repositories.retailer.get_by_uuid(retailer.get_uuid())
+        got_retailer_by_name = await uow.repositories.retailer.get_by_name(retailer.get_name())
 
-        assert got_retailer_by_uuid.get_uuid() == retailer_uuid
-        assert got_retailer_by_uuid.get_name() == name
+        assert got_retailer_by_uuid.get_uuid() == retailer.get_uuid()
+        assert got_retailer_by_uuid.get_name() == retailer.get_name()
 
-        assert got_retailer_by_name.get_uuid() == retailer_uuid
-        assert got_retailer_by_name.get_name() == name
+        assert got_retailer_by_name.get_uuid() == retailer.get_uuid()
+        assert got_retailer_by_name.get_name() == retailer.get_name()
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_retailer_repo_update(unit_of_work: UnitOfWork) -> None:
     # given
-    retailer_uuid = uuid4()
-    name = "test_name"
-    retailer = Retailer(retailer_uuid=retailer_uuid, name=name, url="test_url", phone_number="test_number")
+    retailer = make_retailer_entity()
 
     async with unit_of_work as uow:
         await uow.repositories.retailer.add(retailer)
@@ -64,7 +61,7 @@ async def test_retailer_repo_update(unit_of_work: UnitOfWork) -> None:
 
     # then
     async with unit_of_work as uow:
-        retailer = await uow.repositories.retailer.get_by_uuid(retailer_uuid)
+        retailer = await uow.repositories.retailer.get_by_uuid(retailer.get_uuid())
         await uow.commit()
 
     assert retailer.get_name() == "new_name"

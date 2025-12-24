@@ -3,7 +3,7 @@ from uuid import UUID
 
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler
-from backend.core.application.input_ports.repositories.retailer import RetailerFieldsToUpdate
+from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
 from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 
 

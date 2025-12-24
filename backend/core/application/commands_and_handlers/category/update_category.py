@@ -3,7 +3,7 @@ from uuid import UUID
 
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler
-from backend.core.application.input_ports.repositories.category import CategoryFieldsToUpdate
+from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
 from backend.core.domain.entities.category_entity.category import DataForCategoryUpdate
 
 

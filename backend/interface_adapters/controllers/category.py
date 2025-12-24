@@ -6,7 +6,7 @@ from backend.core.application.commands_and_handlers.category import (
 )
 from backend.core.application.patterns.message_buss import MessageBus
 from backend.core.application.patterns.use_case_abc import EmptyResponseDTO, GenericResponseDTO
-from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.application.use_cases.category.add_new_category_helper_words import AddHelperWordsUseCase
 from backend.core.application.use_cases.category.delete_helper_words import DeleteHelperWordsUseCase
 from backend.core.application.use_cases.category.dtos import AddHelperWordsRequest, DeleteHelperWordsRequest
@@ -16,7 +16,7 @@ from backend.core.domain.entities.category_entity.errors.errors import (
 )
 from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
 from backend.interface_adapters.patterns.operation_result import OperationResult
-from backend.interface_adapters.output_ports.presenters.base_presenter import BasePresenter
+from backend.interface_adapters.ports.presenters.base_presenter import BasePresenter
 from backend.interface_adapters.view_models.category import CategoryBaseViewModel
 
 

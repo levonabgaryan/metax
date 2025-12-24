@@ -1,6 +1,6 @@
 from typing import AsyncIterator
 
-from backend.core.application.input_ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from backend.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 
 

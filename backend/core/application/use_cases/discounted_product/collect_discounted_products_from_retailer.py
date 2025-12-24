@@ -1,6 +1,6 @@
 from backend.core.application.patterns.use_case_abc import UseCase, EmptyResponseDTO
-from backend.core.application.input_ports.patterns.discounted_product_factory import IDiscountedProductFactory
-from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsFromRetailerRequest
 
 

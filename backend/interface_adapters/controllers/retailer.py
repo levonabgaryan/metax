@@ -3,7 +3,7 @@ from uuid import uuid4, UUID
 from backend.core.application.commands_and_handlers.retailer import CreateRetailerCommand, UpdateRetailerCommand
 from backend.core.application.patterns.message_buss import MessageBus
 from backend.core.application.patterns.use_case_abc import GenericResponseDTO
-from backend.interface_adapters.output_ports.presenters.base_presenter import BasePresenter
+from backend.interface_adapters.ports.presenters.base_presenter import BasePresenter
 from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
 from backend.interface_adapters.patterns.operation_result import OperationResult
 from backend.interface_adapters.view_models.retailer import RetailerBaseViewModel

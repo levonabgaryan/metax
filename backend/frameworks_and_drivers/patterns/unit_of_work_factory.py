@@ -1,7 +1,7 @@
 from dependency_injector import providers
 
 from backend.core.application.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 
 
 class DjangoUnitOfWorkFactory(IUnitOfWorkFactory):

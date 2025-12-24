@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import AsyncIterator, NamedTuple, Self
 
-from backend.core.application.input_ports.repositories.category import CategoryRepository
-from backend.core.application.input_ports.repositories.discounted_product import DiscountedProductRepository
-from backend.core.application.input_ports.repositories.retailer import RetailerRepository
+from backend.core.application.ports.repositories.category import CategoryRepository
+from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
+from backend.core.application.ports.repositories.retailer import RetailerRepository
 from backend.core.domain.event import Event
 
 

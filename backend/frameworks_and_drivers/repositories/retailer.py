@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from backend.core.application.input_ports.repositories.retailer import RetailerRepository, RetailerFieldsToUpdate
+from backend.core.application.ports.repositories.retailer import RetailerRepository, RetailerFieldsToUpdate
 from backend.core.domain.entities.retailer_entity.retailer import Retailer
 from django_framework.discount_service.models import RetailerModel
 

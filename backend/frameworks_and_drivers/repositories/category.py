@@ -3,7 +3,7 @@ from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
 
-from backend.core.application.input_ports.repositories.category import CategoryRepository, CategoryFieldsToUpdate
+from backend.core.application.ports.repositories.category import CategoryRepository, CategoryFieldsToUpdate
 from backend.core.domain.entities.category_entity.category import Category, CategoryHelperWords
 from django_framework.discount_service.models.category import CategoryModel
 from django_framework.discount_service.models.category_helper_words import CategoryHelperWordsModel

@@ -37,3 +37,10 @@ class DiscountedProductUseCaseContainer(containers.DeclarativeContainer):
         unit_of_work=patterns.container.unit_of_work,
         discounted_product_factory=patterns.container.discounted_product_factory,
     )
+
+
+class UseCasesContainer(containers.DeclarativeContainer):
+    category: providers.Container[CategoryUseCaseContainer] = providers.Container(CategoryUseCaseContainer)
+    discounted_product: providers.Container[DiscountedProductUseCaseContainer] = providers.Container(
+        DiscountedProductUseCaseContainer
+    )

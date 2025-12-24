@@ -12,7 +12,7 @@ from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from backend.core.application.patterns.event_handler_abc import EventHandler
 from backend.core.application.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.domain.event import Event, GenericEvent
 
 logger = logging.getLogger(__name__)
