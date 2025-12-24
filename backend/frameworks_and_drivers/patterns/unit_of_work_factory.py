@@ -1,15 +1,12 @@
+from dependency_injector import providers
+
 from backend.core.application.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.frameworks_and_drivers.patterns.unit_of_work import DjangoUnitOfWork
-from backend.frameworks_and_drivers.repositories.category import DjangoSqlLiteCategoryRepository
-from backend.frameworks_and_drivers.repositories.discounted_product import DjangoSqlLiteDiscountedProductRepository
-from backend.frameworks_and_drivers.repositories.retailer import DjangoSqlLiteRetailerRepository
+from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
 
 
 class DjangoUnitOfWorkFactory(IUnitOfWorkFactory):
+    def __init__(self, unit_of_work_provider: providers.Provider[UnitOfWork]) -> None:
+        self.unit_of_work_provider = unit_of_work_provider
+
     def create(self) -> UnitOfWork:
-        return DjangoUnitOfWork(
-            category_repository=DjangoSqlLiteCategoryRepository(),
-            retailer_repository=DjangoSqlLiteRetailerRepository(),
-            discounted_product_repository=DjangoSqlLiteDiscountedProductRepository(),
-        )
+        return self.unit_of_work_provider()

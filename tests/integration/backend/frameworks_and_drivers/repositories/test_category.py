@@ -2,9 +2,9 @@ from uuid import uuid4
 
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.input_ports.repositories.category import CategoryFieldsToUpdate
+from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.category_entity.category import (
     Category,
     CategoryHelperWords,

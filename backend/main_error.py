@@ -4,8 +4,8 @@ from typing import Any, Optional
 class MainError(Exception):
     def __init__(
         self,
+        error_code: str,
         message: str = "An error occurred",
-        error_code: str | None = None,
         details: Optional[dict[str, Any]] = None,
     ) -> None:
         super().__init__(

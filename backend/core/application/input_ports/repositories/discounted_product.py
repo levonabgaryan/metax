@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.input_ports.repositories.errors.error_codes import RepositoriesErrorCodes
+from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
 )

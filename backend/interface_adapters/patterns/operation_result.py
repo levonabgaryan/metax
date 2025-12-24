@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
-from typing import Any, Self, TypeVar
+from typing import Any, Self, TypeVar, Generic
 
+from backend.interface_adapters.view_models.base_view_model import BaseViewModel
 from backend.main_error import MainError
 
 
@@ -13,7 +14,7 @@ class ErrorViewModel:
     """
 
     message: str
-    error_code: str | None = field(default=None)
+    error_code: str
     details: dict[str, Any] | None = field(default=None)
 
     @classmethod
@@ -21,19 +22,19 @@ class ErrorViewModel:
         return cls(message=error.message, error_code=error.error_code, details=error.details)
 
 
-SuccessViewModel = TypeVar("SuccessViewModel")
+GenericViewModel = TypeVar("GenericViewModel", bound=BaseViewModel)
 
 
 @dataclass(frozen=True)
-class OperationResult[SuccessViewModel]:
-    _succeeded_view_model: SuccessViewModel | None = field(default=None)
+class OperationResult(Generic[GenericViewModel]):
+    _succeeded_view_model: GenericViewModel | None = field(default=None)
     _error_view_model: ErrorViewModel | None = field(default=None)
 
     @property
     def is_succeeded(self) -> bool:
         return self._succeeded_view_model is not None and self._error_view_model is None
 
-    def get_succeeded_view_model(self) -> SuccessViewModel:
+    def get_succeeded_view_model(self) -> GenericViewModel:
         if self._succeeded_view_model is None:
             raise AttributeError(f"Instance of {type(self).__name__} has no attribute 'succeeded_view_model'")
         return self._succeeded_view_model
@@ -48,5 +49,5 @@ class OperationResult[SuccessViewModel]:
         return cls(_error_view_model=error_view_model)
 
     @classmethod
-    def from_succeeded_view_model(cls, succeeded_view_model: SuccessViewModel) -> Self:
+    def from_succeeded_view_model(cls, succeeded_view_model: GenericViewModel) -> Self:
         return cls(_succeeded_view_model=succeeded_view_model)

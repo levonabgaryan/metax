@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 from dataclasses import dataclass, field
 
-from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.input_ports.repositories.errors.error_codes import RepositoriesErrorCodes
+from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.retailer_entity.retailer import Retailer
 
 

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
+from backend.core.application.input_ports.repositories.discounted_product import DiscountedProductRepository
 from backend.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
     PriceDetails,

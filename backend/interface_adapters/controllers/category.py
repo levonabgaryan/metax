@@ -9,13 +9,15 @@ from backend.core.application.commands_and_handlers.category import (
     DeleteHelperWordsCommandHandler,
 )
 from backend.core.application.patterns.message_buss import MessageBus
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.patterns.use_case_abc import EmptyResponseDTO
+from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.domain.entities.category_entity.errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
 from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
-from backend.interface_adapters.patterns.operation_result import ErrorViewModel, OperationResult
+from backend.interface_adapters.patterns.operation_result import OperationResult
+from backend.interface_adapters.presenters.output_ports.base_presenter import BasePresenter
 
 
 class CategoryController:
@@ -25,11 +27,13 @@ class CategoryController:
         create_category_cmd_handler: CreateCategoryCommandHandler,
         add_new_helper_words_cmd_handler: AddHelperWordsCommandHandler,
         delete_helper_words_cmd_handler: DeleteHelperWordsCommandHandler,
+        category_presenter: BasePresenter,
     ) -> None:
         self.message_bus = message_bus
         self.create_category_cmd_handler = create_category_cmd_handler
         self.add_new_helper_words_cmd_handler = add_new_helper_words_cmd_handler
         self.delete_helper_words_cmd_handler = delete_helper_words_cmd_handler
+        self.category_presenter = category_presenter
 
     async def create(
         self,
@@ -38,7 +42,8 @@ class CategoryController:
     ) -> OperationResult[EmptyViewModel]:
         command = CreateCategoryCommand(name=name, helper_words=helper_words, category_uuid=uuid4())
         await self.message_bus.handle(command)
-        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
+        view_model = self.category_presenter.present_empty(EmptyResponseDTO())
+        return OperationResult.from_succeeded_view_model(view_model)
 
     async def add_new_helper_words(
         self,
@@ -49,13 +54,22 @@ class CategoryController:
         try:
             await self.message_bus.handle(command)
         except DuplicateCategoryHelperWordsError as error:
-            error_view_model = ErrorViewModel.from_error(error)
+            error_view_model = self.category_presenter.present_error(
+                message=error.message,
+                error_code=error.error_code,
+                details=error.details,
+            )
             return OperationResult.from_error_view_model(error_view_model)
         except EntityIsNotFoundError as error:
-            error_view_model = ErrorViewModel.from_error(error)
+            error_view_model = self.category_presenter.present_error(
+                message=error.message,
+                error_code=error.error_code,
+                details=error.details,
+            )
             return OperationResult.from_error_view_model(error_view_model)
 
-        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
+        view_model = self.category_presenter.present_empty(EmptyResponseDTO())
+        return OperationResult.from_succeeded_view_model(view_model)
 
     async def delete_helper_words(
         self,
@@ -66,10 +80,19 @@ class CategoryController:
         try:
             await self.message_bus.handle(command)
         except CategoryHelperWordsNotFoundForDeletionError as error:
-            error_view_model = ErrorViewModel.from_error(error)
+            error_view_model = self.category_presenter.present_error(
+                message=error.message,
+                error_code=error.error_code,
+                details=error.details,
+            )
             return OperationResult.from_error_view_model(error_view_model)
         except EntityIsNotFoundError as error:
-            error_view_model = ErrorViewModel.from_error(error)
+            error_view_model = self.category_presenter.present_error(
+                message=error.message,
+                error_code=error.error_code,
+                details=error.details,
+            )
             return OperationResult.from_error_view_model(error_view_model)
 
-        return OperationResult.from_succeeded_view_model(succeeded_view_model=EmptyViewModel())
+        view_model = self.category_presenter.present_empty(EmptyResponseDTO())
+        return OperationResult.from_succeeded_view_model(view_model)

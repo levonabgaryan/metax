@@ -4,6 +4,6 @@ from backend.frameworks_and_drivers.di.patterns_container import PatternsContain
 
 
 class MainContainer(containers.DeclarativeContainer):
-    config = providers.Configuration()
+    config: providers.Configuration = providers.Configuration()
 
-    patterns = providers.Container(PatternsContainer)
+    patterns: providers.Container[PatternsContainer] = providers.Container(PatternsContainer)

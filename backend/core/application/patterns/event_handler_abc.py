@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
 from backend.core.domain.event import GenericEvent
 
 

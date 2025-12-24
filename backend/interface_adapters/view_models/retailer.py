@@ -1,7 +1,9 @@
-from typing import TypedDict, Required, NotRequired
+from typing import Required, NotRequired
+
+from backend.interface_adapters.view_models.base_view_model import BaseViewModel
 
 
-class RetailerBaseViewModel(TypedDict):
+class RetailerBaseViewModel(BaseViewModel):
     retailer_uuid: Required[str]
     name: Required[str]
     url: NotRequired[str]

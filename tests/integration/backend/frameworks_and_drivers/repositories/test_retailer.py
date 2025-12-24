@@ -2,9 +2,9 @@ from uuid import uuid4
 
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from backend.core.application.input_ports.patterns.unit_of_work import UnitOfWork
+from backend.core.application.input_ports.repositories.errors.errors import EntityIsNotFoundError
+from backend.core.application.input_ports.repositories.retailer import RetailerFieldsToUpdate
 from backend.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
 
 
