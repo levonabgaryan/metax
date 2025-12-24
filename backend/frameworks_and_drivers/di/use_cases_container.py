@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
 from backend.core.application.patterns.use_case_abc import UseCase, EmptyResponseDTO
-from backend.core.application.use_cases.category.add_new_category_helper_words import AddHelperWordsUseCase
+from backend.core.application.use_cases.category.add_new_helper_words import AddHelperWordsUseCase
 from backend.core.application.use_cases.category.delete_helper_words import DeleteHelperWordsUseCase
 from backend.core.application.use_cases.category.dtos import AddHelperWordsRequest, DeleteHelperWordsRequest
 from backend.core.application.use_cases.discounted_product.collect_discounted_products_from_retailer import (

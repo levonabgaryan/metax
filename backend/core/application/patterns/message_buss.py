@@ -72,12 +72,12 @@ class MessageBus:
 
 
 def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericCommand]]:
-    command_handlers = {
+    commands_handlers = {
         CreateCategoryCommand: CreateCategoryCommandHandler,
         UpdateCategoryCommand: UpdateCategoryCommandHandler,
     }
     command_type = type(command)
-    handler_class = command_handlers[command_type]
+    handler_class = commands_handlers[command_type]
     return cast(type[CommandHandler[GenericCommand]], handler_class)
 
 

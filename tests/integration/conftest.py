@@ -12,7 +12,12 @@ from backend.core.domain.entities.discounted_product_entity.discounted_product i
 from backend.core.domain.entities.retailer_entity.retailer import Retailer
 from backend.frameworks_and_drivers.di.boostrap import main_container
 from backend.frameworks_and_drivers.di.boostrap import MainContainer
+from backend.frameworks_and_drivers.di.commands_handlers_container import (
+    CategoryCommandsHandlersContainer,
+    RetailerCommandsHandlersContainer,
+)
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
+from backend.frameworks_and_drivers.di.use_cases_container import CategoryUseCaseContainer
 
 
 @pytest.fixture(scope="session")
@@ -24,6 +29,21 @@ def container() -> MainContainer:
 def unit_of_work(container: MainContainer) -> UnitOfWork:
     patterns: PatternsContainer = container.patterns()
     return patterns.unit_of_work()
+
+
+@pytest.fixture
+def category_commands_handlers(container: MainContainer) -> CategoryCommandsHandlersContainer:
+    return container.commands_handlers().category()
+
+
+@pytest.fixture
+def retailer_commands_handlers(container: MainContainer) -> RetailerCommandsHandlersContainer:
+    return container.commands_handlers().retailer()
+
+
+@pytest.fixture
+def category_use_cases(container: MainContainer) -> CategoryUseCaseContainer:
+    return container.use_cases().category()
 
 
 def make_category_entity(

@@ -16,7 +16,7 @@ from backend.core.application.patterns.command_handler_abc import CommandHandler
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
 
 
-class CategoryCommandHandlersContainer(containers.DeclarativeContainer):
+class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
     patterns: providers.Container[PatternsContainer] = providers.Container(PatternsContainer)
 
     create_category: providers.Provider[CommandHandler[CreateCategoryCommand]] = providers.Factory(
@@ -29,7 +29,7 @@ class CategoryCommandHandlersContainer(containers.DeclarativeContainer):
     )
 
 
-class RetailerCommandHandlersContainer(containers.DeclarativeContainer):
+class RetailerCommandsHandlersContainer(containers.DeclarativeContainer):
     patterns: providers.Container[PatternsContainer] = providers.Container(PatternsContainer)
 
     create_retailer: providers.Provider[CommandHandler[CreateRetailerCommand]] = providers.Factory(
@@ -43,10 +43,10 @@ class RetailerCommandHandlersContainer(containers.DeclarativeContainer):
     )
 
 
-class CommandHandlersContainer(containers.DeclarativeContainer):
-    category: providers.Container[CategoryCommandHandlersContainer] = providers.Container(
-        CategoryCommandHandlersContainer
+class CommandsHandlersContainer(containers.DeclarativeContainer):
+    category: providers.Container[CategoryCommandsHandlersContainer] = providers.Container(
+        CategoryCommandsHandlersContainer
     )
-    retailer: providers.Container[RetailerCommandHandlersContainer] = providers.Container(
-        RetailerCommandHandlersContainer
+    retailer: providers.Container[RetailerCommandsHandlersContainer] = providers.Container(
+        RetailerCommandsHandlersContainer
     )
