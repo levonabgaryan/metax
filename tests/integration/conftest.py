@@ -19,6 +19,7 @@ from backend.frameworks_and_drivers.di.commands_handlers_container import (
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from backend.frameworks_and_drivers.di.use_cases_container import CategoryUseCaseContainer
 from backend.interface_adapters.controllers.category import CategoryController
+from backend.interface_adapters.controllers.retailer import RetailerController
 
 
 @pytest.fixture(scope="session")
@@ -50,6 +51,11 @@ def category_use_cases(container: MainContainer) -> CategoryUseCaseContainer:
 @pytest.fixture
 def category_controller(container: MainContainer) -> CategoryController:
     return container.controllers().category_controller()
+
+
+@pytest.fixture
+def retailer_controller(container: MainContainer) -> RetailerController:
+    return container.controllers().retailer_controller()
 
 
 def make_category_entity(

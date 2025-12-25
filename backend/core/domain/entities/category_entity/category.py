@@ -5,7 +5,6 @@ from typing import Callable, TypedDict
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
-from backend.core.domain.event import Event
 from backend.core.domain.entities.category_entity.errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
@@ -22,7 +21,6 @@ class Category(AggregateRootEntity):
         super().__init__(_uuid=category_uuid)
         self.__name = name
         self.__helper_words = helper_words
-        self.events: list[Event] = []
 
     def add_new_helper_words(self, new_words: frozenset[str]) -> None:
         existing_words = self.__helper_words.words
@@ -41,13 +39,6 @@ class Category(AggregateRootEntity):
 
         updated_words = existing_words - words_to_be_deleted
         self.__helper_words = CategoryHelperWords(words=updated_words)
-
-    @property
-    def has_events(self) -> bool:
-        return bool(self.events)
-
-    def get_one_event(self) -> Event:
-        return self.events.pop(0)
 
     def set_name(self, new_name: str) -> None:
         self.__name = new_name

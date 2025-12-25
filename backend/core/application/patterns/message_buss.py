@@ -8,6 +8,12 @@ from backend.core.application.commands_and_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
+from backend.core.application.commands_and_handlers.retailer import (
+    CreateRetailerCommandHandler,
+    CreateRetailerCommand,
+    UpdateRetailerCommand,
+    UpdateRetailerCommandHandler,
+)
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from backend.core.application.patterns.event_handler_abc import EventHandler
@@ -75,6 +81,8 @@ def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericC
     commands_handlers = {
         CreateCategoryCommand: CreateCategoryCommandHandler,
         UpdateCategoryCommand: UpdateCategoryCommandHandler,
+        CreateRetailerCommand: CreateRetailerCommandHandler,
+        UpdateRetailerCommand: UpdateRetailerCommandHandler,
     }
     command_type = type(command)
     handler_class = commands_handlers[command_type]
