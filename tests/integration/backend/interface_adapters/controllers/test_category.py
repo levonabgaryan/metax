@@ -29,6 +29,31 @@ async def test_category_controller_create(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
+async def test_category_controller_update(
+    unit_of_work: UnitOfWork, category_controller: CategoryController
+) -> None:
+    # given
+    category = make_category_entity()
+
+    async with unit_of_work as uow:
+        await uow.repositories.category.add(category)
+        await uow.commit()
+
+    new_name = "new_name"
+
+    # when
+    await category_controller.update(category_uuid=str(category.get_uuid()), new_name=new_name)
+
+    # then
+    async with unit_of_work as uow:
+        category = await uow.repositories.category.get_by_uuid(category.get_uuid())
+        await uow.commit()
+
+    assert category.get_name() == category.get_name()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
 async def test_category_controller_add_new_helper_words(
     unit_of_work: UnitOfWork, category_controller: CategoryController
 ) -> None:
@@ -44,7 +69,7 @@ async def test_category_controller_add_new_helper_words(
         await uow.commit()
 
     # when
-    await category_controller.add_new_helper_words(category_uuid=category.get_uuid(), new_words=new_words)
+    await category_controller.add_new_helper_words(category_uuid=str(category.get_uuid()), new_words=new_words)
 
     # then
     async with unit_of_work as uow:
@@ -71,7 +96,7 @@ async def test_category_controller_delete_helper_words(
 
     # when
     await category_controller.delete_helper_words(
-        category_uuid=category.get_uuid(), words_to_delete=words_to_delete
+        category_uuid=str(category.get_uuid()), words_to_delete=words_to_delete
     )
 
     # then

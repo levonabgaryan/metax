@@ -45,10 +45,10 @@ async def test_retailer_controller_update(
 
     # when
     await retailer_controller.update(
-        retailer_name=new_name,
-        retailer_uuid=retailer.get_uuid(),
-        retailer_url=new_url,
-        retailer_phone_number=new_phone,
+        new_name=new_name,
+        retailer_uuid=str(retailer.get_uuid()),
+        new_url=new_url,
+        new_phone_number=new_phone,
     )
 
     # then

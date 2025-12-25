@@ -24,16 +24,16 @@ class RetailerController:
 
     async def update(
         self,
-        retailer_uuid: UUID,
-        retailer_name: str | None = None,
-        retailer_url: str | None = None,
-        retailer_phone_number: str | None = None,
+        retailer_uuid: str,
+        new_name: str | None = None,
+        new_url: str | None = None,
+        new_phone_number: str | None = None,
     ) -> OperationResult[EmptyViewModel]:
         command = UpdateRetailerCommand(
-            retailer_uuid=retailer_uuid,
-            new_name=retailer_name,
-            new_url=retailer_url,
-            new_phone_number=retailer_phone_number,
+            retailer_uuid=UUID(retailer_uuid),
+            new_name=new_name,
+            new_url=new_url,
+            new_phone_number=new_phone_number,
         )
         await self.message_bus.handle(command)
         view_model = self.retailer_presenter.present()

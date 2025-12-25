@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 from backend.core.application.commands_and_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
+    UpdateCategoryCommand,
 )
 from backend.core.application.patterns.message_buss import MessageBus
 from backend.core.application.patterns.use_case_abc import EmptyResponseDTO
@@ -45,12 +46,21 @@ class CategoryController:
         view_model = self.category_presenter.present()
         return OperationResult.from_succeeded_view_model(view_model)
 
+    async def update(self, category_uuid: str, new_name: str | None = None) -> OperationResult[EmptyViewModel]:
+        cmd = UpdateCategoryCommand(
+            category_uuid=UUID(category_uuid),
+            new_name=new_name,
+        )
+        await self.message_bus.handle(cmd)
+        view_model = self.category_presenter.present()
+        return OperationResult.from_succeeded_view_model(view_model)
+
     async def add_new_helper_words(
         self,
-        category_uuid: UUID,
+        category_uuid: str,
         new_words: frozenset[str],
     ) -> OperationResult[EmptyViewModel]:
-        request = AddHelperWordsRequest(category_uuid=category_uuid, new_helper_words=new_words)
+        request = AddHelperWordsRequest(category_uuid=UUID(category_uuid), new_helper_words=new_words)
         try:
             response = await self.add_new_helper_words_use_case.execute(request)
         except DuplicateCategoryHelperWordsError as error:
@@ -73,10 +83,10 @@ class CategoryController:
 
     async def delete_helper_words(
         self,
-        category_uuid: UUID,
+        category_uuid: str,
         words_to_delete: frozenset[str],
     ) -> OperationResult[EmptyViewModel]:
-        request = DeleteHelperWordsRequest(category_uuid=category_uuid, words_to_delete=words_to_delete)
+        request = DeleteHelperWordsRequest(category_uuid=UUID(category_uuid), words_to_delete=words_to_delete)
         try:
             response = await self.delete_helper_words_use_case.execute(request)
         except CategoryHelperWordsNotFoundForDeletionError as error:
