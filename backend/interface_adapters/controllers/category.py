@@ -5,7 +5,7 @@ from backend.core.application.commands_and_handlers.category import (
     CreateCategoryCommandHandler,
 )
 from backend.core.application.patterns.message_buss import MessageBus
-from backend.core.application.patterns.use_case_abc import EmptyResponseDTO, GenericResponseDTO
+from backend.core.application.patterns.use_case_abc import EmptyResponseDTO
 from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from backend.core.application.use_cases.category.add_new_helper_words import AddHelperWordsUseCase
 from backend.core.application.use_cases.category.delete_helper_words import DeleteHelperWordsUseCase
@@ -27,7 +27,7 @@ class CategoryController:
         create_category_cmd_handler: CreateCategoryCommandHandler,
         add_new_helper_words_use_case: AddHelperWordsUseCase,
         delete_helper_words_use_case: DeleteHelperWordsUseCase,
-        category_presenter: BasePresenter[CategoryBaseViewModel, GenericResponseDTO],
+        category_presenter: BasePresenter[CategoryBaseViewModel, EmptyResponseDTO],
     ) -> None:
         self.message_bus = message_bus
         self.create_category_cmd_handler = create_category_cmd_handler
@@ -42,7 +42,7 @@ class CategoryController:
     ) -> OperationResult[EmptyViewModel]:
         command = CreateCategoryCommand(name=name, helper_words=helper_words, category_uuid=uuid4())
         await self.message_bus.handle(command)
-        view_model = self.category_presenter.present_empty(EmptyResponseDTO())
+        view_model = self.category_presenter.present()
         return OperationResult.from_succeeded_view_model(view_model)
 
     async def add_new_helper_words(
@@ -68,7 +68,7 @@ class CategoryController:
             )
             return OperationResult.from_error_view_model(error_view_model)
 
-        view_model = self.category_presenter.present_empty(response)
+        view_model = self.category_presenter.present(response)
         return OperationResult.from_succeeded_view_model(view_model)
 
     async def delete_helper_words(
@@ -94,5 +94,5 @@ class CategoryController:
             )
             return OperationResult.from_error_view_model(error_view_model)
 
-        view_model = self.category_presenter.present_empty(response)
+        view_model = self.category_presenter.present(response)
         return OperationResult.from_succeeded_view_model(view_model)

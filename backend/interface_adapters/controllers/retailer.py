@@ -19,7 +19,7 @@ class RetailerController:
     async def create(self, name: str, url: str, phone_number: str) -> OperationResult[EmptyViewModel]:
         command = CreateRetailerCommand(retailer_uuid=uuid4(), name=name, url=url, phone_number=phone_number)
         await self.message_bus.handle(command)
-        view_model = self.retailer_presenter.present_empty()
+        view_model = self.retailer_presenter.present()
         return OperationResult.from_succeeded_view_model(view_model)
 
     async def update(
@@ -36,5 +36,5 @@ class RetailerController:
             new_phone_number=retailer_phone_number,
         )
         await self.message_bus.handle(command)
-        view_model = self.retailer_presenter.present_empty()
+        view_model = self.retailer_presenter.present()
         return OperationResult.from_succeeded_view_model(view_model)

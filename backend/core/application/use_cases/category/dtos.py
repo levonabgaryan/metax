@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from backend.core.application.patterns.use_case_abc import RequestDTO
+from backend.core.application.patterns.use_case_abc import RequestDTO, ResponseDTO
 
 
 @dataclass(frozen=True)
@@ -14,3 +14,10 @@ class AddHelperWordsRequest(RequestDTO):
 class DeleteHelperWordsRequest(RequestDTO):
     category_uuid: UUID
     words_to_delete: frozenset[str]
+
+
+@dataclass(frozen=True)
+class CategoryBaseResponse(ResponseDTO):
+    category_uuid: UUID
+    name: str
+    helper_words: frozenset[str]
