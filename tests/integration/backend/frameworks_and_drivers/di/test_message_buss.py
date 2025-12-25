@@ -16,3 +16,10 @@ def test_message_buss_creates_different_uow_objects(container: MainContainer) ->
     uow_3 = msb.create_unit_of_work()
 
     assert not all([uow_1 is uow_2 is uow_3])
+
+
+def test_message_buss_is_singleton_in_controllers(container: MainContainer) -> None:
+    category_controller_1 = container.controllers().category_controller()
+    category_controller_2 = container.controllers().category_controller()
+
+    assert category_controller_1.message_bus is category_controller_2.message_bus

@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
 from backend.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
+from backend.frameworks_and_drivers.di.controllers_container import ControllersContainer
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from backend.frameworks_and_drivers.di.use_cases_container import UseCasesContainer
 
@@ -13,6 +14,7 @@ class MainContainer(containers.DeclarativeContainer):
         CommandsHandlersContainer
     )
     use_cases: providers.Container[UseCasesContainer] = providers.Container(UseCasesContainer)
+    controllers: providers.Container[ControllersContainer] = providers.Container(ControllersContainer)
 
 
 main_container = MainContainer()
