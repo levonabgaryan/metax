@@ -1,16 +1,16 @@
 from dependency_injector import containers, providers
 
-from backend.frameworks_and_drivers.presenters.rest_presenters.category import (
+from backend.frameworks_and_drivers.presenters.pydantic_presenters.category_presenter_and_schemas.presenter import (
     CategoryViewModel,
     CategoryResponse,
     RestCategoryPresenter,
 )
-from backend.frameworks_and_drivers.presenters.rest_presenters.discounted_product import (
+from backend.frameworks_and_drivers.presenters.pydantic_presenters.discounted_product_presenter_and_schemas.presenter import (
     DiscountedProductViewModel,
     DiscountedProductResponse,
     RestDiscountedProductPresenter,
 )
-from backend.frameworks_and_drivers.presenters.rest_presenters.retailer import (
+from backend.frameworks_and_drivers.presenters.pydantic_presenters.retailer_presenter_and_schemas.presenter import (
     RetailerViewModel,
     RetailerResponse,
     RestRetailerPresenter,

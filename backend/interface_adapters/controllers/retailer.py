@@ -6,12 +6,14 @@ from backend.core.application.patterns.use_case_abc import GenericResponseDTO
 from backend.interface_adapters.ports.presenters.base_presenter import BasePresenter
 from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
 from backend.interface_adapters.patterns.operation_result import OperationResult
-from backend.interface_adapters.view_models.retailer import RetailerBaseViewModel
+from backend.interface_adapters.view_models.retailer import RetailerEntityViewModel
 
 
 class RetailerController:
     def __init__(
-        self, message_bus: MessageBus, retailer_presenter: BasePresenter[RetailerBaseViewModel, GenericResponseDTO]
+        self,
+        message_bus: MessageBus,
+        retailer_presenter: BasePresenter[RetailerEntityViewModel, GenericResponseDTO],
     ) -> None:
         self.message_bus = message_bus
         self.retailer_presenter = retailer_presenter

@@ -18,7 +18,7 @@ from backend.core.domain.entities.category_entity.errors.errors import (
 from backend.interface_adapters.patterns.empty_view_model import EmptyViewModel
 from backend.interface_adapters.patterns.operation_result import OperationResult
 from backend.interface_adapters.ports.presenters.base_presenter import BasePresenter
-from backend.interface_adapters.view_models.category import CategoryBaseViewModel
+from backend.interface_adapters.view_models.category import CategoryEntityViewModel
 
 
 class CategoryController:
@@ -28,7 +28,7 @@ class CategoryController:
         create_category_cmd_handler: CreateCategoryCommandHandler,
         add_new_helper_words_use_case: AddHelperWordsUseCase,
         delete_helper_words_use_case: DeleteHelperWordsUseCase,
-        category_presenter: BasePresenter[CategoryBaseViewModel, EmptyResponseDTO],
+        category_presenter: BasePresenter[CategoryEntityViewModel, EmptyResponseDTO],
     ) -> None:
         self.message_bus = message_bus
         self.create_category_cmd_handler = create_category_cmd_handler

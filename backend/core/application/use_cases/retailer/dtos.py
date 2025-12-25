@@ -6,7 +6,7 @@ from backend.core.application.patterns.use_case_abc import ResponseDTO
 
 
 @dataclass(frozen=True)
-class RetailerBaseResponse(ResponseDTO):
+class RetailerEntityDTO(ResponseDTO):
     retailer_uuid: UUID
     name: str
     url: str | None = field(default=None)
