@@ -14,7 +14,7 @@ RetailerViewModel = Union[RetailerEntityViewModel, EmptyViewModel]
 RetailerResponse = Union[RetailerEntityDTO, EmptyResponseDTO]
 
 
-class RestRetailerPresenter(BasePresenter[RetailerViewModel, RetailerResponse]):
+class PydanticRestRetailerPresenter(BasePresenter[RetailerViewModel, RetailerResponse]):
     def present(self, response: GenericResponseDTO | None = None) -> RetailerViewModel:
         match response:
             case RetailerEntityDTO():
@@ -25,5 +25,5 @@ class RestRetailerPresenter(BasePresenter[RetailerViewModel, RetailerResponse]):
             case _:
                 raise TypeError(
                     f"Unexpected response type: {type(response).__name__}. "
-                    f"Expected one of: RetailerBaseResponse, EmptyResponseDTO, or None."
+                    f"Expected one of: {RetailerEntityDTO.__name__}, {EmptyResponseDTO.__name__}, or None."
                 )

@@ -13,7 +13,7 @@ DiscountedProductResponse = Union[DiscountedEntityBaseResponse, EmptyResponseDTO
 DiscountedProductViewModel = Union[DiscountedProductEntityViewModel, EmptyViewModel]
 
 
-class RestDiscountedProductPresenter(BasePresenter[DiscountedProductViewModel, DiscountedProductResponse]):
+class PydanticDiscountedProductPresenter(BasePresenter[DiscountedProductViewModel, DiscountedProductResponse]):
     def present(self, response: GenericResponseDTO | None = None) -> DiscountedProductViewModel:
         match response:
             case DiscountedEntityBaseResponse():
@@ -24,5 +24,5 @@ class RestDiscountedProductPresenter(BasePresenter[DiscountedProductViewModel, D
             case _:
                 raise TypeError(
                     f"Unexpected response type: {type(response).__name__}. "
-                    f"Expected one of: DiscountedProductBaseResponse, EmptyResponseDTO, or None."
+                    f"Expected one of: {DiscountedEntityBaseResponse.__name__}, {EmptyResponseDTO.__name__}, or None."
                 )

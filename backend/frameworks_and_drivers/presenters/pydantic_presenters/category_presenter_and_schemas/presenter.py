@@ -14,7 +14,7 @@ CategoryViewModel = Union[CategoryEntityViewModel, EmptyViewModel]
 CategoryResponse = Union[CategoryEntityDTO, EmptyResponseDTO]
 
 
-class RestCategoryPresenter(BasePresenter[CategoryViewModel, CategoryResponse]):
+class PydanticCategoryPresenter(BasePresenter[CategoryViewModel, CategoryResponse]):
     def present(self, response: GenericResponseDTO | None = None) -> CategoryViewModel:
         match response:
             case CategoryEntityDTO():
