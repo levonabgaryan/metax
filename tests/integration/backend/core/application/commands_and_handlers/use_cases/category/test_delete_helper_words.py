@@ -1,0 +1,41 @@
+import pytest
+
+from backend.core.application.commands_and_handlers.use_cases.category.delete_helper_words import (
+    DeleteHelperWordsCommand,
+)
+from backend.core.application.patterns.command_handler_abc import CommandHandler
+from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
+from backend.core.domain.entities.category_entity.category import CategoryHelperWords
+from backend.frameworks_and_drivers.di.commands_handlers_container import CategoryCommandsHandlersContainer
+from tests.integration.conftest import make_category_entity
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_add_new_helper_word_command(
+    unit_of_work: UnitOfWork, category_commands_handlers: CategoryCommandsHandlersContainer
+) -> None:
+    # given
+    helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
+    category = make_category_entity(
+        helper_words=helper_words,
+    )
+    async with unit_of_work as uow:
+        await uow.repositories.category.add(category)
+        await uow.commit()
+
+    cmd = DeleteHelperWordsCommand(category_uuid=category.get_uuid(), words_to_delete=frozenset(["a", "b", "c"]))
+
+    expected_helper_words = CategoryHelperWords(words=frozenset(["d"]))
+    # when
+    cmd_handler: CommandHandler[DeleteHelperWordsCommand] = category_commands_handlers.delete_helper_words(
+        unit_of_work=unit_of_work
+    )
+    await cmd_handler.handle(cmd)
+
+    # then
+    async with unit_of_work as uow:
+        updated_category = await uow.repositories.category.get_by_uuid(category.get_uuid())
+        await uow.commit()
+
+    assert updated_category.get_helper_words() == expected_helper_words.words

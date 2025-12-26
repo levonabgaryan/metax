@@ -1,16 +1,24 @@
 from dependency_injector import providers, containers
 
-from backend.core.application.commands_and_handlers.category import (
+from backend.core.application.commands_and_handlers.cud.category import (
     CreateCategoryCommandHandler,
     UpdateCategoryCommandHandler,
     CreateCategoryCommand,
     UpdateCategoryCommand,
 )
-from backend.core.application.commands_and_handlers.retailer import (
+from backend.core.application.commands_and_handlers.cud.retailer import (
     CreateRetailerCommandHandler,
     UpdateRetailerCommandHandler,
     CreateRetailerCommand,
     UpdateRetailerCommand,
+)
+from backend.core.application.commands_and_handlers.use_cases.category.add_new_helper_words import (
+    AddNewHelperWordsCommand,
+    AddNewHelperWordsCommandHandler,
+)
+from backend.core.application.commands_and_handlers.use_cases.category.delete_helper_words import (
+    DeleteHelperWordsCommand,
+    DeleteHelperWordsCommandHandler,
 )
 from backend.core.application.patterns.command_handler_abc import CommandHandler
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
@@ -26,6 +34,15 @@ class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
 
     update_category: providers.Provider[CommandHandler[UpdateCategoryCommand]] = providers.Factory(
         UpdateCategoryCommandHandler, unit_of_work=patterns.unit_of_work
+    )
+
+    # use cases commands handlers
+    add_new_helper_words: providers.Provider[CommandHandler[AddNewHelperWordsCommand]] = providers.Factory(
+        AddNewHelperWordsCommandHandler, unit_of_work=patterns.unit_of_work
+    )
+
+    delete_helper_words: providers.Provider[CommandHandler[DeleteHelperWordsCommand]] = providers.Factory(
+        DeleteHelperWordsCommandHandler, unit_of_work=patterns.unit_of_work
     )
 
 

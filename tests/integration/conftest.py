@@ -17,10 +17,6 @@ from backend.frameworks_and_drivers.di.commands_handlers_container import (
     RetailerCommandsHandlersContainer,
 )
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
-from backend.frameworks_and_drivers.di.presenters_container import PresentersContainer
-from backend.frameworks_and_drivers.di.use_cases_container import CategoryUseCaseContainer
-from backend.interface_adapters.controllers.category import CategoryController
-from backend.interface_adapters.controllers.retailer import RetailerController
 
 
 @pytest.fixture(scope="session")
@@ -42,26 +38,6 @@ def category_commands_handlers(container: MainContainer) -> CategoryCommandsHand
 @pytest.fixture
 def retailer_commands_handlers(container: MainContainer) -> RetailerCommandsHandlersContainer:
     return container.commands_handlers().retailer()
-
-
-@pytest.fixture
-def category_use_cases(container: MainContainer) -> CategoryUseCaseContainer:
-    return container.use_cases().category()
-
-
-@pytest.fixture
-def category_controller(container: MainContainer) -> CategoryController:
-    return container.controllers().category_controller()
-
-
-@pytest.fixture
-def retailer_controller(container: MainContainer) -> RetailerController:
-    return container.controllers().retailer_controller()
-
-
-@pytest.fixture
-def presenters_container(container: MainContainer) -> PresentersContainer:
-    return container.controllers().presenters()
 
 
 def make_category_entity(

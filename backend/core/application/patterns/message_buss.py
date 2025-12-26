@@ -2,13 +2,13 @@ import asyncio
 import logging
 from typing import cast
 
-from backend.core.application.commands_and_handlers.category import (
+from backend.core.application.commands_and_handlers.cud.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
-from backend.core.application.commands_and_handlers.retailer import (
+from backend.core.application.commands_and_handlers.cud.retailer import (
     CreateRetailerCommandHandler,
     CreateRetailerCommand,
     UpdateRetailerCommand,
