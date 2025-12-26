@@ -28,7 +28,7 @@ class CategoryController:
         create_category_cmd_handler: CreateCategoryCommandHandler,
         add_new_helper_words_use_case: AddHelperWordsUseCase,
         delete_helper_words_use_case: DeleteHelperWordsUseCase,
-        category_presenter: BasePresenter[CategoryEntityViewModel, EmptyResponseDTO],
+        category_presenter: BasePresenter[EmptyResponseDTO, CategoryEntityViewModel],
     ) -> None:
         self.message_bus = message_bus
         self.create_category_cmd_handler = create_category_cmd_handler
@@ -62,7 +62,7 @@ class CategoryController:
     ) -> OperationResult[EmptyViewModel]:
         request = AddHelperWordsRequest(category_uuid=UUID(category_uuid), new_helper_words=new_words)
         try:
-            response = await self.add_new_helper_words_use_case.execute(request)
+            response: EmptyResponseDTO = await self.add_new_helper_words_use_case.execute(request)
         except DuplicateCategoryHelperWordsError as error:
             error_view_model = self.category_presenter.present_error(
                 message=error.message,
@@ -78,7 +78,7 @@ class CategoryController:
             )
             return OperationResult.from_error_view_model(error_view_model)
 
-        view_model = self.category_presenter.present(response)
+        view_model: EmptyViewModel = self.category_presenter.present(response)
         return OperationResult.from_succeeded_view_model(view_model)
 
     async def delete_helper_words(
@@ -88,7 +88,7 @@ class CategoryController:
     ) -> OperationResult[EmptyViewModel]:
         request = DeleteHelperWordsRequest(category_uuid=UUID(category_uuid), words_to_delete=words_to_delete)
         try:
-            response = await self.delete_helper_words_use_case.execute(request)
+            response: EmptyResponseDTO = await self.delete_helper_words_use_case.execute(request)
         except CategoryHelperWordsNotFoundForDeletionError as error:
             error_view_model = self.category_presenter.present_error(
                 message=error.message,
@@ -104,5 +104,5 @@ class CategoryController:
             )
             return OperationResult.from_error_view_model(error_view_model)
 
-        view_model = self.category_presenter.present(response)
+        view_model: EmptyViewModel = self.category_presenter.present(response)
         return OperationResult.from_succeeded_view_model(view_model)

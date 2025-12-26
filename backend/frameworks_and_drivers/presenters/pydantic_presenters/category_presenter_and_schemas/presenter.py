@@ -11,10 +11,10 @@ from backend.interface_adapters.view_models.category import CategoryEntityViewMo
 
 
 CategoryViewModel = Union[CategoryEntityViewModel, EmptyViewModel]
-CategoryResponse = Union[CategoryEntityDTO, EmptyResponseDTO]
+CategoryResponseDTO = Union[CategoryEntityDTO, EmptyResponseDTO]
 
 
-class PydanticCategoryPresenter(BasePresenter[CategoryViewModel, CategoryResponse]):
+class PydanticCategoryPresenter(BasePresenter[CategoryResponseDTO, CategoryViewModel]):
     def present(self, response: GenericResponseDTO | None = None) -> CategoryViewModel:
         match response:
             case CategoryEntityDTO():

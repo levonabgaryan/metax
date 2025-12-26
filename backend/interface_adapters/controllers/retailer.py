@@ -13,7 +13,7 @@ class RetailerController:
     def __init__(
         self,
         message_bus: MessageBus,
-        retailer_presenter: BasePresenter[RetailerEntityViewModel, GenericResponseDTO],
+        retailer_presenter: BasePresenter[GenericResponseDTO, RetailerEntityViewModel],
     ) -> None:
         self.message_bus = message_bus
         self.retailer_presenter = retailer_presenter

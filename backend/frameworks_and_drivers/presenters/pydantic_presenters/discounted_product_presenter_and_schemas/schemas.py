@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import PlainSerializer
 
-from backend.core.application.use_cases.discounted_product.dtos import DiscountedEntityBaseResponse
+from backend.core.application.use_cases.discounted_product.dtos import DiscountedProductEntityDTO
 from backend.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
 from backend.interface_adapters.view_models.discounted_product import DiscountedProductEntityViewModel
 from ..base_shcema import BaseSchema
@@ -18,7 +18,7 @@ class DiscountedProductEntityViewModelSchema(BaseSchema):
     category_name: Optional[str]
 
     @classmethod
-    def to_view_model(cls, response_dto: DiscountedEntityBaseResponse) -> DiscountedProductEntityViewModel:
+    def to_view_model(cls, response_dto: DiscountedProductEntityDTO) -> DiscountedProductEntityViewModel:
         validated_data = cls.model_validate(response_dto).model_dump()
         return DiscountedProductEntityViewModel(
             discounted_product_uuid=validated_data["discounted_product_uuid"],

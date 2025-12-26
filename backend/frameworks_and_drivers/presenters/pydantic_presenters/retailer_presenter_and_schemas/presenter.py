@@ -11,10 +11,10 @@ from backend.interface_adapters.view_models.retailer import RetailerEntityViewMo
 
 
 RetailerViewModel = Union[RetailerEntityViewModel, EmptyViewModel]
-RetailerResponse = Union[RetailerEntityDTO, EmptyResponseDTO]
+RetailerResponseDTO = Union[RetailerEntityDTO, EmptyResponseDTO]
 
 
-class PydanticRestRetailerPresenter(BasePresenter[RetailerViewModel, RetailerResponse]):
+class PydanticRestRetailerPresenter(BasePresenter[RetailerResponseDTO, RetailerViewModel]):
     def present(self, response: GenericResponseDTO | None = None) -> RetailerViewModel:
         match response:
             case RetailerEntityDTO():

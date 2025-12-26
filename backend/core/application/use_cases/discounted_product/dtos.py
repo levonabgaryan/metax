@@ -11,7 +11,7 @@ class CollectDiscountedProductsFromRetailerRequest(RequestDTO):
 
 
 @dataclass(frozen=True)
-class DiscountedEntityBaseResponse(ResponseDTO):
+class DiscountedProductEntityDTO(ResponseDTO):
     discounted_product_uuid: UUID
     retailer_name: str
     name: str
