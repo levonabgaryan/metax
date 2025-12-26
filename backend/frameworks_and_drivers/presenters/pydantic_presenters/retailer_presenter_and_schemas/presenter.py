@@ -1,7 +1,7 @@
 from typing import Union
 
 from backend.core.application.patterns.use_case_abc import GenericResponseDTO, EmptyResponseDTO
-from backend.core.application.use_cases.retailer.dtos import RetailerEntityDTO
+from backend.core.application.use_cases.retailer.dtos import RetailerEntityResponseDTO
 from backend.frameworks_and_drivers.presenters.pydantic_presenters.retailer_presenter_and_schemas.schemas import (
     RetailerEntityViewModelSchema,
 )
@@ -11,13 +11,13 @@ from backend.interface_adapters.view_models.retailer import RetailerEntityViewMo
 
 
 RetailerViewModel = Union[RetailerEntityViewModel, EmptyViewModel]
-RetailerResponseDTO = Union[RetailerEntityDTO, EmptyResponseDTO]
+RetailerResponseDTO = Union[RetailerEntityResponseDTO, EmptyResponseDTO]
 
 
 class PydanticRestRetailerPresenter(BasePresenter[RetailerResponseDTO, RetailerViewModel]):
     def present(self, response: GenericResponseDTO | None = None) -> RetailerViewModel:
         match response:
-            case RetailerEntityDTO():
+            case RetailerEntityResponseDTO():
                 view_model: RetailerViewModel = RetailerEntityViewModelSchema.to_view_model(response)
                 return view_model
             case EmptyResponseDTO() | None:
@@ -25,5 +25,5 @@ class PydanticRestRetailerPresenter(BasePresenter[RetailerResponseDTO, RetailerV
             case _:
                 raise TypeError(
                     f"Unexpected response type: {type(response).__name__}. "
-                    f"Expected one of: {RetailerEntityDTO.__name__}, {EmptyResponseDTO.__name__}, or None."
+                    f"Expected one of: {RetailerEntityResponseDTO.__name__}, {EmptyResponseDTO.__name__}, or None."
                 )

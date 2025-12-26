@@ -17,7 +17,7 @@ class DeleteHelperWordsRequest(RequestDTO):
 
 
 @dataclass(frozen=True)
-class CategoryEntityDTO(ResponseDTO):
+class CategoryEntityResponseDTO(ResponseDTO):
     category_uuid: UUID
     name: str
     helper_words: frozenset[str]

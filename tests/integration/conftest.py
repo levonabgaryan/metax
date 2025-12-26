@@ -17,6 +17,7 @@ from backend.frameworks_and_drivers.di.commands_handlers_container import (
     RetailerCommandsHandlersContainer,
 )
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
+from backend.frameworks_and_drivers.di.presenters_container import PresentersContainer
 from backend.frameworks_and_drivers.di.use_cases_container import CategoryUseCaseContainer
 from backend.interface_adapters.controllers.category import CategoryController
 from backend.interface_adapters.controllers.retailer import RetailerController
@@ -56,6 +57,11 @@ def category_controller(container: MainContainer) -> CategoryController:
 @pytest.fixture
 def retailer_controller(container: MainContainer) -> RetailerController:
     return container.controllers().retailer_controller()
+
+
+@pytest.fixture
+def presenters_container(container: MainContainer) -> PresentersContainer:
+    return container.controllers().presenters()
 
 
 def make_category_entity(

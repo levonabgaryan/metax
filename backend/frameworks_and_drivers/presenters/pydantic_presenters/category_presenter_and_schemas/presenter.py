@@ -1,7 +1,7 @@
 from typing import Union
 
 from backend.core.application.patterns.use_case_abc import GenericResponseDTO, EmptyResponseDTO
-from backend.core.application.use_cases.category.dtos import CategoryEntityDTO
+from backend.core.application.use_cases.category.dtos import CategoryEntityResponseDTO
 from backend.frameworks_and_drivers.presenters.pydantic_presenters.category_presenter_and_schemas.schemas import (
     CategoryEntityViewModelSchema,
 )
@@ -11,13 +11,13 @@ from backend.interface_adapters.view_models.category import CategoryEntityViewMo
 
 
 CategoryViewModel = Union[CategoryEntityViewModel, EmptyViewModel]
-CategoryResponseDTO = Union[CategoryEntityDTO, EmptyResponseDTO]
+CategoryResponseDTO = Union[CategoryEntityResponseDTO, EmptyResponseDTO]
 
 
 class PydanticCategoryPresenter(BasePresenter[CategoryResponseDTO, CategoryViewModel]):
     def present(self, response: GenericResponseDTO | None = None) -> CategoryViewModel:
         match response:
-            case CategoryEntityDTO():
+            case CategoryEntityResponseDTO():
                 view_model: CategoryEntityViewModel = CategoryEntityViewModelSchema.to_view_model(response)
                 return view_model
             case EmptyResponseDTO() | None:
@@ -25,5 +25,5 @@ class PydanticCategoryPresenter(BasePresenter[CategoryResponseDTO, CategoryViewM
             case _:
                 raise TypeError(
                     f"Unexpected response type: {type(response).__name__}. "
-                    f"Expected one of: {CategoryEntityDTO.__name__}, {EmptyResponseDTO.__name__}, or None."
+                    f"Expected one of: {CategoryEntityResponseDTO.__name__}, {EmptyResponseDTO.__name__}, or None."
                 )
