@@ -1,0 +1,26 @@
+from dependency_injector import containers, providers
+
+from backend.core.application.patterns.use_case_abc import UseCase
+from backend.core.application.use_cases.discounted_product.collect_discounted_products_from_retailer import (
+    CollectDiscountedProductsFromRetailerRequest,
+    CollectDiscountedProductsFromRetailerResponse,
+    CollectDiscountedProductsFromRetailer,
+)
+
+
+class DiscountedProductUseCasesContainer(containers.DeclarativeContainer):
+    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+
+    collect_discounted_products_from_retailer: providers.Provider[
+        UseCase[CollectDiscountedProductsFromRetailerRequest, CollectDiscountedProductsFromRetailerResponse]
+    ] = providers.Factory(
+        CollectDiscountedProductsFromRetailer,
+        unit_of_work=patterns.unit_of_work,
+        discounted_product_factory=patterns.discounted_product_factory,
+    )
+
+
+class UseCasesContainer(containers.DeclarativeContainer):
+    patterns = providers.DependenciesContainer()
+
+    discounted_product = providers.Container(DiscountedProductUseCasesContainer, patterns=patterns)

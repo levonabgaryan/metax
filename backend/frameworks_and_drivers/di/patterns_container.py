@@ -4,20 +4,20 @@ from backend.core.application.ports.patterns.discounted_product_factory import I
 from backend.core.application.patterns.message_buss import MessageBus
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from backend.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
 from backend.frameworks_and_drivers.patterns.discounted_product_factory import DiscountedProductFactory
 from backend.frameworks_and_drivers.patterns.unit_of_work import DjangoUnitOfWork
 from backend.frameworks_and_drivers.patterns.unit_of_work_factory import DjangoUnitOfWorkFactory
 
 
 class PatternsContainer(containers.DeclarativeContainer):
-    repositories: providers.Container[RepositoriesContainer] = providers.Container(RepositoriesContainer)
+    repositories: providers.DependenciesContainer = providers.DependenciesContainer()
 
     unit_of_work: providers.Provider[UnitOfWork] = providers.Factory(
         DjangoUnitOfWork,
-        category_repository=repositories.container.category_repository,
-        retailer_repository=repositories.container.retailer_repository,
-        discounted_product_repository=repositories.container.discounted_product_repository,
+        category_repository=repositories.category_repository,
+        retailer_repository=repositories.retailer_repository,
+        discounted_product_repository=repositories.discounted_product_repository,
+        discounted_product_read_model_repository=repositories.discounted_product_read_model_repository,
     )
 
     unit_of_work_factory: providers.Provider[IUnitOfWorkFactory] = providers.Factory(

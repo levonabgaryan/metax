@@ -1,11 +1,12 @@
 from datetime import datetime
-from uuid import UUID
 
 from asgiref.sync import sync_to_async
 
 from backend.core.application.ports.repositories.discounted_product_read_model import (
     DiscountedProductReadModelRepository,
 )
+from backend.core.domain.entities.category_entity.category import Category
+from backend.core.domain.entities.retailer_entity.retailer import Retailer
 from django_framework.discount_service.models import DiscountedProductReadModel
 from django.db import connection
 
@@ -59,16 +60,30 @@ class DjangoSqlLiteDiscountedProductReadModelRepository(DiscountedProductReadMod
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         return await self.__delete_older_than(date_limit)
 
-    async def update_category_name(self, category_uuid: UUID, new_category_name: str) -> None:
-        return await self.__update_category_name(category_uuid, new_category_name)
+    async def update_category(self, updated_category: Category) -> None:
+        return await self.__update_category(updated_category)
+
+    async def update_retailer(self, updated_retailer: Retailer) -> None:
+        return await self.__update_retailer(updated_retailer)
 
     @staticmethod
     @sync_to_async(thread_sensitive=True)
-    def __update_category_name(category_uuid: UUID, new_category_name: str) -> None:
+    def __update_category(updated_category: Category) -> None:
         query = f"""
                 UPDATE {DiscountedProductReadModel._meta.db_table}
                 SET category_name = %s
                 WHERE category_uuid = %s
             """
         with connection.cursor() as cursor:
-            cursor.execute(query, [new_category_name, category_uuid])
+            cursor.execute(query, [updated_category.get_name(), updated_category.get_uuid()])
+
+    @staticmethod
+    @sync_to_async(thread_sensitive=True)
+    def __update_retailer(updated_retailer: Retailer) -> None:
+        query = f"""
+                UPDATE {DiscountedProductReadModel._meta.db_table}
+                SET retailer_name = %s
+                WHERE retailer_uuid = %s
+            """
+        with connection.cursor() as cursor:
+            cursor.execute(query, [updated_retailer.get_name(), updated_retailer.get_uuid()])

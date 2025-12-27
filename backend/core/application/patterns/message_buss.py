@@ -14,6 +14,9 @@ from backend.core.application.commands_and_handlers.cud.retailer import (
     UpdateRetailerCommand,
     UpdateRetailerCommandHandler,
 )
+from backend.core.application.event_and_handlers.category.update_in_discounted_product_read_model import (
+    UpdateCategoryInDiscountedProductReadModel,
+)
 from backend.core.application.event_and_handlers.discounted_product.delete_old_discounted_products import (
     DeleteOldDiscountedProducts,
 )
@@ -24,11 +27,16 @@ from backend.core.application.event_and_handlers.discounted_product.events impor
 from backend.core.application.event_and_handlers.discounted_product.update_discounted_products_read_model import (
     UpdateDiscountedProductReadModel,
 )
+from backend.core.application.event_and_handlers.retailer.update_in_discounted_product_read_model import (
+    UpdateRetailerInDiscountedProductReadModel,
+)
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from backend.core.application.patterns.event_handler_abc import EventHandler
 from backend.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
+from backend.core.domain.entities.category_entity.events import CategoryUpdated
+from backend.core.domain.entities.retailer_entity.events import RetailerUpdated
 from backend.core.domain.event import Event, GenericEvent
 
 logger = logging.getLogger(__name__)
@@ -103,6 +111,8 @@ def get_event_handlers(event: GenericEvent) -> list[type[EventHandler[GenericEve
     event_handlers = {
         NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
         OldDiscountedProductsDeleted: [UpdateDiscountedProductReadModel],
+        CategoryUpdated: [UpdateCategoryInDiscountedProductReadModel],
+        RetailerUpdated: [UpdateRetailerInDiscountedProductReadModel],
     }
     event_type = type(event)
     handler_classes = event_handlers[event_type]

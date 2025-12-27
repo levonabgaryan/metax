@@ -21,11 +21,10 @@ from backend.core.application.commands_and_handlers.cud.category.delete_helper_w
     DeleteHelperWordsCommandHandler,
 )
 from backend.core.application.patterns.command_handler_abc import CommandHandler
-from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
 
 
 class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.Container[PatternsContainer] = providers.Container(PatternsContainer)
+    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
 
     create_category: providers.Provider[CommandHandler[CreateCategoryCommand]] = providers.Factory(
         CreateCategoryCommandHandler,
@@ -36,7 +35,6 @@ class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
         UpdateCategoryCommandHandler, unit_of_work=patterns.unit_of_work
     )
 
-    # use cases commands handlers
     add_new_helper_words: providers.Provider[CommandHandler[AddNewHelperWordsCommand]] = providers.Factory(
         AddNewHelperWordsCommandHandler, unit_of_work=patterns.unit_of_work
     )
@@ -47,7 +45,7 @@ class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
 
 
 class RetailerCommandsHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.Container[PatternsContainer] = providers.Container(PatternsContainer)
+    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
 
     create_retailer: providers.Provider[CommandHandler[CreateRetailerCommand]] = providers.Factory(
         CreateRetailerCommandHandler,
@@ -61,9 +59,13 @@ class RetailerCommandsHandlersContainer(containers.DeclarativeContainer):
 
 
 class CommandsHandlersContainer(containers.DeclarativeContainer):
+    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+
     category: providers.Container[CategoryCommandsHandlersContainer] = providers.Container(
-        CategoryCommandsHandlersContainer
+        CategoryCommandsHandlersContainer,
+        patterns=patterns,
     )
     retailer: providers.Container[RetailerCommandsHandlersContainer] = providers.Container(
-        RetailerCommandsHandlersContainer
+        RetailerCommandsHandlersContainer,
+        patterns=patterns,
     )

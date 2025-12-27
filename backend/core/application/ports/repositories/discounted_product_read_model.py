@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from uuid import UUID
 
+from backend.core.domain.entities.category_entity.category import Category
 from backend.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from backend.core.domain.entities.retailer_entity.retailer import Retailer
 
 
 class DiscountedProductReadModelRepository(ABC):
@@ -18,5 +19,9 @@ class DiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_category_name(self, category_uuid: UUID, new_category_name: str) -> None:
+    async def update_category(self, updated_category: Category) -> None:
+        pass
+
+    @abstractmethod
+    async def update_retailer(self, updated_retailer: Retailer) -> None:
         pass

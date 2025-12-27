@@ -3,6 +3,7 @@ from typing import Callable, TypedDict
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity
+from backend.core.domain.entities.retailer_entity.events import RetailerUpdated
 
 
 class Retailer(AggregateRootEntity):
@@ -46,6 +47,8 @@ class Retailer(AggregateRootEntity):
             handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
+
+        self._record_event(RetailerUpdated(retailer_uuid=self.get_uuid()))
 
 
 class DataForRetailerUpdate(TypedDict):
