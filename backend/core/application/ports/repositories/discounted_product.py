@@ -26,7 +26,7 @@ class DiscountedProductRepository(ABC):
         return discounted_product
 
     @abstractmethod
-    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
+    async def add_many(self, discounted_products: list[DiscountedProduct], started_time: datetime) -> None:
         pass
 
     @abstractmethod

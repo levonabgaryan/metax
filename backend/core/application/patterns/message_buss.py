@@ -14,6 +14,16 @@ from backend.core.application.commands_and_handlers.cud.retailer import (
     UpdateRetailerCommand,
     UpdateRetailerCommandHandler,
 )
+from backend.core.application.event_and_handlers.discounted_product.delete_old_discounted_products import (
+    DeleteOldDiscountedProducts,
+)
+from backend.core.application.event_and_handlers.discounted_product.events import (
+    NewDiscountedProductsFromRetailerCollected,
+    OldDiscountedProductsDeleted,
+)
+from backend.core.application.event_and_handlers.discounted_product.update_discounted_products_read_model import (
+    UpdateDiscountedProductReadModel,
+)
 from backend.core.application.patterns.command import Command
 from backend.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from backend.core.application.patterns.event_handler_abc import EventHandler
@@ -90,7 +100,10 @@ def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericC
 
 
 def get_event_handlers(event: Event) -> list[type[EventHandler[GenericEvent]]]:
-    event_handlers = {}  # type: ignore
+    event_handlers = {
+        NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
+        OldDiscountedProductsDeleted: [UpdateDiscountedProductReadModel],
+    }
     event_type = type(event)
     handler_classes = event_handlers[event_type]
     return cast(list[type[EventHandler[GenericEvent]]], handler_classes)

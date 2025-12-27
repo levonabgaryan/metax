@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -57,8 +58,9 @@ async def test_add_many_discounted_products(unit_of_work: UnitOfWork) -> None:
         await uow.commit()
 
     # when
+    started_time = datetime.now()
     async with unit_of_work as uow:
-        await uow.repositories.discounted_product.add_many(discounted_products)
+        await uow.repositories.discounted_product.add_many(discounted_products, started_time)
         await uow.commit()
 
     # then

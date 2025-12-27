@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from backend.core.application.event_and_handlers.discounted_product.events import (
+    NewDiscountedProductsFromRetailerCollected,
+)
 from backend.core.application.patterns.use_case_abc import UseCase, RequestDTO, ResponseDTO
 from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
@@ -15,7 +18,6 @@ class CollectDiscountedProductsFromRetailerRequest(RequestDTO):
 @dataclass(frozen=True)
 class CollectDiscountedProductsFromRetailerResponse(ResponseDTO):
     added_count: int
-    deleted_count: int
 
 
 class CollectDiscountedProductsFromRetailer(
@@ -34,15 +36,13 @@ class CollectDiscountedProductsFromRetailer(
             retailer_url=request.retailer_url
         ):
             async with self.unit_of_work as uow:
-                await uow.repositories.discounted_product.add_many(discounted_products)
+                await uow.repositories.discounted_product.add_many(
+                    discounted_products, started_time=request.started_time
+                )
                 await uow.commit()
                 added_count += len(discounted_products)
 
-        async with self.unit_of_work as uow:
-            deleted_count = await uow.repositories.discounted_product.delete_older_than_and_return_deleted_count(
-                date_limit=request.started_time
-            )
-            await uow.commit()
-            # self.unit_of_work.collect_events() ...
-
-        return CollectDiscountedProductsFromRetailerResponse(added_count=added_count, deleted_count=deleted_count)
+        self.unit_of_work.add_event(
+            NewDiscountedProductsFromRetailerCollected(new_products_created_date=request.started_time)
+        )
+        return CollectDiscountedProductsFromRetailerResponse(added_count=added_count)

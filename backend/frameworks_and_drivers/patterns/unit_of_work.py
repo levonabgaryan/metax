@@ -7,6 +7,9 @@ from django.db import transaction
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
 from backend.frameworks_and_drivers.repositories.category import DjangoSqlLiteCategoryRepository
 from backend.frameworks_and_drivers.repositories.discounted_product import DjangoSqlLiteDiscountedProductRepository
+from backend.frameworks_and_drivers.repositories.discounted_product_read_model import (
+    DjangoSqlLiteDiscountedProductReadModelRepository,
+)
 from backend.frameworks_and_drivers.repositories.retailer import DjangoSqlLiteRetailerRepository
 
 
@@ -16,11 +19,13 @@ class DjangoUnitOfWork(UnitOfWork):
         category_repository: DjangoSqlLiteCategoryRepository,
         retailer_repository: DjangoSqlLiteRetailerRepository,
         discounted_product_repository: DjangoSqlLiteDiscountedProductRepository,
+        discounted_product_read_model_repository: DjangoSqlLiteDiscountedProductReadModelRepository,
     ) -> None:
         super().__init__(
             category_repository=category_repository,
             retailer_repository=retailer_repository,
             discounted_product_repository=discounted_product_repository,
+            discounted_product_read_model_repository=discounted_product_read_model_repository,
         )
         self.__committed = False
 
