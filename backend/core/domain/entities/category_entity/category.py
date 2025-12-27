@@ -9,6 +9,7 @@ from backend.core.domain.entities.category_entity.errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
+from backend.core.domain.entities.category_entity.events import CategoryNameUpdated
 
 
 class Category(AggregateRootEntity):
@@ -57,6 +58,8 @@ class Category(AggregateRootEntity):
             handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
+
+        self._record_event(event=CategoryNameUpdated(category_uuid=self.get_uuid(), new_name=self.get_name()))
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

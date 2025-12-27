@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from asgiref.sync import sync_to_async
 
@@ -44,6 +45,7 @@ class DjangoSqlLiteDiscountedProductReadModelRepository(DiscountedProductReadMod
         await sync_to_async(self.__add_many_by_date, thread_sensitive=True)(date)
 
     @staticmethod
+    @sync_to_async(thread_sensitive=True)
     def __delete_older_than(date_limit: datetime) -> int:
         query = f"""
             DELETE FROM {DiscountedProductReadModel._meta.db_table}
@@ -55,4 +57,18 @@ class DjangoSqlLiteDiscountedProductReadModelRepository(DiscountedProductReadMod
             return int(count) if count is not None else 0
 
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
-        return await sync_to_async(self.__delete_older_than, thread_sensitive=True)(date_limit)
+        return await self.__delete_older_than(date_limit)
+
+    async def update_category_name(self, category_uuid: UUID, new_category_name: str) -> None:
+        return await self.__update_category_name(category_uuid, new_category_name)
+
+    @staticmethod
+    @sync_to_async(thread_sensitive=True)
+    def __update_category_name(category_uuid: UUID, new_category_name: str) -> None:
+        query = f"""
+                UPDATE {DiscountedProductReadModel._meta.db_table}
+                SET category_name = %s
+                WHERE category_uuid = %s
+            """
+        with connection.cursor() as cursor:
+            cursor.execute(query, [new_category_name, category_uuid])
