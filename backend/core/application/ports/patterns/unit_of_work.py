@@ -1,3 +1,4 @@
+import asyncio
 from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import AsyncIterator, NamedTuple, Self
@@ -16,14 +17,6 @@ class Repositories(NamedTuple):
 
 
 class UnitOfWork(ABC):
-    """
-    Abstract base class for the Unit of Work pattern.
-
-    Always use this context manager when working with repositories.
-    Always call the commit method manually.
-
-    """
-
     def __init__(
         self,
         category_repository: CategoryRepository,
@@ -35,7 +28,7 @@ class UnitOfWork(ABC):
             discounted_product=discounted_product_repository,
             retailer=retailer_repository,
         )
-        self.__events: list[Event] = []
+        self._events_queue: asyncio.Queue[Event] = asyncio.Queue()
 
     async def __aenter__(self) -> Self:
         return self
@@ -43,13 +36,6 @@ class UnitOfWork(ABC):
     async def __aexit__(
         self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
-        """
-        Exit the async context manager.
-
-        Rollback is always called after exiting the 'with' statement.
-        Since commit must be called manually, rollback does nothing
-        if commit has already been executed successfully.
-        """
         await self.rollback()
 
     @abstractmethod
@@ -61,22 +47,21 @@ class UnitOfWork(ABC):
         pass
 
     def add_event(self, event: Event) -> None:
-        self.__events.append(event)
-
-    def get_one_event(self) -> Event:
-        return self.__events.pop(0)
+        self._events_queue.put_nowait(event)
 
     @property
-    def has_event(self) -> bool:
-        return bool(self.__events)
+    def has_events(self) -> bool:
+        return not self._events_queue.empty()
 
     async def collect_new_events(self) -> AsyncIterator[Event]:
         for repo in self.repositories:
-            aggregate: AggregateRootEntity
             for aggregate in repo.seen:
-                while aggregate.has_events:
-                    yield aggregate.get_one_event()
+                if isinstance(aggregate, AggregateRootEntity):
+                    while aggregate.has_events:
+                        event = aggregate.get_one_event()
+                        await self._events_queue.put(event)
             repo.seen.clear()
 
-        while self.has_event:
-            yield self.get_one_event()
+        while not self._events_queue.empty():
+            yield await self._events_queue.get()
+            self._events_queue.task_done()
