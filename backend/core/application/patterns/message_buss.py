@@ -61,7 +61,7 @@ class MessageBus:
         for handler_type in get_event_handlers(event):
             try:
                 logger.debug("handling event %s with handler %s", event)
-                handler = handler_type(unit_of_work=unit_of_work)  # type: ignore
+                handler = handler_type(unit_of_work=unit_of_work)
                 await handler.handle(event)
                 async for new_event in unit_of_work.collect_new_events():
                     await queue.put(new_event)
@@ -99,7 +99,7 @@ def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericC
     return cast(type[CommandHandler[GenericCommand]], handler_class)
 
 
-def get_event_handlers(event: Event) -> list[type[EventHandler[GenericEvent]]]:
+def get_event_handlers(event: GenericEvent) -> list[type[EventHandler[GenericEvent]]]:
     event_handlers = {
         NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
         OldDiscountedProductsDeleted: [UpdateDiscountedProductReadModel],
