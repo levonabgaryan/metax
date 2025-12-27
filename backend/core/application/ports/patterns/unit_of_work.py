@@ -5,6 +5,7 @@ from typing import AsyncIterator, NamedTuple, Self
 from backend.core.application.ports.repositories.category import CategoryRepository
 from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
 from backend.core.application.ports.repositories.retailer import RetailerRepository
+from backend.core.domain.ddd_patterns import AggregateRootEntity
 from backend.core.domain.event import Event
 
 
@@ -34,6 +35,7 @@ class UnitOfWork(ABC):
             discounted_product=discounted_product_repository,
             retailer=retailer_repository,
         )
+        self.__events: list[Event] = []
 
     async def __aenter__(self) -> Self:
         return self
@@ -58,8 +60,23 @@ class UnitOfWork(ABC):
     async def rollback(self) -> None:
         pass
 
+    def add_event(self, event: Event) -> None:
+        self.__events.append(event)
+
+    def get_one_event(self) -> Event:
+        return self.__events.pop(0)
+
+    @property
+    def has_event(self) -> bool:
+        return bool(self.__events)
+
     async def collect_new_events(self) -> AsyncIterator[Event]:
         for repo in self.repositories:
+            aggregate: AggregateRootEntity
             for aggregate in repo.seen:
                 while aggregate.has_events:
                     yield aggregate.get_one_event()
+            repo.seen.clear()
+
+        while self.has_event:
+            yield self.get_one_event()

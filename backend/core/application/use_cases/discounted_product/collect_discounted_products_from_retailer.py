@@ -23,7 +23,6 @@ class CollectDiscountedProductsFromRetailer(
 ):
     def __init__(self, unit_of_work: UnitOfWork, discounted_product_factory: IDiscountedProductFactory) -> None:
         super().__init__(unit_of_work=unit_of_work)
-        self.unit_of_work = unit_of_work
         self.discounted_product_factory = discounted_product_factory
 
     async def execute(
@@ -44,5 +43,6 @@ class CollectDiscountedProductsFromRetailer(
                 date_limit=request.started_time
             )
             await uow.commit()
+            # self.unit_of_work.collect_events() ...
 
         return CollectDiscountedProductsFromRetailerResponse(added_count=added_count, deleted_count=deleted_count)
