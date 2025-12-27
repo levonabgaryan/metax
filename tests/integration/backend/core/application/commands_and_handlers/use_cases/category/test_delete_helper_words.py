@@ -1,6 +1,6 @@
 import pytest
 
-from backend.core.application.commands_and_handlers.use_cases.category.delete_helper_words import (
+from backend.core.application.commands_and_handlers.cud.category.delete_helper_words import (
     DeleteHelperWordsCommand,
 )
 from backend.core.application.patterns.command_handler_abc import CommandHandler

@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from backend.core.application.patterns.message_buss import MessageBus
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.patterns.unit_of_work_factory import IUnitOfWorkFactory
+from backend.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
 from backend.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
 from backend.frameworks_and_drivers.patterns.discounted_product_factory import DiscountedProductFactory
 from backend.frameworks_and_drivers.patterns.unit_of_work import DjangoUnitOfWork

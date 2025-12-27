@@ -12,11 +12,11 @@ from backend.core.application.commands_and_handlers.cud.retailer import (
     CreateRetailerCommand,
     UpdateRetailerCommand,
 )
-from backend.core.application.commands_and_handlers.use_cases.category.add_new_helper_words import (
+from backend.core.application.commands_and_handlers.cud.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
 )
-from backend.core.application.commands_and_handlers.use_cases.category.delete_helper_words import (
+from backend.core.application.commands_and_handlers.cud.category.delete_helper_words import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
