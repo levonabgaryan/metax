@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from uuid import UUID
 
 from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
@@ -30,4 +31,8 @@ class DiscountedProductRepository(ABC):
 
     @abstractmethod
     async def _get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct | None:
+        pass
+
+    @abstractmethod
+    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         pass

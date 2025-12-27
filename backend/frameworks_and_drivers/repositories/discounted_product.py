@@ -1,3 +1,4 @@
+from datetime import datetime
 from uuid import UUID
 
 from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
@@ -35,6 +36,13 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
             return None
 
         return self.__map_to_entity(discounted_product_model)
+
+    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
+        deleted_count, _ = await DiscountedProductModel._default_manager.filter(
+            created_at__lt=date_limit
+        ).adelete()
+
+        return deleted_count
 
     @staticmethod
     def __map_to_entity(model: DiscountedProductModel) -> DiscountedProduct:
