@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator, TYPE_CHECKING
+from typing import AsyncIterator
 
 from backend.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
@@ -8,8 +8,8 @@ from backend.core.domain.entities.discounted_product_entity.discounted_product i
 
 class IDiscountedProductFactory(ABC):
     @abstractmethod
-    async def create_many_from_retailer(
+    def create_many_from_retailer(
         self, retailer_url: str, batch_size: int = 500
     ) -> AsyncIterator[list[DiscountedProduct]]:
-        if TYPE_CHECKING:
-            yield []
+        # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
+        pass

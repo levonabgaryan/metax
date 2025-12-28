@@ -2,7 +2,7 @@ from backend.core.application.event_and_handlers.discounted_product.events impor
 from backend.core.application.patterns.event_handler_abc import EventHandler
 
 
-class UpdateDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted]):
+class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted]):
     async def handle(self, event: OldDiscountedProductsDeleted) -> None:
         # add new data and delete old data from discounted product read model
         async with self.unit_of_work as uow:

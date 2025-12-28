@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import AsyncIterator
 from uuid import UUID
 
 from backend.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
@@ -35,4 +36,9 @@ class DiscountedProductRepository(ABC):
 
     @abstractmethod
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
+        pass
+
+    @abstractmethod
+    def get_all(self) -> AsyncIterator[DiscountedProduct]:
+        # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
         pass

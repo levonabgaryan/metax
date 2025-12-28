@@ -24,8 +24,8 @@ from backend.core.application.event_and_handlers.discounted_product.events impor
     NewDiscountedProductsFromRetailerCollected,
     OldDiscountedProductsDeleted,
 )
-from backend.core.application.event_and_handlers.discounted_product.update_discounted_products_read_model import (
-    UpdateDiscountedProductReadModel,
+from backend.core.application.event_and_handlers.discounted_product.sync_discounted_products_read_model import (
+    SyncDiscountedProductReadModel,
 )
 from backend.core.application.event_and_handlers.retailer.update_in_discounted_product_read_model import (
     UpdateRetailerInDiscountedProductReadModel,
@@ -110,7 +110,7 @@ def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericC
 def get_event_handlers(event: GenericEvent) -> list[type[EventHandler[GenericEvent]]]:
     event_handlers = {
         NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
-        OldDiscountedProductsDeleted: [UpdateDiscountedProductReadModel],
+        OldDiscountedProductsDeleted: [SyncDiscountedProductReadModel],
         CategoryUpdated: [UpdateCategoryInDiscountedProductReadModel],
         RetailerUpdated: [UpdateRetailerInDiscountedProductReadModel],
     }

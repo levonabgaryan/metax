@@ -12,7 +12,7 @@ class DiscountedProductModel(BaseDbModel):
     discounted_product_uuid = models.UUIDField(primary_key=True, editable=False)
     real_price = models.DecimalField(max_digits=10, decimal_places=2)
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2)
-    name = models.CharField(max_length=64, unique=True, null=False)
+    name = models.CharField(max_length=64, null=False)
     url = models.URLField(max_length=2048)
 
     category = models.ForeignKey("CategoryModel", on_delete=models.SET_NULL, db_column="category_uuid", null=True)

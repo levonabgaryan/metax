@@ -11,8 +11,8 @@ class DiscountedProductReadModel(BaseDbModel):
     name = models.CharField(max_length=64)
     url = models.URLField(max_length=2048)
 
-    category_uuid = models.UUIDField()
-    category_name = models.CharField(max_length=128)
+    category_uuid = models.UUIDField(null=True)
+    category_name = models.CharField(max_length=128, null=True)
 
     retailer_uuid = models.UUIDField()
     retailer_name = models.CharField(max_length=128)

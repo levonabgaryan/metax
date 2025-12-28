@@ -15,7 +15,7 @@ class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
         discounted_product_uuid: UUID,
-        category_uuid: UUID,
+        category_uuid: UUID | None,
         retailer_uuid: UUID,
         price_details: PriceDetails,
         name: str,
@@ -31,7 +31,7 @@ class DiscountedProduct(AggregateRootEntity):
     def get_url(self) -> str:
         return self.__url
 
-    def get_category_uuid(self) -> UUID:
+    def get_category_uuid(self) -> UUID | None:
         return self.__category_uuid
 
     def get_retailer_uuid(self) -> UUID:
@@ -45,6 +45,18 @@ class DiscountedProduct(AggregateRootEntity):
 
     def get_discounted_price(self) -> Decimal:
         return self.__price_details.discounted_price
+
+    def __str__(self) -> str:
+        return (
+            f"DiscountedProduct(\n"
+            f"  uuid={self.get_uuid()},\n"
+            f"  name='{self.__name}',\n"
+            f"  price={self.get_discounted_price()} (old: {self.get_real_price()}),\n"
+            f"  retailer_uuid={self.__retailer_uuid},\n"
+            f"  category_uuid={self.__category_uuid},\n"
+            f"  url='{self.__url}'\n"
+            f")"
+        )
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

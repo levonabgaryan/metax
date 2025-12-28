@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import AsyncIterator
 from uuid import UUID
 
 from backend.core.application.ports.repositories.discounted_product import DiscountedProductRepository
@@ -45,6 +46,11 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
 
         return deleted_count
 
+    async def get_all(self) -> AsyncIterator[DiscountedProduct]:
+        queryset = DiscountedProductModel._default_manager.select_related("category", "retailer").all()
+        async for model in queryset.aiterator(chunk_size=100):
+            yield self.__map_to_entity(model)
+
     @staticmethod
     def __map_to_entity(model: DiscountedProductModel) -> DiscountedProduct:
         return DiscountedProduct(
@@ -52,6 +58,6 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
             name=model.name,
             url=model.url,
             price_details=PriceDetails(real_price=model.real_price, discounted_price=model.discounted_price),
-            category_uuid=model.category.category_uuid,
+            category_uuid=model.category.category_uuid if model.category else None,
             retailer_uuid=model.retailer.retailer_uuid,
         )
