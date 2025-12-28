@@ -18,6 +18,8 @@ class DiscountedProductModel(BaseDbModel):
     category = models.ForeignKey("CategoryModel", on_delete=models.SET_NULL, db_column="category_uuid", null=True)
     retailer = models.ForeignKey("RetailerModel", on_delete=models.CASCADE, db_column="retailer_uuid")
 
+    created_at = models.DateTimeField()
+
     class Meta(TypedModelMeta):
         db_table = "discounted_products"
         verbose_name = "discounted product"

@@ -17,6 +17,8 @@ class DiscountedProductReadModel(BaseDbModel):
     retailer_uuid = models.UUIDField()
     retailer_name = models.CharField(max_length=128)
 
+    created_at = models.DateTimeField()
+
     class Meta(TypedModelMeta):
         db_table = "discounted_products_read_model"
         verbose_name = "discounted product read model"
