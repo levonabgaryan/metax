@@ -21,7 +21,7 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
                 discounted_price=product.get_discounted_price(),
                 name=product.get_name(),
                 url=product.get_url(),
-                category_id=product.get_category_uuid(),
+                category_id=product.get_category_uuid() if product.has_category() else None,
                 retailer_id=product.get_retailer_uuid(),
                 created_at=started_time,
             )

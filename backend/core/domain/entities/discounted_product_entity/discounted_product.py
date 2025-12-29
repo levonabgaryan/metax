@@ -48,6 +48,9 @@ class DiscountedProduct(AggregateRootEntity):
     def get_discounted_price(self) -> Decimal:
         return self.__price_details.discounted_price
 
+    def has_category(self) -> bool:
+        return self.__category_uuid is not None
+
     def __str__(self) -> str:
         return (
             f"DiscountedProduct(\n"
