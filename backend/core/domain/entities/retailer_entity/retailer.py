@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, TypedDict
+from typing import Callable, TypedDict, NotRequired
 from uuid import UUID
 
 from backend.core.domain.ddd_patterns import AggregateRootEntity
@@ -52,6 +52,6 @@ class Retailer(AggregateRootEntity):
 
 
 class DataForRetailerUpdate(TypedDict):
-    new_name: str | None
-    new_url: str | None
-    new_phone_number: str | None
+    new_name: NotRequired[str | None]
+    new_url: NotRequired[str | None]
+    new_phone_number: NotRequired[str | None]
