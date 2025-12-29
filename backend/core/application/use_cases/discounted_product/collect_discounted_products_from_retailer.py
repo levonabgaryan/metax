@@ -36,7 +36,7 @@ class CollectDiscountedProductsFromRetailer(
             retailer_url=request.retailer_url
         ):
             async with self.unit_of_work as uow:
-                await uow.repositories.discounted_product.add_many(
+                await uow.repositories.discounted_product.add_many_by_date(
                     discounted_products, started_time=request.started_time
                 )
                 await uow.commit()

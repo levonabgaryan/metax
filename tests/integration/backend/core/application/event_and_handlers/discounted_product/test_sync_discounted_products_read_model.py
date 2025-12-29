@@ -24,7 +24,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
 
     async with unit_of_work as uow:
         await uow.repositories.retailer.add(retailer)
-        await uow.repositories.discounted_product.add_many(discounted_products, creation_data)
+        await uow.repositories.discounted_product.add_many_by_date(discounted_products, creation_data)
         await uow.commit()
 
     event = OldDiscountedProductsDeleted(

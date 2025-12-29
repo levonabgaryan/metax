@@ -9,7 +9,7 @@ class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted])
             await uow.repositories.discounted_product_read_model.delete_older_than_and_return_deleted_count(
                 date_limit=event.new_discounted_products_creation_date
             )
-            await uow.repositories.discounted_product_read_model.add_many_by_date(
+            await uow.repositories.discounted_product_read_model.sync_many_by_date(
                 date=event.new_discounted_products_creation_date
             )
             await uow.commit()

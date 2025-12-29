@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from decimal import Decimal
 from typing import AsyncIterator
 from uuid import UUID, uuid4
@@ -25,6 +26,7 @@ from backend.frameworks_and_drivers.di.event_handlers_container import (
 )
 from backend.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from backend.frameworks_and_drivers.di.use_cases_container import DiscountedProductUseCasesContainer
+from django_framework.discount_service.models import DiscountedProductReadModel
 
 
 @pytest.fixture(scope="session")
@@ -108,6 +110,39 @@ def make_discounted_product_entity(
         discounted_product_uuid=discounted_product_uuid or uuid4(),
         price_details=price_details,
         url=url,
+    )
+
+
+def make_discounted_product_django_read_model(
+    created_at: datetime,
+    category: Category | None = None,
+    retailer: Retailer | None = None,
+    discounted_product_uuid: UUID | None = None,
+    name: str = "test_discounted_product_name",
+    price_details: PriceDetails | None = None,
+    url: str = "test_discounted_product_url",
+) -> DiscountedProductReadModel:
+    category = category or make_category_entity()
+    retailer = retailer or make_retailer_entity()
+    discounted_product = make_discounted_product_entity(
+        retailer_uuid=retailer.get_uuid(),
+        category_uuid=category.get_uuid(),
+        discounted_product_uuid=discounted_product_uuid,
+        name=name,
+        price_details=price_details,
+        url=url,
+    )
+    return DiscountedProductReadModel(
+        discounted_product_uuid=discounted_product.get_uuid(),
+        real_price=discounted_product.get_real_price(),
+        discounted_price=discounted_product.get_discounted_price(),
+        name=discounted_product.get_name(),
+        url=discounted_product.get_url(),
+        category_uuid=category.get_uuid(),
+        category_name=category.get_name(),
+        retailer_uuid=retailer.get_uuid(),
+        retailer_name=retailer.get_name(),
+        created_at=created_at,
     )
 
 

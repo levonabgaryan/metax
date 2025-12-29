@@ -13,7 +13,7 @@ from django_framework.discount_service.models import (
 
 
 class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
-    async def add_many(self, discounted_products: list[DiscountedProduct], started_time: datetime) -> None:
+    async def add_many_by_date(self, discounted_products: list[DiscountedProduct], started_time: datetime) -> None:
         models = [
             DiscountedProductModel(
                 discounted_product_uuid=product.get_uuid(),

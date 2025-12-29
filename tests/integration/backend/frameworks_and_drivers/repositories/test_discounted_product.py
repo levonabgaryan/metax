@@ -60,7 +60,7 @@ async def test_add_many_discounted_products(unit_of_work: UnitOfWork) -> None:
     # when
     started_time = datetime.now(tz=timezone.utc)
     async with unit_of_work as uow:
-        await uow.repositories.discounted_product.add_many(discounted_products, started_time)
+        await uow.repositories.discounted_product.add_many_by_date(discounted_products, started_time)
         await uow.commit()
 
     # then

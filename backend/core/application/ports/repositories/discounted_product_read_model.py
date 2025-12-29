@@ -10,8 +10,9 @@ class DiscountedProductReadModelRepository(ABC):
     def __init__(self) -> None:
         self.seen: set[DiscountedProduct] = set()
 
+    @staticmethod
     @abstractmethod
-    async def add_many_by_date(self, date: datetime) -> None:
+    async def sync_many_by_date(date: datetime) -> None:
         pass
 
     @abstractmethod

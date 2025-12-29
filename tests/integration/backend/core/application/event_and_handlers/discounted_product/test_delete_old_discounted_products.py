@@ -23,7 +23,7 @@ async def test_event_handler_shall_delete_old_data(
 
     async with unit_of_work as uow:
         await uow.repositories.retailer.add(retailer)
-        await uow.repositories.discounted_product.add_many(
+        await uow.repositories.discounted_product.add_many_by_date(
             [old_discounted_product], old_discounted_product_created_date
         )
         await uow.commit()
