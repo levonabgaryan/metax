@@ -2,9 +2,11 @@ from dependency_injector import containers, providers
 
 from backend.core.application.patterns.use_case_abc import UseCase
 from backend.core.application.use_cases.discounted_product.collect_discounted_products_from_retailer import (
+    CollectDiscountedProductsFromRetailer,
+)
+from backend.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsFromRetailerRequest,
     CollectDiscountedProductsFromRetailerResponse,
-    CollectDiscountedProductsFromRetailer,
 )
 
 

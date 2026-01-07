@@ -8,9 +8,7 @@ import pytest
 
 from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.use_cases.discounted_product.collect_discounted_products_from_retailer import (
-    CollectDiscountedProductsFromRetailerRequest,
-)
+from backend.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsFromRetailerRequest
 from backend.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 from backend.frameworks_and_drivers.di.use_cases_container import DiscountedProductUseCasesContainer
 from django_framework.discount_service.models import RetailerModel, DiscountedProductModel

@@ -1,23 +1,13 @@
-from dataclasses import dataclass
-from datetime import datetime
-
 from backend.core.application.event_and_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
-from backend.core.application.patterns.use_case_abc import UseCase, RequestDTO, ResponseDTO
+from backend.core.application.patterns.use_case_abc import UseCase
 from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-
-
-@dataclass(frozen=True)
-class CollectDiscountedProductsFromRetailerRequest(RequestDTO):
-    retailer_url: str
-    started_time: datetime
-
-
-@dataclass(frozen=True)
-class CollectDiscountedProductsFromRetailerResponse(ResponseDTO):
-    added_count: int
+from backend.core.application.use_cases.discounted_product.dtos import (
+    CollectDiscountedProductsFromRetailerRequest,
+    CollectDiscountedProductsFromRetailerResponse,
+)
 
 
 class CollectDiscountedProductsFromRetailer(
