@@ -38,8 +38,8 @@ pytest tests/integration
 
 ## Django project location
 ```bash
-cd backend/frameworks_and_drivers/django_framework
+cd discounted_service/frameworks_and_drivers/django_framework
 ```
 Then use manage.py commands
 
-Mark `backend/frameworks_and_drivers/django_framework` path as Sources root
+Mark `discounted_service/frameworks_and_drivers/django_framework` path as Sources root
