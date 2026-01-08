@@ -1,10 +1,12 @@
 from uuid import uuid4
 import pytest
 
-from backend.core.application.commands_and_handlers.cud.retailer import CreateRetailerCommand
-from backend.core.application.patterns.command_handler_abc import CommandHandler
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.frameworks_and_drivers.di.commands_handlers_container import RetailerCommandsHandlersContainer
+from discount_service.core.application.commands_and_handlers.cud.retailer import CreateRetailerCommand
+from discount_service.core.application.patterns.command_handler_abc import CommandHandler
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.frameworks_and_drivers.di.commands_handlers_container import (
+    RetailerCommandsHandlersContainer,
+)
 
 
 @pytest.mark.django_db(transaction=True)

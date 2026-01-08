@@ -2,10 +2,10 @@ from uuid import uuid4
 
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
-from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from discount_service.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 from tests.integration.conftest import make_retailer_entity
 
 

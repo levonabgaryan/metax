@@ -2,11 +2,11 @@ from datetime import timezone, datetime
 
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
-from backend.core.domain.entities.retailer_entity.events import RetailerUpdated
-from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from backend.frameworks_and_drivers.di.event_handlers_container import RetailerEventHandlersContainer
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
+from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from discount_service.frameworks_and_drivers.di.event_handlers_container import RetailerEventHandlersContainer
 from tests.integration.conftest import make_retailer_entity, make_discounted_product_entity
 
 

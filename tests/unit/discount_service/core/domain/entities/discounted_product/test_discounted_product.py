@@ -1,9 +1,9 @@
 import pytest
 
-from backend.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
+from discount_service.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
 from decimal import Decimal
 
-from backend.core.domain.entities.discounted_product_entity.errors.errors import (
+from discount_service.core.domain.entities.discounted_product_entity.errors.errors import (
     NegativePriceError,
     DiscountExceedsRealPriceError,
 )

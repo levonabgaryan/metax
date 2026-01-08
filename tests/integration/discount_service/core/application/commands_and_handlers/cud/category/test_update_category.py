@@ -1,11 +1,13 @@
 import pytest
 
-from backend.core.application.commands_and_handlers.cud.category import (
+from discount_service.core.application.commands_and_handlers.cud.category import (
     UpdateCategoryCommand,
 )
-from backend.core.application.patterns.command_handler_abc import CommandHandler
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.frameworks_and_drivers.di.commands_handlers_container import CategoryCommandsHandlersContainer
+from discount_service.core.application.patterns.command_handler_abc import CommandHandler
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.frameworks_and_drivers.di.commands_handlers_container import (
+    CategoryCommandsHandlersContainer,
+)
 from tests.integration.conftest import make_category_entity
 
 

@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
-from backend.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from backend.core.domain.entities.category_entity.events import CategoryUpdated
-from backend.frameworks_and_drivers.di.event_handlers_container import CategoryEventHandlersContainer
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.repositories.category import CategoryFieldsToUpdate
+from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
+from discount_service.frameworks_and_drivers.di.event_handlers_container import CategoryEventHandlersContainer
 from tests.integration.conftest import make_category_entity, make_retailer_entity, make_discounted_product_entity
 
 

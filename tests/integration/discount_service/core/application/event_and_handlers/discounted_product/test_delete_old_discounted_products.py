@@ -2,12 +2,14 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from backend.core.application.event_and_handlers.discounted_product.events import (
+from discount_service.core.application.event_and_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from backend.frameworks_and_drivers.di.event_handlers_container import DiscountedProductEventHandlersContainer
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from discount_service.frameworks_and_drivers.di.event_handlers_container import (
+    DiscountedProductEventHandlersContainer,
+)
 from tests.integration.conftest import make_discounted_product_entity, make_retailer_entity
 
 

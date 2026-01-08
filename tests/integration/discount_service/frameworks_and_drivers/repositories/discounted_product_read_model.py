@@ -2,11 +2,11 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.ports.repositories.category import CategoryFieldsToUpdate
-from backend.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
-from backend.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from backend.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.repositories.category import CategoryFieldsToUpdate
+from discount_service.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 from django_framework.discount_service.models import DiscountedProductReadModel
 from tests.integration.conftest import (
     make_retailer_entity,

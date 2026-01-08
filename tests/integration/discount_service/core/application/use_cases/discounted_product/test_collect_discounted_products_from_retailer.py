@@ -6,11 +6,13 @@ from uuid import uuid4
 
 import pytest
 
-from backend.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsFromRetailerRequest
-from backend.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
-from backend.frameworks_and_drivers.di.use_cases_container import DiscountedProductUseCasesContainer
+from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.use_cases.discounted_product.dtos import (
+    CollectDiscountedProductsFromRetailerRequest,
+)
+from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from discount_service.frameworks_and_drivers.di.use_cases_container import DiscountedProductUseCasesContainer
 from django_framework.discount_service.models import RetailerModel, DiscountedProductModel
 from tests.integration.conftest import mock_create_many_discounted_products_from_retailer
 

@@ -1,4 +1,4 @@
-from backend.frameworks_and_drivers.di.boostrap import MainContainer
+from discount_service.frameworks_and_drivers.di.boostrap import MainContainer
 
 
 def test_message_buss_is_singleton(container: MainContainer) -> None:

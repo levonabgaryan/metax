@@ -2,9 +2,13 @@ from datetime import datetime, timezone
 
 import pytest
 
-from backend.core.application.event_and_handlers.discounted_product.events import OldDiscountedProductsDeleted
-from backend.core.application.ports.patterns.unit_of_work import UnitOfWork
-from backend.frameworks_and_drivers.di.event_handlers_container import DiscountedProductEventHandlersContainer
+from discount_service.core.application.event_and_handlers.discounted_product.events import (
+    OldDiscountedProductsDeleted,
+)
+from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.frameworks_and_drivers.di.event_handlers_container import (
+    DiscountedProductEventHandlersContainer,
+)
 from django_framework.discount_service.models import DiscountedProductReadModel
 from tests.integration.conftest import make_retailer_entity, make_discounted_product_entity
 

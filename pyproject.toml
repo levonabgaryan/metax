@@ -1,7 +1,7 @@
 [tool.mypy]
 strict = true
 show_error_codes = true
-mypy_path = ".:backend/frameworks_and_drivers/django_framework"
+mypy_path = ".:discount_service/frameworks_and_drivers/django_framework"
 explicit_package_bases = true
 namespace_packages = true
 
@@ -139,9 +139,9 @@ docstring-code-format = true
 indent-style = "space"
 
 [tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "backend.frameworks_and_drivers.django_framework.django_framework.settings"
+DJANGO_SETTINGS_MODULE = "discount_service.frameworks_and_drivers.django_framework.django_framework.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 pythonpath = [
     ".",
-    "backend/frameworks_and_drivers/django_framework",
+    "discount_service/frameworks_and_drivers/django_framework",
 ]
