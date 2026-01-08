@@ -1,0 +1,47 @@
+name: PR Quality Check
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  lint-and-types:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy -r requirements.txt
+
+      - name: Run Ruff (только проверка)
+        run: ruff check
+
+      - name: Run Type Checker
+        run: mypy .
+
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/unit
+      - name: Run integration tests
+        run: pytest tests/integration
