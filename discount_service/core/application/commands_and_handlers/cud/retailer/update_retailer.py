@@ -3,7 +3,9 @@ from uuid import UUID
 
 from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.ports.repositories.retailer import RetailerFieldsToUpdate
+from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
+    RetailerFieldsToUpdate,
+)
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 
 
@@ -34,7 +36,7 @@ class UpdateRetailerCommand(Command):
 class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
     async def handle(self, command: UpdateRetailerCommand) -> None:
         async with self.unit_of_work as uow:
-            repo = uow.repositories.retailer
+            repo = uow.retailer_repo
             retailer = await repo.get_by_uuid(command.retailer_uuid)
             new_data = command.new_data
             retailer.update(new_data)

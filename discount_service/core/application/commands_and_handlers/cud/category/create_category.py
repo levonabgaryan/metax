@@ -18,6 +18,6 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
         async with self.unit_of_work as uow:
             helper_words = CategoryHelperWords(command.helper_words)
             category = Category(category_uuid=command.category_uuid, name=command.name, helper_words=helper_words)
-            repo = uow.repositories.category
+            repo = uow.category_repo
             await repo.add(category)
             await uow.commit()

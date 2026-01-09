@@ -3,7 +3,7 @@ from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
 
-from discount_service.core.application.ports.repositories.category import (
+from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryRepository,
     CategoryFieldsToUpdate,
 )

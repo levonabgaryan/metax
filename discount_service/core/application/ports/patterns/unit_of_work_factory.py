@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 
-from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 
 
 class IUnitOfWorkFactory(ABC):
     @abstractmethod
-    def create(self) -> UnitOfWork:
+    def create(self) -> AbstractUnitOfWork:
         pass

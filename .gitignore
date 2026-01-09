@@ -141,7 +141,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+discount_service/.env
 .envrc
 .venv
 env/

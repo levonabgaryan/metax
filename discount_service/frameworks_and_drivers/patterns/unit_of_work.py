@@ -4,31 +4,13 @@ from typing import Self
 from asgiref.sync import sync_to_async
 from django.db import transaction
 
-from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
-from discount_service.frameworks_and_drivers.repositories.category import DjangoSqlLiteCategoryRepository
-from discount_service.frameworks_and_drivers.repositories.discounted_product import (
-    DjangoSqlLiteDiscountedProductRepository,
-)
-from discount_service.frameworks_and_drivers.repositories.discounted_product_read_model import (
-    DjangoSqlLiteDiscountedProductReadModelRepository,
-)
-from discount_service.frameworks_and_drivers.repositories.retailer import DjangoSqlLiteRetailerRepository
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.frameworks_and_drivers.patterns.repositories_factory import RepositoriesAbstractFactory
 
 
-class DjangoUnitOfWork(UnitOfWork):
-    def __init__(
-        self,
-        category_repository: DjangoSqlLiteCategoryRepository,
-        retailer_repository: DjangoSqlLiteRetailerRepository,
-        discounted_product_repository: DjangoSqlLiteDiscountedProductRepository,
-        discounted_product_read_model_repository: DjangoSqlLiteDiscountedProductReadModelRepository,
-    ) -> None:
-        super().__init__(
-            category_repository=category_repository,
-            retailer_repository=retailer_repository,
-            discounted_product_repository=discounted_product_repository,
-            discounted_product_read_model_repository=discounted_product_read_model_repository,
-        )
+class UnitOfWork(AbstractUnitOfWork):
+    def __init__(self, repositories_abstract_factory: RepositoriesAbstractFactory) -> None:
+        super().__init__(repositories_abstract_factory=repositories_abstract_factory)
         self.__committed = False
 
     async def __aenter__(self) -> Self:

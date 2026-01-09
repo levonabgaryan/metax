@@ -66,6 +66,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "django_framework.wsgi.application"
+ASGI_APPLICATION = "django_framework.asgi.application"
 
 
 # Password validation
@@ -85,7 +86,6 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -110,3 +110,10 @@ STATICFILES_FINDERS = [
 ]
 MEDIA_ROOT = str(f"{BASE_DIR}/media")
 MEDIA_URL = "/media/"
+
+
+OPENSEARCH_USER = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_USER")
+OPENSEARCH_PASSWORD = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD")
+OPENSEARCH_HOST = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_NODE_HOST")
+OPENSEARCH_PORT = int(os.getenv("DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT", 9200))
+OPENSEARCH_AUTH = (OPENSEARCH_USER, OPENSEARCH_PASSWORD)

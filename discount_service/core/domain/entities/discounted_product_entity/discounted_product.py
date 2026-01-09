@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -20,6 +21,7 @@ class DiscountedProduct(AggregateRootEntity):
         price_details: PriceDetails,
         name: str,
         url: str,
+        created_at: datetime,
     ) -> None:
         super().__init__(_uuid=discounted_product_uuid)
         self.__category_uuid = category_uuid
@@ -27,6 +29,7 @@ class DiscountedProduct(AggregateRootEntity):
         self.__price_details = price_details
         self.__name = name
         self.__url = url
+        self.__created_at = created_at
 
     def get_url(self) -> str:
         return self.__url
@@ -50,6 +53,9 @@ class DiscountedProduct(AggregateRootEntity):
 
     def has_category(self) -> bool:
         return self.__category_uuid is not None
+
+    def get_created_at(self) -> datetime:
+        return self.__created_at
 
     def __str__(self) -> str:
         return (

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from discount_service.core.application.ports.repositories.retailer import (
+from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerRepository,
     RetailerFieldsToUpdate,
 )

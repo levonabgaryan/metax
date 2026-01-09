@@ -1,4 +1,5 @@
 import os
+import sys
 from split_settings.tools import include
 from dotenv import find_dotenv, load_dotenv
 
@@ -11,8 +12,20 @@ class DjangoSettingsError(Exception):
 
 load_dotenv(find_dotenv(filename=".env"))
 
+is_testing = (
+    "test" in sys.argv
+    or "pytest" in sys.modules
+    or any("pytest" in arg for arg in sys.argv)
+    or any("test" in arg for arg in sys.argv)
+)
+
+if is_testing:
+    ENV = "test"
+    os.environ["ENV"] = "test"
+else:
+    ENV = os.getenv("ENV", "dev")
+
 include("base.py")
-ENV = os.getenv("ENV")
 
 match ENV:
     case "dev":
