@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import AsyncIterator
+from typing import AsyncIterator, NamedTuple
 from uuid import UUID
 
 from discount_service.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
@@ -8,6 +8,12 @@ from discount_service.core.application.ports.repositories.errors.errors import E
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
 )
+
+
+class DiscountedProductWithDetails(NamedTuple):
+    entity: DiscountedProduct
+    category_name: str | None
+    retailer_name: str
 
 
 class DiscountedProductRepository(ABC):
@@ -27,7 +33,7 @@ class DiscountedProductRepository(ABC):
         return discounted_product
 
     @abstractmethod
-    async def add_many_by_date(self, discounted_products: list[DiscountedProduct], started_time: datetime) -> None:
+    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         pass
 
     @abstractmethod
@@ -41,4 +47,8 @@ class DiscountedProductRepository(ABC):
     @abstractmethod
     def get_all(self) -> AsyncIterator[DiscountedProduct]:
         # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
+        pass
+
+    @abstractmethod
+    def get_all_by_date(self, date_: datetime) -> AsyncIterator[DiscountedProductWithDetails]:
         pass

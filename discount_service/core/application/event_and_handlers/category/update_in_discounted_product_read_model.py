@@ -4,7 +4,5 @@ from discount_service.core.domain.entities.category_entity.events import Categor
 
 class UpdateCategoryInDiscountedProductReadModel(EventHandler[CategoryUpdated]):
     async def handle(self, event: CategoryUpdated) -> None:
-        async with self.unit_of_work as uow:
-            updated_category = await self.unit_of_work.repositories.category.get_by_uuid(event.category_uuid)
-            await uow.repositories.discounted_product_read_model.update_category(updated_category)
-            await uow.commit()
+        updated_category = await self.unit_of_work.category_repo.get_by_uuid(event.category_uuid)
+        await self.unit_of_work.discounted_product_read_model_repo.update_category(updated_category)

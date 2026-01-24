@@ -11,18 +11,20 @@ from discount_service.core.application.use_cases.discounted_product.dtos import 
 
 
 class DiscountedProductUseCasesContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     collect_discounted_products_from_retailer: providers.Provider[
         UseCase[CollectDiscountedProductsFromRetailerRequest, CollectDiscountedProductsFromRetailerResponse]
     ] = providers.Factory(
         CollectDiscountedProductsFromRetailer,
-        unit_of_work=patterns.unit_of_work,
-        discounted_product_factory=patterns.discounted_product_factory,
+        unit_of_work=patterns_container.unit_of_work,
+        discounted_product_factory=patterns_container.discounted_product_factory,
     )
 
 
 class UseCasesContainer(containers.DeclarativeContainer):
-    patterns = providers.DependenciesContainer()
+    patterns_container = providers.DependenciesContainer()
 
-    discounted_product = providers.Container(DiscountedProductUseCasesContainer, patterns=patterns)
+    discounted_product = providers.Container(
+        DiscountedProductUseCasesContainer, patterns_container=patterns_container
+    )

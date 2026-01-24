@@ -3,7 +3,7 @@ from discount_service.core.application.event_and_handlers.discounted_product.eve
 )
 from discount_service.core.application.patterns.use_case_abc import UseCase
 from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
-from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsFromRetailerRequest,
     CollectDiscountedProductsFromRetailerResponse,
@@ -13,7 +13,11 @@ from discount_service.core.application.use_cases.discounted_product.dtos import 
 class CollectDiscountedProductsFromRetailer(
     UseCase[CollectDiscountedProductsFromRetailerRequest, CollectDiscountedProductsFromRetailerResponse]
 ):
-    def __init__(self, unit_of_work: UnitOfWork, discounted_product_factory: IDiscountedProductFactory) -> None:
+    def __init__(
+        self,
+        unit_of_work: AbstractUnitOfWork,
+        discounted_product_factory: IDiscountedProductFactory,
+    ) -> None:
         super().__init__(unit_of_work=unit_of_work)
         self.discounted_product_factory = discounted_product_factory
 
@@ -23,12 +27,10 @@ class CollectDiscountedProductsFromRetailer(
         added_count = 0
 
         async for discounted_products in self.discounted_product_factory.create_many_from_retailer(
-            retailer_url=request.retailer_url
+            retailer_url=request.retailer_url, started_time=request.started_time
         ):
             async with self.unit_of_work as uow:
-                await uow.repositories.discounted_product.add_many_by_date(
-                    discounted_products, started_time=request.started_time
-                )
+                await uow.discounted_product_repo.add_many(discounted_products)
                 await uow.commit()
                 added_count += len(discounted_products)
 

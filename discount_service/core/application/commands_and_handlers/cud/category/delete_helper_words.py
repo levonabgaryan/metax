@@ -14,7 +14,7 @@ class DeleteHelperWordsCommand(Command):
 class DeleteHelperWordsCommandHandler(CommandHandler[DeleteHelperWordsCommand]):
     async def handle(self, command: DeleteHelperWordsCommand) -> None:
         async with self.unit_of_work as uow:
-            repo = uow.repositories.category
+            repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
             category.delete_helper_words(command.words_to_delete)
             await repo.update_helper_words(updated_category=category)

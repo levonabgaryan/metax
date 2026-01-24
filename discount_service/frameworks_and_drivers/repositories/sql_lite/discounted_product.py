@@ -2,7 +2,12 @@ from datetime import datetime
 from typing import AsyncIterator
 from uuid import UUID
 
-from discount_service.core.application.ports.repositories.discounted_product import DiscountedProductRepository
+from django.db.models import QuerySet
+
+from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
+    DiscountedProductRepository,
+    DiscountedProductWithDetails,
+)
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
     PriceDetails,
@@ -13,7 +18,7 @@ from django_framework.discount_service.models import (
 
 
 class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
-    async def add_many_by_date(self, discounted_products: list[DiscountedProduct], started_time: datetime) -> None:
+    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         models = [
             DiscountedProductModel(
                 discounted_product_uuid=product.get_uuid(),
@@ -23,7 +28,7 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
                 url=product.get_url(),
                 category_id=product.get_category_uuid() if product.has_category() else None,
                 retailer_id=product.get_retailer_uuid(),
-                created_at=started_time,
+                created_at=product.get_created_at(),
             )
             for product in discounted_products
         ]
@@ -37,7 +42,7 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
         except DiscountedProductModel.DoesNotExist:
             return None
 
-        return self.__map_to_entity(discounted_product_model)
+        return self.__convert_django_model_to_entity(discounted_product_model)
 
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         deleted_count, _ = await DiscountedProductModel._default_manager.filter(
@@ -49,10 +54,23 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
     async def get_all(self) -> AsyncIterator[DiscountedProduct]:
         queryset = DiscountedProductModel._default_manager.select_related("category", "retailer").all()
         async for model in queryset.aiterator(chunk_size=100):
-            yield self.__map_to_entity(model)
+            yield self.__convert_django_model_to_entity(model)
+
+    async def get_all_by_date(self, date_: datetime) -> AsyncIterator[DiscountedProductWithDetails]:
+        queryset: QuerySet[DiscountedProductModel, DiscountedProductModel] = (
+            DiscountedProductModel._default_manager.select_related("category", "retailer").filter(created_at=date_)
+        )
+        model: DiscountedProductModel
+        async for model in queryset.aiterator(chunk_size=100):
+            entity: DiscountedProduct = self.__convert_django_model_to_entity(model)
+            yield DiscountedProductWithDetails(
+                entity=entity,
+                category_name=model.category.name if entity.has_category() else None,
+                retailer_name=model.retailer.name,
+            )
 
     @staticmethod
-    def __map_to_entity(model: DiscountedProductModel) -> DiscountedProduct:
+    def __convert_django_model_to_entity(model: DiscountedProductModel) -> DiscountedProduct:
         return DiscountedProduct(
             discounted_product_uuid=model.discounted_product_uuid,
             name=model.name,
@@ -60,4 +78,5 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
             price_details=PriceDetails(real_price=model.real_price, discounted_price=model.discounted_price),
             category_uuid=model.category.category_uuid if model.category else None,
             retailer_uuid=model.retailer.retailer_uuid,
+            created_at=model.created_at,
         )

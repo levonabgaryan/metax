@@ -10,3 +10,5 @@ DATABASES = {
         "NAME": BASE_DIR / "db_for_testing.sqlite3",
     }
 }
+
+OPENSEARCH_VERIFY_CERTS = False

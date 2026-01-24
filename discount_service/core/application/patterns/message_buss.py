@@ -34,7 +34,7 @@ from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from discount_service.core.application.patterns.event_handler_abc import EventHandler
 from discount_service.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
 from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
 from discount_service.core.domain.event import Event, GenericEvent
@@ -63,7 +63,11 @@ class MessageBus:
                 await self.handle_command(message, unit_of_work=uow, queue=queue)
 
     @staticmethod
-    async def handle_event(event: Event, unit_of_work: UnitOfWork, queue: asyncio.Queue[Event | Command]) -> None:
+    async def handle_event(
+        event: Event,
+        unit_of_work: AbstractUnitOfWork,
+        queue: asyncio.Queue[Event | Command],
+    ) -> None:
         handler_type: type[EventHandler[Event]]
 
         for handler_type in get_event_handlers(event):
@@ -79,7 +83,9 @@ class MessageBus:
 
     @staticmethod
     async def handle_command(
-        command: Command, unit_of_work: UnitOfWork, queue: asyncio.Queue[Command | Event]
+        command: Command,
+        unit_of_work: AbstractUnitOfWork,
+        queue: asyncio.Queue[Command | Event],
     ) -> None:
         logger.debug("handling command %s", command)
         try:
@@ -91,7 +97,7 @@ class MessageBus:
             logger.exception("Exception handling command %s", command)
             raise
 
-    def create_unit_of_work(self) -> UnitOfWork:
+    def create_unit_of_work(self) -> AbstractUnitOfWork:
         return self.unit_of_work_factory.create()
 
 

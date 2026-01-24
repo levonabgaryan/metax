@@ -1,18 +1,23 @@
 import pytest
+from dependency_injector.wiring import Provide, inject
 
-from discount_service.core.application.commands_and_handlers.cud.retailer import UpdateRetailerCommand
-from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.ports.patterns.unit_of_work import UnitOfWork
-from discount_service.frameworks_and_drivers.di.commands_handlers_container import (
-    RetailerCommandsHandlersContainer,
+from discount_service.core.application.commands_and_handlers.cud.retailer import (
+    UpdateRetailerCommand,
+    UpdateRetailerCommandHandler,
 )
-from tests.integration.conftest import make_retailer_entity
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from tests.utils import make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
+@inject
 async def test_update_retailer_command_handler(
-    unit_of_work: UnitOfWork, retailer_commands_handlers: RetailerCommandsHandlersContainer
+    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+    command_handler: UpdateRetailerCommandHandler = Provide[
+        ServiceContainer.commands_handlers_container.container.retailer.container.update_retailer
+    ],
 ) -> None:
     # given
     retailer = make_retailer_entity()
@@ -25,18 +30,16 @@ async def test_update_retailer_command_handler(
     )
 
     async with unit_of_work as uow:
-        await uow.repositories.retailer.add(retailer)
+        await uow.retailer_repo.add(retailer)
         await uow.commit()
 
     # when
-    cmd_handler: CommandHandler[UpdateRetailerCommand] = retailer_commands_handlers.update_retailer(
-        unit_of_work=unit_of_work
-    )
+    cmd_handler = command_handler
     await cmd_handler.handle(cmd)
 
     # then
     async with unit_of_work as uow:
-        updated_retailer = await uow.repositories.retailer.get_by_uuid(retailer.get_uuid())
+        updated_retailer = await uow.retailer_repo.get_by_uuid(retailer.get_uuid())
         await uow.commit()
 
     assert updated_retailer.get_name() == "test_new_name"

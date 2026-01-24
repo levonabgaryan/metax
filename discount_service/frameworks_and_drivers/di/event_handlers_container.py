@@ -22,42 +22,49 @@ from discount_service.core.domain.entities.retailer_entity.events import Retaile
 
 
 class DiscountedProductEventHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     delete_old_discounted_products: providers.Provider[
         EventHandler[NewDiscountedProductsFromRetailerCollected]
-    ] = providers.Factory(DeleteOldDiscountedProducts, unit_of_work=patterns.unit_of_work)
+    ] = providers.Factory(
+        DeleteOldDiscountedProducts,
+        unit_of_work=patterns_container.unit_of_work,
+    )
     sync_discounted_product_read_model: providers.Provider[EventHandler[OldDiscountedProductsDeleted]] = (
-        providers.Factory(SyncDiscountedProductReadModel, unit_of_work=patterns.unit_of_work)
+        providers.Factory(
+            SyncDiscountedProductReadModel,
+            unit_of_work=patterns_container.unit_of_work,
+        )
     )
 
 
 class RetailerEventHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     update_discounted_product_read_model: providers.Provider[EventHandler[RetailerUpdated]] = providers.Factory(
-        UpdateRetailerInDiscountedProductReadModel, unit_of_work=patterns.unit_of_work
+        UpdateRetailerInDiscountedProductReadModel,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
 
 class CategoryEventHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     update_discounted_product_read_model: providers.Provider[EventHandler[CategoryUpdated]] = providers.Factory(
-        UpdateCategoryInDiscountedProductReadModel, unit_of_work=patterns.unit_of_work
+        UpdateCategoryInDiscountedProductReadModel,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
 
 class EventHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     category: providers.Container[CategoryEventHandlersContainer] = providers.Container(
-        CategoryEventHandlersContainer,
-        patterns=patterns,
+        CategoryEventHandlersContainer, patterns_container=patterns_container
     )
     retailer: providers.Container[RetailerEventHandlersContainer] = providers.Container(
-        RetailerEventHandlersContainer, patterns=patterns
+        RetailerEventHandlersContainer, patterns_container=patterns_container
     )
     discounted_product: providers.Container[DiscountedProductEventHandlersContainer] = providers.Container(
-        DiscountedProductEventHandlersContainer, patterns=patterns
+        DiscountedProductEventHandlersContainer, patterns_container=patterns_container
     )

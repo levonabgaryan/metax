@@ -3,7 +3,9 @@ from uuid import UUID
 
 from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.ports.repositories.category import CategoryFieldsToUpdate
+from discount_service.core.application.ports.repositories.entites_repositories.category import (
+    CategoryFieldsToUpdate,
+)
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
 
 
@@ -24,7 +26,7 @@ class UpdateCategoryCommand(Command):
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
     async def handle(self, command: UpdateCategoryCommand) -> None:
         async with self.unit_of_work as uow:
-            repo = uow.repositories.category
+            repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
             new_data = command.new_data
             category.update(new_data)

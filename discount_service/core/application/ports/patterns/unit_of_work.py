@@ -1,40 +1,29 @@
 import asyncio
 from abc import ABC, abstractmethod
 from types import TracebackType
-from typing import AsyncIterator, NamedTuple, Self
+from typing import AsyncIterator, Self
 
-from discount_service.core.application.ports.repositories.category import CategoryRepository
-from discount_service.core.application.ports.repositories.discounted_product import DiscountedProductRepository
-from discount_service.core.application.ports.repositories.discounted_product_read_model import (
-    DiscountedProductReadModelRepository,
+from discount_service.core.application.ports.patterns.repositories_abstract_factory import (
+    IRepositoriesAbstractFactory,
 )
-from discount_service.core.application.ports.repositories.retailer import RetailerRepository
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity
 from discount_service.core.domain.event import Event
 
 
-class Repositories(NamedTuple):
-    category: CategoryRepository
-    discounted_product: DiscountedProductRepository
-    retailer: RetailerRepository
-    discounted_product_read_model: DiscountedProductReadModelRepository
-
-
-class UnitOfWork(ABC):
+class AbstractUnitOfWork(ABC):
     def __init__(
         self,
-        category_repository: CategoryRepository,
-        discounted_product_repository: DiscountedProductRepository,
-        retailer_repository: RetailerRepository,
-        discounted_product_read_model_repository: DiscountedProductReadModelRepository,
-    ):
-        self.repositories = Repositories(
-            category=category_repository,
-            discounted_product=discounted_product_repository,
-            retailer=retailer_repository,
-            discounted_product_read_model=discounted_product_read_model_repository,
-        )
+        repositories_abstract_factory: IRepositoriesAbstractFactory,
+    ) -> None:
+        self.repositories_abstract_factory = repositories_abstract_factory
         self.__events_queue: asyncio.Queue[Event] = asyncio.Queue()
+
+        self.discounted_product_repo = self.repositories_abstract_factory.create_discounted_product_repository()
+        self.category_repo = self.repositories_abstract_factory.create_category_repository()
+        self.retailer_repo = self.repositories_abstract_factory.create_retailer_repository()
+        self.discounted_product_read_model_repo = (
+            self.repositories_abstract_factory.create_discounted_product_read_model_repository()
+        )
 
     async def __aenter__(self) -> Self:
         return self
@@ -60,7 +49,8 @@ class UnitOfWork(ABC):
         return not self.__events_queue.empty()
 
     async def collect_new_events(self) -> AsyncIterator[Event]:
-        for repo in self.repositories:
+        repos = (self.discounted_product_repo, self.category_repo, self.retailer_repo)
+        for repo in repos:
             for aggregate in repo.seen:
                 if isinstance(aggregate, AggregateRootEntity):
                     while aggregate.has_events:

@@ -24,48 +24,51 @@ from discount_service.core.application.patterns.command_handler_abc import Comma
 
 
 class CategoryCommandsHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     create_category: providers.Provider[CommandHandler[CreateCategoryCommand]] = providers.Factory(
         CreateCategoryCommandHandler,
-        unit_of_work=patterns.unit_of_work,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
     update_category: providers.Provider[CommandHandler[UpdateCategoryCommand]] = providers.Factory(
-        UpdateCategoryCommandHandler, unit_of_work=patterns.unit_of_work
+        UpdateCategoryCommandHandler,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
     add_new_helper_words: providers.Provider[CommandHandler[AddNewHelperWordsCommand]] = providers.Factory(
-        AddNewHelperWordsCommandHandler, unit_of_work=patterns.unit_of_work
+        AddNewHelperWordsCommandHandler,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
     delete_helper_words: providers.Provider[CommandHandler[DeleteHelperWordsCommand]] = providers.Factory(
-        DeleteHelperWordsCommandHandler, unit_of_work=patterns.unit_of_work
+        DeleteHelperWordsCommandHandler,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
 
 class RetailerCommandsHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     create_retailer: providers.Provider[CommandHandler[CreateRetailerCommand]] = providers.Factory(
         CreateRetailerCommandHandler,
-        unit_of_work=patterns.unit_of_work,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
     update_retailer: providers.Provider[CommandHandler[UpdateRetailerCommand]] = providers.Factory(
         UpdateRetailerCommandHandler,
-        unit_of_work=patterns.unit_of_work,
+        unit_of_work=patterns_container.unit_of_work,
     )
 
 
 class CommandsHandlersContainer(containers.DeclarativeContainer):
-    patterns: providers.DependenciesContainer = providers.DependenciesContainer()
+    patterns_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
     category: providers.Container[CategoryCommandsHandlersContainer] = providers.Container(
         CategoryCommandsHandlersContainer,
-        patterns=patterns,
+        patterns_container=patterns_container,
     )
     retailer: providers.Container[RetailerCommandsHandlersContainer] = providers.Container(
         RetailerCommandsHandlersContainer,
-        patterns=patterns,
+        patterns_container=patterns_container,
     )
