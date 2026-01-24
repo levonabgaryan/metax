@@ -32,6 +32,7 @@ Create .env using env_tmpl
 pytest tests/unit
 ```
 **integration**
+
 Run opensearch Docker container
 ```
 cd discount_service
@@ -82,17 +83,3 @@ python manage.py makemigrations discount_service
 ```commandline
 python manage.py migrate
 ```
-
-#### Open-search
-
-Create indices if they are not exist
-```commandline
-python manage.py opensearch index create
-```
-
-Delete existing index
-```commandline
-python manage.py opensearch index delete <index-name>
-```
-
-### Don't use other commands only create, update when document schema is changed, and delete when you need to delete unnecessary index
