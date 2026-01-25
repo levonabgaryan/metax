@@ -157,3 +157,35 @@ async def test_get_all(
         assert product["discounted_price"] in {
             given_product["discounted_price"] for given_product in discounted_product_read_models
         }
+
+
+@pytest.mark.asyncio
+@clear_opensearch_db
+@inject
+@pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
+async def test_by_name(
+    query: str,
+    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+) -> None:
+    # given
+    created_at = datetime.now(tz=timezone.utc)
+    discounted_product_read_model_ = make_discounted_product_read_model(
+        created_at=created_at,
+        discounted_product_uuid=str(uuid.uuid4()),
+        name="Փրփրուն գինի «Blue Nun Gold Edition» 0.75լ",
+    )
+    repo = unit_of_work.discounted_product_read_model_repo
+    await repo.add_one(discounted_product_read_model_)
+    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+
+    # when
+    found_products_batches = repo.search_by_name(name=query)
+
+    # then
+    async for found_products in found_products_batches:
+        assert len(found_products) == 1
+        for found_product in found_products:
+            assert (
+                found_product["discounted_product_uuid"]
+                == discounted_product_read_model_["discounted_product_uuid"]
+            )
