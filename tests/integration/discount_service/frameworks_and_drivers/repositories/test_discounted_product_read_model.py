@@ -163,7 +163,7 @@ async def test_get_all(
 @clear_opensearch_db
 @inject
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_by_name(
+async def test_search_by_name(
     query: str,
     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
 ) -> None:
@@ -175,7 +175,15 @@ async def test_by_name(
         name="Փրփրուն գինի «Blue Nun Gold Edition» 0.75լ",
     )
     repo = unit_of_work.discounted_product_read_model_repo
-    await repo.add_one(discounted_product_read_model_)
+    discounted_product_read_models = [
+        make_discounted_product_read_model(
+            created_at=created_at,
+            discounted_product_uuid=str(uuid.uuid4()),
+        )
+        for _ in range(15)
+    ]
+    discounted_product_read_models.append(discounted_product_read_model_)
+    await repo.add_many(discounted_product_read_models)
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # when
@@ -184,8 +192,8 @@ async def test_by_name(
     # then
     async for found_products in found_products_batches:
         assert len(found_products) == 1
-        for found_product in found_products:
-            assert (
-                found_product["discounted_product_uuid"]
-                == discounted_product_read_model_["discounted_product_uuid"]
-            )
+        found_product = found_products[0]
+        assert (
+            found_product["discounted_product_uuid"] in discounted_product_read_model_["discounted_product_uuid"]
+        )
+        assert found_product["name"] == discounted_product_read_model_["name"]
