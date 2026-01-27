@@ -140,7 +140,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             created_at=document["created_at"],
         )
 
-    async def search_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
+    async def get_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
         translit_res = await self.__opensearch_async_client.indices.analyze(
             body={
                 "tokenizer": "keyword",

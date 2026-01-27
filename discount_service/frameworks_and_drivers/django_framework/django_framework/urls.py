@@ -17,7 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from adrf import routers
+
+from django_framework.discount_service.views.category import CategoryViewSet
+
+router = routers.DefaultRouter()
+router.register(r"category", CategoryViewSet, basename="category")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 ]
+urlpatterns += router.urls

@@ -163,7 +163,7 @@ async def test_get_all(
 @clear_opensearch_db
 @inject
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_search_by_name(
+async def test_get_by_name(
     query: str,
     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
 ) -> None:
@@ -187,7 +187,7 @@ async def test_search_by_name(
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # when
-    found_products_batches = repo.search_by_name(name=query)
+    found_products_batches = repo.get_by_name(name=query)
 
     # then
     async for found_products in found_products_batches:

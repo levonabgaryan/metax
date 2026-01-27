@@ -41,5 +41,5 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    def search_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
+    def get_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
         pass

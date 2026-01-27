@@ -14,3 +14,4 @@ from django.core.asgi import get_asgi_application
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")
 
 application = get_asgi_application()
+# python -m gunicorn myproject.asgi:application -k uvicorn_worker.UvicornWorker

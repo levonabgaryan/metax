@@ -8,18 +8,20 @@ namespace_packages = true
 plugins = ["mypy_django_plugin.main"]
 
 exclude = [
-    'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/documents/.*',
+    'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/views/.*',
+    'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/serializers/.*',
 ]
-[[tool.mypy.overrides]]
-module = "django_opensearch_dsl.*"
-ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = "django_framework.discount_service.documents.*"
+module = "django_framework.discount_service.views.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "django_framework.discount_service.serializers.*"
 ignore_errors = true
 
 [tool.django-stubs]
-django_settings_module = "django_framework.settings.dev"
+django_settings_module = "django_framework.settings.prod"
 strict_model_abstract_attrs = true
 
 # Warns if function parameters and return value is not annotated
