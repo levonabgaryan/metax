@@ -27,4 +27,5 @@ router.register(r"category", CategoryViewSet, basename="category")
 urlpatterns = [
     path("admin/", admin.site.urls),
 ]
+
 urlpatterns += router.urls
