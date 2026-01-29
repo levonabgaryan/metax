@@ -4,7 +4,7 @@ import pytest
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer, configured_service_container
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer, configured_service_container
 
 
 @pytest.fixture(scope="session")

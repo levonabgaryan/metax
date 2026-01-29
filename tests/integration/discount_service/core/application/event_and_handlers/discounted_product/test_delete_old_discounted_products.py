@@ -11,7 +11,7 @@ from discount_service.core.application.event_and_handlers.discounted_product.eve
 )
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 

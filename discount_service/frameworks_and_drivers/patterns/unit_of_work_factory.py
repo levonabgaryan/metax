@@ -8,5 +8,5 @@ class DjangoUnitOfWorkFactory(IUnitOfWorkFactory):
     def __init__(self, unit_of_work_provider: providers.Provider[AbstractUnitOfWork]) -> None:
         self.unit_of_work_provider = unit_of_work_provider
 
-    def create(self) -> AbstractUnitOfWork:
-        return self.unit_of_work_provider()
+    async def create(self) -> AbstractUnitOfWork:
+        return await self.unit_of_work_provider.async_()

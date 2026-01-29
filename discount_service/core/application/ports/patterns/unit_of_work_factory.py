@@ -5,5 +5,5 @@ from discount_service.core.application.ports.patterns.unit_of_work import Abstra
 
 class IUnitOfWorkFactory(ABC):
     @abstractmethod
-    def create(self) -> AbstractUnitOfWork:
+    async def create(self) -> AbstractUnitOfWork:
         pass

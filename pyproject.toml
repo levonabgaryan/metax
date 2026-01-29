@@ -12,6 +12,7 @@ exclude = [
     'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/serializers/.*',
 ]
 
+
 [[tool.mypy.overrides]]
 module = "django_framework.discount_service.views.*"
 ignore_errors = true

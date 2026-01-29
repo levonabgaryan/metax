@@ -6,7 +6,7 @@ from discount_service.core.application.commands_and_handlers.cud.retailer import
     UpdateRetailerCommandHandler,
 )
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity
 
 

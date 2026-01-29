@@ -12,7 +12,7 @@ from discount_service.core.application.event_and_handlers.discounted_product.syn
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
     make_retailer_entity,

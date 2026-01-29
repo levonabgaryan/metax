@@ -12,7 +12,7 @@ from discount_service.core.domain.entities.category_entity.category import (
     CategoryHelperWords,
     DataForCategoryUpdate,
 )
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
 
 

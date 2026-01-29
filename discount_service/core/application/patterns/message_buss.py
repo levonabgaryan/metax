@@ -51,7 +51,7 @@ class MessageBus:
 
     async def handle(self, message: Command | Event) -> None:
         queue: asyncio.Queue[Command | Event] = asyncio.Queue()
-        uow = self.create_unit_of_work()
+        uow = await self.create_unit_of_work()
         await queue.put(message)
 
         while not queue.empty():
@@ -97,8 +97,8 @@ class MessageBus:
             logger.exception("Exception handling command %s", command)
             raise
 
-    def create_unit_of_work(self) -> AbstractUnitOfWork:
-        return self.unit_of_work_factory.create()
+    async def create_unit_of_work(self) -> AbstractUnitOfWork:
+        return await self.unit_of_work_factory.create()
 
 
 def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericCommand]]:

@@ -7,7 +7,7 @@ from dependency_injector.wiring import inject, Provide
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import (
     clear_opensearch_db,
