@@ -24,6 +24,7 @@ class CategoryViewSet(ViewSet):
         request: AsyncRequest,
         message_bus: MessageBus = Provide[ServiceContainer.patterns_container.container.message_bus],
     ) -> Response:
+        # api/category/create/
         serializer = CreateCategorySerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -45,13 +46,13 @@ class CategoryViewSet(ViewSet):
         request: AsyncRequest,
         unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
     ) -> Response:
+        # api/categories/get/?category_uuid=<uuid_value>
         uuid_str = request.query_params.get("category_uuid")
 
         if not uuid_str:
             return Response({"error": "category_uuid is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        async with unit_of_work as uow:
-            repo = uow.category_repo
-            category = await repo.get_by_uuid(UUID(uuid_str))
+        repo = unit_of_work.category_repo
+        category = await repo.get_by_uuid(UUID(uuid_str))
 
         return Response({"message": f"Category is found with {category.get_uuid()}"}, status=200)

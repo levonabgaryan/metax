@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-from discount_service.main_error import MainError
+from main_error import MainError
 
 from .error_codes import DiscountedProductErrorCodes
 

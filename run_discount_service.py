@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Paths
 # -------------------------
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = Path(__file__).resolve().parent
 DJANGO_DIR = PROJECT_ROOT / "discount_service" / "frameworks_and_drivers" / "django_framework"
 MANAGE_PY = DJANGO_DIR / "manage.py"
 
@@ -21,7 +21,7 @@ MANAGE_PY = DJANGO_DIR / "manage.py"
 
 
 def setup_environment() -> dict[str, str]:
-    env_file = PROJECT_ROOT / "discount_service" / ".env"
+    env_file = PROJECT_ROOT / ".env"
     if env_file.exists():
         load_dotenv(env_file, override=True)
 
@@ -44,7 +44,7 @@ def run_db_migrations(env_: dict[str, str]) -> None:
         cwd=DJANGO_DIR,
     )
     subprocess.run(
-        [sys.executable, str(MANAGE_PY), "migrate", "discount_service"],
+        [sys.executable, str(MANAGE_PY), "migrate"],
         check=True,
         env=env_,
         cwd=DJANGO_DIR,
@@ -56,7 +56,7 @@ def run_django_uvicorn_server(env_: dict[str, str]) -> None:
     port = env_["DJANGO_SERVER_PORT"]
 
     env_ = env_.copy()
-    env_["PYTHONPATH"] = str(DJANGO_DIR)
+    env_["PYTHONPATH"] = str(PROJECT_ROOT)
 
     command = [
         sys.executable,
@@ -74,18 +74,12 @@ def run_django_uvicorn_server(env_: dict[str, str]) -> None:
     print(f"🚀 Starting Django (Gunicorn + Uvicorn) on {host}:{port}")
     print(f"📂 Project root: {PROJECT_ROOT}")
 
-    try:
-        subprocess.run(
-            command,
-            check=True,
-            env=env_,
-            cwd=PROJECT_ROOT,
-        )
-    except KeyboardInterrupt:
-        print("\n🛑 Server stopped by user")
-    except Exception as exc:
-        print(f"💥 Server crashed: {exc}")
-        sys.exit(1)
+    subprocess.run(
+        command,
+        check=True,
+        env=env_,
+        cwd=DJANGO_DIR,
+    )
 
 
 # -------------------------
