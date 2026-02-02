@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-import os
 from pathlib import Path
 
 from config import discount_service_configs
@@ -22,7 +21,7 @@ BASE_DIR = Path(discount_service_configs.django_dir)
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = discount_service_configs.djang_secret_key
 
 
 ALLOWED_HOSTS: list[str] = []

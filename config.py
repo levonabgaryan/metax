@@ -19,6 +19,7 @@ class BaseConfigs(BaseSettings):
 
     django_host: Annotated[str, Field(alias="DJANGO_SERVER_HOST")]
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
+    djang_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY")]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
