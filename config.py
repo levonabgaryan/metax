@@ -7,8 +7,6 @@ from pydantic import Field, field_validator
 
 
 class BaseConfigs(BaseSettings):
-    debug: bool = False
-
     sqlite_db_name: Annotated[str, Field(alias="SQLITE_DB_NAME")]
 
     opensearch_user: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_USER")]
@@ -49,23 +47,37 @@ class BaseConfigs(BaseSettings):
 
 class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
-    debug: bool = True
-    sqlite_db_name: str = "db_for_dev.sqlite3"
-    opensearch_user: str = "admin"
-    opensearch_password: str = "My_Super_Secret_Pass_2026!"
-    opensearch_host: str = "localhost"
-    opensearch_port: int = 9200
-    opensearch_verify_certs: bool = False
-    django_host: str = "localhost"
-    django_port: int = 8000
+    debug: Annotated[bool, Field(default=True)]
+
+    sqlite_db_name: Annotated[str, Field(default="db_for_dev")]
+
+    opensearch_user: Annotated[str, Field(default="admin")]
+    opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    opensearch_host: Annotated[str, Field(default="localhost")]
+    opensearch_port: Annotated[int, Field(default=9200)]
+    opensearch_verify_certs: Annotated[bool, Field(default=False)]
+
+    django_host: Annotated[str, Field(default="localhost")]
+    django_port: Annotated[int, Field(default=8000)]
 
 
 class TestConfigs(BaseConfigs):
-    debug: bool = False
+    debug: Annotated[bool, Field(default=False)]
+
+    sqlite_db_name: Annotated[str, Field(default="db_for_test")]
+
+    opensearch_user: Annotated[str, Field(default="admin")]
+    opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    opensearch_host: Annotated[str, Field(default="localhost")]
+    opensearch_port: Annotated[int, Field(default=9200)]
+    opensearch_verify_certs: Annotated[bool, Field(default=False)]
+
+    django_host: Annotated[str, Field(default="localhost")]
+    django_port: Annotated[int, Field(default=8000)]
 
 
 class ProdConfigs(BaseConfigs):
-    debug: bool = False
+    debug: Annotated[bool, Field(default=False)]
 
 
 @lru_cache
@@ -87,3 +99,5 @@ def get_configs() -> BaseConfigs:
 
 
 discount_service_configs = get_configs()
+if __name__ == "__main__":
+    print(discount_service_configs)
