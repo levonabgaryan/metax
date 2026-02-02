@@ -59,24 +59,30 @@ class DevConfigs(BaseConfigs):
     django_port: int = 8000
 
 
+class TestConfigs(BaseConfigs):
+    debug: bool = False
+
+
+class ProdConfigs(BaseConfigs):
+    debug: bool = False
+
+
 @lru_cache
 def get_configs() -> BaseConfigs:
     from dotenv import load_dotenv
 
     load_dotenv()
-    env_name_str: str | None = os.getenv("ENV")
-    if env_name_str not in ("dev", "prod", "test"):
-        raise RuntimeError(f"Invalid ENV: {env_name_str}")
+    env_name = os.getenv("ENV")
 
-    configs_map = {
-        # "test":"",
-        "dev": DevConfigs(),
-        # "prod": "",
-    }
-    return configs_map[env_name_str]
+    match env_name:
+        case "dev":
+            return DevConfigs()
+        case "test":
+            return TestConfigs()
+        case "prod":
+            return ProdConfigs()
+        case _:
+            raise RuntimeError(f"Invalid ENV: {env_name}")
 
 
 discount_service_configs = get_configs()
-
-if __name__ == "__main__":
-    print(discount_service_configs.opensearch_user)
