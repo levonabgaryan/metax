@@ -1,34 +1,9 @@
-import subprocess
 import os
+import subprocess
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-
-# -------------------------
-# Paths
-# -------------------------
-
-PROJECT_ROOT = Path(__file__).resolve().parent
-DJANGO_DIR = PROJECT_ROOT / "discount_service" / "frameworks_and_drivers" / "django_framework"
-MANAGE_PY = DJANGO_DIR / "manage.py"
-
-
-# -------------------------
-# Environment
-# -------------------------
-
-
-def setup_environment() -> dict[str, str]:
-    env_file = PROJECT_ROOT / ".env"
-    if env_file.exists():
-        load_dotenv(env_file, override=True)
-
-    env = os.environ.copy()
-    env["PYTHONPATH"] = str(PROJECT_ROOT)
-
-    return env
+from config import discount_service_configs
 
 
 # -------------------------
@@ -36,27 +11,24 @@ def setup_environment() -> dict[str, str]:
 # -------------------------
 
 
-def run_db_migrations(env_: dict[str, str]) -> None:
+def run_db_migrations() -> None:
+    manage_py = Path(discount_service_configs.django_dir) / "manage.py"
+
     subprocess.run(
-        [sys.executable, str(MANAGE_PY), "makemigrations"],
+        [sys.executable, str(manage_py), "makemigrations"],
         check=True,
-        env=env_,
-        cwd=DJANGO_DIR,
+        cwd=discount_service_configs.django_dir,
     )
     subprocess.run(
-        [sys.executable, str(MANAGE_PY), "migrate"],
+        [sys.executable, str(manage_py), "migrate"],
         check=True,
-        env=env_,
-        cwd=DJANGO_DIR,
+        cwd=discount_service_configs.django_dir,
     )
 
 
-def run_django_uvicorn_server(env_: dict[str, str]) -> None:
-    host = env_["DJANGO_SERVER_HOST"]
-    port = env_["DJANGO_SERVER_PORT"]
-
-    env_ = env_.copy()
-    env_["PYTHONPATH"] = str(PROJECT_ROOT)
+def run_django_uvicorn_server() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(discount_service_configs.project_root_pythonpath)
 
     command = [
         sys.executable,
@@ -68,18 +40,15 @@ def run_django_uvicorn_server(env_: dict[str, str]) -> None:
         "-k",
         "uvicorn.workers.UvicornWorker",
         "-b",
-        f"{host}:{port}",
+        f"{discount_service_configs.django_host}:{discount_service_configs.django_port}",
     ]
 
-    print(f"🚀 Starting Django (Gunicorn + Uvicorn) on {host}:{port}")
-    print(f"📂 Project root: {PROJECT_ROOT}")
-
-    subprocess.run(
-        command,
-        check=True,
-        env=env_,
-        cwd=DJANGO_DIR,
+    print(
+        f"🚀 Starting Django (Gunicorn + Uvicorn) on {discount_service_configs.django_host}:{discount_service_configs.django_port}"
     )
+    print(f"📂 Project root: {discount_service_configs.project_root_pythonpath}")
+
+    subprocess.run(command, check=True, cwd=discount_service_configs.django_dir, env=env)
 
 
 # -------------------------
@@ -88,9 +57,18 @@ def run_django_uvicorn_server(env_: dict[str, str]) -> None:
 
 
 def run_discount_service_app() -> None:
-    env = setup_environment()
-    run_db_migrations(env)
-    run_django_uvicorn_server(env)
+    try:
+        run_db_migrations()
+        run_django_uvicorn_server()
+    except KeyboardInterrupt:
+        print("\n🛑 Received KeyboardInterrupt, shutting down gracefully...")
+        sys.exit(0)
+    except subprocess.CalledProcessError as e:
+        print(f"\n❌ Subprocess failed with exit code {e.returncode}")
+        sys.exit(e.returncode)
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

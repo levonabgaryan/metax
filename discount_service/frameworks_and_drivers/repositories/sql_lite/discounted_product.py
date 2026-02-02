@@ -65,7 +65,7 @@ class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
             entity: DiscountedProduct = self.__convert_django_model_to_entity(model)
             yield DiscountedProductWithDetails(
                 entity=entity,
-                category_name=model.category.name if entity.has_category() else None,
+                category_name=model.category.name if model.category is not None else None,
                 retailer_name=model.retailer.name,
             )
 

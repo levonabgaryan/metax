@@ -13,8 +13,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from config import discount_service_configs
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(discount_service_configs.django_dir)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -113,9 +115,12 @@ STATICFILES_FINDERS = [
 MEDIA_ROOT = str(f"{BASE_DIR}/media")
 MEDIA_URL = "/media/"
 
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / discount_service_configs.sqlite_db_name,
+    }
+}
 
-OPENSEARCH_USER = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_USER")
-OPENSEARCH_PASSWORD = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD")
-OPENSEARCH_HOST = os.getenv("DISCOUNT_SERVICE_OPENSEARCH_NODE_HOST")
-OPENSEARCH_PORT = int(os.getenv("DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT", 9200))
-OPENSEARCH_AUTH = (OPENSEARCH_USER, OPENSEARCH_PASSWORD)
+if __name__ == "__main__":
+    print(discount_service_configs.sqlite_db_name)
