@@ -21,7 +21,7 @@ BASE_DIR = Path(discount_service_configs.django_dir)
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = discount_service_configs.djang_secret_key
+SECRET_KEY = discount_service_configs.django_secret_key
 
 
 ALLOWED_HOSTS: list[str] = []

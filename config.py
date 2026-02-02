@@ -12,14 +12,14 @@ class BaseConfigs(BaseSettings):
     sqlite_db_name: Annotated[str, Field(alias="SQLITE_DB_NAME")]
 
     opensearch_user: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_USER")]
-    opensearch_password: Annotated[str, Field(alias="OPENSEARCH_PASSWORD")]
+    opensearch_password: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD")]
     opensearch_host: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_NODE_HOST")]
     opensearch_port: Annotated[int, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT")]
     opensearch_verify_certs: Annotated[bool, Field(alias="OPENSEARCH_VERIFY_CERTS")]
 
     django_host: Annotated[str, Field(alias="DJANGO_SERVER_HOST")]
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
-    djang_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY")]
+    django_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY")]
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
