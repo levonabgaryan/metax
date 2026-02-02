@@ -36,7 +36,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         host=config.opensearch.host,
         port=config.opensearch.port,
         http_auth=config.opensearch.http_auth,
-        verify_certs=config.verify_certs,
+        verify_certs=config.opensearch.verify_certs,
     )
     patterns_container: providers.Container[PatternsContainer] = providers.Container(
         PatternsContainer, opensearch_async_client=opensearch_async_client
@@ -63,8 +63,8 @@ def configured_service_container() -> ServiceContainer:
                     discount_service_configs.opensearch_user,
                     discount_service_configs.opensearch_password,
                 ),
+                "verify_certs": discount_service_configs.opensearch_verify_certs,
             },
-            "verify_certs": discount_service_configs.opensearch_verify_certs,
         }
     )
     return service_container_

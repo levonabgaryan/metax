@@ -47,12 +47,13 @@ class BaseConfigs(BaseSettings):
 
 
 class DevConfigs(BaseConfigs):
+    # When you run locally, make sure that variables from env are same here
     debug: bool = True
     sqlite_db_name: str = "db_for_dev.sqlite3"
     opensearch_user: str = "admin"
-    opensearch_password: str = "SuperPassword!"
+    opensearch_password: str = "My_Super_Secret_Pass_2026!"
     opensearch_host: str = "localhost"
-    opensearch_port: int = 8080
+    opensearch_port: int = 9200
     opensearch_verify_certs: bool = False
     django_host: str = "localhost"
     django_port: int = 8000
@@ -78,4 +79,4 @@ def get_configs() -> BaseConfigs:
 discount_service_configs = get_configs()
 
 if __name__ == "__main__":
-    print(discount_service_configs.sqlite_db_name)
+    print(discount_service_configs.opensearch_user)
