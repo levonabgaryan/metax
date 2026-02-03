@@ -46,7 +46,7 @@ jobs:
         run: sudo sysctl -w vm.max_map_count=262144
 
       - name: Prepare environment for Docker
-        working-directory: ./discount_service
+        working-directory: ./
         run: |
           echo "DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD=$DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD" > .env
           echo "DISCOUNT_SERVICE_OPENSEARCH_USER=$DISCOUNT_SERVICE_OPENSEARCH_USER" >> .env
@@ -54,7 +54,7 @@ jobs:
           echo "DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT=$DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT" >> .env
 
       - name: Run Docker containers
-        working-directory: ./discount_service
+        working-directory: ./
         run: docker compose -f discount_service.docker-compose.yml up -d
 
       - name: Wait for OpenSearch
@@ -87,5 +87,5 @@ jobs:
 
       - name: Stop containers
         if: always()
-        working-directory: ./discount_service
+        working-directory: ./
         run: docker compose -f discount_service.docker-compose.yml down
