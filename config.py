@@ -13,7 +13,7 @@ class BaseConfigs(BaseSettings):
     opensearch_password: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD")]
     opensearch_host: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_NODE_HOST")]
     opensearch_port: Annotated[int, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_NODE_PORT")]
-    opensearch_verify_certs: Annotated[bool, Field(alias="OPENSEARCH_VERIFY_CERTS")]
+    opensearch_verify_certs: Annotated[bool, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_VERIFY_CERTS")]
 
     django_host: Annotated[str, Field(alias="DJANGO_SERVER_HOST")]
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
