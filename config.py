@@ -59,6 +59,9 @@ class DevConfigs(BaseConfigs):
 
     django_host: Annotated[str, Field(default="localhost")]
     django_port: Annotated[int, Field(default=8000)]
+    django_secret_key: Annotated[
+        str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
+    ]
 
 
 class TestConfigs(BaseConfigs):
@@ -99,5 +102,3 @@ def get_configs() -> BaseConfigs:
 
 
 discount_service_configs = get_configs()
-if __name__ == "__main__":
-    print(discount_service_configs)
