@@ -1,7 +1,6 @@
 import os
 import sys
 from split_settings.tools import include
-from dotenv import find_dotenv, load_dotenv
 
 
 class DjangoSettingsError(Exception):
@@ -9,8 +8,6 @@ class DjangoSettingsError(Exception):
 
     pass
 
-
-load_dotenv(find_dotenv(filename=".env"))
 
 is_testing = (
     "test" in sys.argv

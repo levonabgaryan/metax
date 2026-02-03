@@ -54,8 +54,8 @@ class ServiceContainer(containers.DeclarativeContainer):
 
 
 def configured_service_container() -> ServiceContainer:
-    service_container = ServiceContainer()
-    service_container.config.from_dict(
+    service_container_ = ServiceContainer()
+    service_container_.config.from_dict(
         {
             "opensearch": {
                 "host": OPENSEARCH_HOST,
@@ -65,4 +65,4 @@ def configured_service_container() -> ServiceContainer:
             "verify_certs": settings.OPENSEARCH_VERIFY_CERTS,
         }
     )
-    return service_container
+    return service_container_

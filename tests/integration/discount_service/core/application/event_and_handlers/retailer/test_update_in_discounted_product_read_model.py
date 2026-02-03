@@ -13,7 +13,7 @@ from discount_service.core.application.ports.repositories.entites_repositories.r
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
     make_retailer_entity,

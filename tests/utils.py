@@ -15,7 +15,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     DiscountedProduct,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.integration.conftest import get_current_container
 
 

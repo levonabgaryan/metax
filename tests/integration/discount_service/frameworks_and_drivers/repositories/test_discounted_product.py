@@ -13,7 +13,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     PriceDetails,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 

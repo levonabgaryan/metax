@@ -9,7 +9,7 @@ from discount_service.core.application.ports.repositories.entites_repositories.r
     RetailerFieldsToUpdate,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from discount_service.frameworks_and_drivers.di.boostrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity
 
 
