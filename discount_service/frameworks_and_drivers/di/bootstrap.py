@@ -3,13 +3,12 @@ from typing import AsyncIterator
 
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
-from django.conf import settings
 
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
 from discount_service.frameworks_and_drivers.di.event_handlers_container import EventHandlersContainer
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.use_cases_container import UseCasesContainer
-from django_framework.settings.base import OPENSEARCH_HOST, OPENSEARCH_PORT, OPENSEARCH_AUTH
+from config import discount_service_configs
 
 
 @asynccontextmanager
@@ -37,7 +36,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         host=config.opensearch.host,
         port=config.opensearch.port,
         http_auth=config.opensearch.http_auth,
-        verify_certs=config.verify_certs,
+        verify_certs=config.opensearch.verify_certs,
     )
     patterns_container: providers.Container[PatternsContainer] = providers.Container(
         PatternsContainer, opensearch_async_client=opensearch_async_client
@@ -58,11 +57,14 @@ def configured_service_container() -> ServiceContainer:
     service_container_.config.from_dict(
         {
             "opensearch": {
-                "host": OPENSEARCH_HOST,
-                "port": OPENSEARCH_PORT,
-                "http_auth": OPENSEARCH_AUTH,
+                "host": discount_service_configs.opensearch_host,
+                "port": discount_service_configs.opensearch_port,
+                "http_auth": (
+                    discount_service_configs.opensearch_user,
+                    discount_service_configs.opensearch_password,
+                ),
+                "verify_certs": discount_service_configs.opensearch_verify_certs,
             },
-            "verify_certs": settings.OPENSEARCH_VERIFY_CERTS,
         }
     )
     return service_container_
