@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Annotated
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, field_validator
+from pydantic import Field
 
 
 class BaseConfigs(BaseSettings):
@@ -29,20 +29,6 @@ class BaseConfigs(BaseSettings):
     @property
     def django_dir(self) -> str:
         return str(Path(self.project_root_pythonpath) / "discount_service/frameworks_and_drivers/django_framework")
-
-    @field_validator("opensearch_verify_certs", mode="before")
-    @classmethod
-    def parse_bool(cls, v: bool | str) -> bool:
-        if v == "":
-            return False
-        elif v in (True, False):
-            return True
-        elif isinstance(v, str):
-            if v.lower() == "true":
-                return True
-            elif v.lower() == "false":
-                return False
-        raise ValueError(f"Invalid boolean value: {v}")
 
 
 class DevConfigs(BaseConfigs):
