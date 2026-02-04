@@ -95,3 +95,6 @@ discount_service.docker-compose.yml
 Dockerfile.base
 README.md
 tests/
+.mypy_cache
+.pytest_cache
+.ruff_cache
