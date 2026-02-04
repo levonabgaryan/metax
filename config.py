@@ -35,7 +35,7 @@ class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
     debug: Annotated[bool, Field(default=True)]
 
-    sqlite_db_name: Annotated[str, Field(default="db_for_dev")]
+    sqlite_db_name: Annotated[str, Field(default="db_for_dev.sqlite3")]
 
     opensearch_user: Annotated[str, Field(default="admin")]
     opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
@@ -53,7 +53,7 @@ class DevConfigs(BaseConfigs):
 class TestConfigs(BaseConfigs):
     debug: Annotated[bool, Field(default=False)]
 
-    sqlite_db_name: Annotated[str, Field(default="db_for_test")]
+    sqlite_db_name: Annotated[str, Field(default="db_for_testing.sqlite3")]
 
     opensearch_user: Annotated[str, Field(default="admin")]
     opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]

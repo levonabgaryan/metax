@@ -1,4 +1,17 @@
 services:
+  discount-service-backend:
+    build:
+      dockerfile: ./Dockerfile.base
+    env_file: ".env"
+    container_name: discount-service-backend
+    ports:
+      - "${DJANGO_SERVER_PORT}:8000"
+    networks:
+      - discount-service-net
+    depends_on:
+      discount-service-opensearch-node:
+        condition: service_healthy
+
   discount-service-opensearch-node:
     image: opensearchproject/opensearch:3.4.0
     env_file: ".env"
@@ -32,7 +45,7 @@ services:
       /usr/share/opensearch/opensearch-docker-entrypoint.sh
       "
     networks:
-      - discount-service-opensearch-net
+      - discount-service-net
 
   discount-service-opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:3.4.0
@@ -41,17 +54,17 @@ services:
     ports:
       - "${OPENSEARCH_DASHBOARD_PORT}:5601"
     environment:
-      - 'OPENSEARCH_HOSTS=["https://discount-service-opensearch-node:9200"]'
+      - OPENSEARCH_HOSTS=["https://discount-service-opensearch-node:9200"]
       - "OPENSEARCH_USERNAME=admin"
       - "OPENSEARCH_PASSWORD=${DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
     depends_on:
       discount-service-opensearch-node:
         condition: service_healthy
     networks:
-      - discount-service-opensearch-net
+      - discount-service-net
 
 volumes:
   os_data:
 
 networks:
-  discount-service-opensearch-net:
+  discount-service-net:
