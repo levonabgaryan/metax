@@ -140,66 +140,77 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             created_at=document["created_at"],
         )
 
-    async def get_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
-        translit_res = await self.__opensearch_async_client.indices.analyze(
-            body={
-                "tokenizer": "keyword",
-                "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
-                "text": name,
-            }
-        )
+    async def get_by_name_page(
+        self,
+        name: str,
+        scroll_id: str | None = None,
+        size: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], str | None]:
+        # First request
+        if scroll_id is None:
+            translit_res = await self.__opensearch_async_client.indices.analyze(
+                body={
+                    "tokenizer": "keyword",
+                    "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
+                    "text": name,
+                }
+            )
 
-        armenian_query = translit_res["tokens"][0]["token"]
-        search_body = {
-            "query": {
-                "bool": {
-                    "should": [
-                        {
-                            "multi_match": {
-                                "query": name,
-                                "fields": ["name.eng", "name.rus", "name.arm"],
-                                "type": "most_fields",
-                            }
-                        },
-                        {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
-                    ]
+            armenian_query = translit_res["tokens"][0]["token"]
+
+            search_body = {
+                "query": {
+                    "bool": {
+                        "should": [
+                            {
+                                "multi_match": {
+                                    "query": name,
+                                    "fields": ["name.eng", "name.rus", "name.arm"],
+                                    "type": "most_fields",
+                                }
+                            },
+                            {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
+                        ]
+                    }
                 }
             }
-        }
-        # https://github.com/opensearch-project/opensearch-py/blob/main/guides/search.md#pagination-with-scroll
-        response = await self.__opensearch_async_client.search(
-            index=self.__alias_name,
-            body=search_body,
-            scroll="2m",
-            size=500,
-        )
-        scroll_id = response["_scroll_id"]
+
+            response = await self.__opensearch_async_client.search(
+                index=self.__alias_name,
+                body=search_body,
+                scroll="5m",
+                size=size,
+            )
+
+        # Next pages
+        else:
+            response = await self.__opensearch_async_client.scroll(
+                scroll_id=scroll_id,
+                scroll="5m",
+            )
+
+        new_scroll_id = response.get("_scroll_id")
         hits = response["hits"]["hits"]
 
-        try:
-            while hits:
-                yield [
-                    DiscountedProductReadModel(
-                        name=hit["_source"]["name"],
-                        real_price=hit["_source"]["real_price"],
-                        discounted_price=hit["_source"]["discounted_price"],
-                        retailer_uuid=hit["_source"]["retailer_uuid"],
-                        retailer_name=hit["_source"]["retailer_name"],
-                        created_at=hit["_source"]["created_at"],
-                        discounted_product_uuid=hit["_id"],
-                        category_uuid=hit["_source"].get("category_uuid"),
-                        category_name=hit["_source"].get("category_name"),
-                        url=hit["_source"].get("url"),
-                    )
-                    for hit in hits
-                ]
+        items = [
+            DiscountedProductReadModel(
+                name=hit["_source"]["name"],
+                real_price=hit["_source"]["real_price"],
+                discounted_price=hit["_source"]["discounted_price"],
+                retailer_uuid=hit["_source"]["retailer_uuid"],
+                retailer_name=hit["_source"]["retailer_name"],
+                created_at=hit["_source"]["created_at"],
+                discounted_product_uuid=hit["_id"],
+                category_uuid=hit["_source"].get("category_uuid"),
+                category_name=hit["_source"].get("category_name"),
+                url=hit["_source"].get("url"),
+            )
+            for hit in hits
+        ]
 
-                response = await self.__opensearch_async_client.scroll(
-                    scroll_id=scroll_id,
-                    scroll="2m",
-                )
-                scroll_id = response["_scroll_id"]
-                hits = response["hits"]["hits"]
+        # No more data → cleanup
+        if not hits and new_scroll_id:
+            await self.__opensearch_async_client.clear_scroll(scroll_id=new_scroll_id)
+            return [], None
 
-        finally:
-            await self.__opensearch_async_client.clear_scroll(scroll_id=scroll_id)
+        return items, new_scroll_id

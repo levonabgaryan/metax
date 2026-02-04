@@ -163,7 +163,7 @@ async def test_get_all(
 @clear_opensearch_db
 @inject
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name(
+async def test_get_by_name_page(
     query: str,
     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
 ) -> None:
@@ -187,13 +187,17 @@ async def test_get_by_name(
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # when
-    found_products_batches = repo.get_by_name(name=query)
+    found_products, scroll_id = await repo.get_by_name_page(name=query, size=1)
 
     # then
-    async for found_products in found_products_batches:
-        assert len(found_products) == 1
-        found_product = found_products[0]
-        assert (
-            found_product["discounted_product_uuid"] in discounted_product_read_model_["discounted_product_uuid"]
-        )
-        assert found_product["name"] == discounted_product_read_model_["name"]
+    # first_page
+    assert scroll_id is not None
+    assert len(found_products) == 1
+    found_product = found_products[0]
+    assert found_product["discounted_product_uuid"] == discounted_product_read_model_["discounted_product_uuid"]
+    assert found_product["name"] == discounted_product_read_model_["name"]
+
+    # second page
+    found_products, scroll_id = await repo.get_by_name_page(name=query, size=1, scroll_id=scroll_id)
+    assert scroll_id is None
+    assert len(found_products) == 0

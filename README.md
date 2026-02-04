@@ -35,7 +35,6 @@ pytest tests/unit
 
 Run opensearch Docker container
 ```
-cd discount_service
 docker compose -f discount_service.docker-compose.yml up discount-service-opensearch-node
 ```
 ```commandline

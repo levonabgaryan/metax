@@ -41,5 +41,10 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    def get_by_name(self, name: str) -> AsyncIterator[list[DiscountedProductReadModel]]:
+    async def get_by_name_page(
+        self,
+        name: str,
+        scroll_id: str | None = None,
+        size: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], str | None]:
         pass
