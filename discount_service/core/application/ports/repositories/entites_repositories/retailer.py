@@ -65,3 +65,7 @@ class RetailerRepository(ABC):
     @abstractmethod
     async def _update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
         pass
+
+    @abstractmethod
+    async def get_all_retailers_urls(self) -> tuple[str, ...]:
+        pass

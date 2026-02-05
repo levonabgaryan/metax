@@ -12,6 +12,7 @@ from discount_service.core.application.ports.patterns.unit_of_work import Abstra
 from discount_service.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsFromRetailerRequest,
 )
+
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from django_framework.discount_service.models import RetailerModel, DiscountedProductModel

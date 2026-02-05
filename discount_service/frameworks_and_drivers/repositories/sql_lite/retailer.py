@@ -52,6 +52,11 @@ class DjangoSqlLiteRetailerRepository(RetailerRepository):
             **update_data
         )
 
+    async def get_all_retailers_urls(self) -> tuple[str, ...]:
+        urls_query_set = RetailerModel.objects.values_list("url", flat=True).aiterator()
+        urls = [url async for url in urls_query_set]
+        return tuple(urls)
+
     @staticmethod
     def __map_to_entity(model: RetailerModel) -> Retailer:
         return Retailer(

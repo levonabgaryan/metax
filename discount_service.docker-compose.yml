@@ -75,8 +75,8 @@ services:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
-    container_name: celery
-    command: celery -A django_framework worker -l info
+    container_name: celery_framework
+    command: celery_framework -A discount_service.frameworks_and_drivers.celery_framework.celery_application worker -B -l info
     networks:
       - discount-service-net
     depends_on:
