@@ -19,13 +19,17 @@ from django.contrib import admin
 from django.urls import path
 from adrf import routers
 
+from django_framework.discount_service.views.health import HealthCheckView
 from django_framework.discount_service.views.category import CategoryViewSet
+from django_framework.discount_service.views.discounted_product import DiscountedProductViewSet
 
 router = routers.DefaultRouter()
 router.register(r"category", CategoryViewSet, basename="category")
+router.register(r"discounted-product", DiscountedProductViewSet, basename="discounted-product")
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("healthcheck/", HealthCheckView.as_view()),
 ]
 
 urlpatterns += router.urls

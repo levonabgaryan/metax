@@ -1,21 +1,29 @@
 services:
-  discount-service-backend:
+  backend:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
-    container_name: discount-service-backend
+    container_name: backend
     ports:
       - "${DJANGO_SERVER_PORT}:8000"
     networks:
       - discount-service-net
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/healthcheck/" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     depends_on:
-      discount-service-opensearch-node:
+      opensearch-node:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
-  discount-service-opensearch-node:
+  opensearch-node:
     image: opensearchproject/opensearch:3.4.0
     env_file: ".env"
-    container_name: discount-service-opensearch-node
+    container_name: opensearch-node
     environment:
       - discovery.type=single-node
       - cluster.name=opensearch-cluster
@@ -47,24 +55,58 @@ services:
     networks:
       - discount-service-net
 
-  discount-service-opensearch-dashboards:
+  opensearch-dashboards:
     image: opensearchproject/opensearch-dashboards:3.4.0
     env_file: ".env"
-    container_name: discount-service-opensearch-dashboards
+    container_name: opensearch-dashboards
     ports:
       - "${OPENSEARCH_DASHBOARD_PORT}:5601"
     environment:
-      - OPENSEARCH_HOSTS=["https://discount-service-opensearch-node:9200"]
+      - OPENSEARCH_HOSTS=["https://opensearch-node:9200"]
       - "OPENSEARCH_USERNAME=admin"
       - "OPENSEARCH_PASSWORD=${DISCOUNT_SERVICE_OPENSEARCH_INITIAL_ADMIN_PASSWORD}"
     depends_on:
-      discount-service-opensearch-node:
+      opensearch-node:
         condition: service_healthy
     networks:
       - discount-service-net
 
+  celery:
+    build:
+      dockerfile: ./Dockerfile.base
+    env_file: ".env"
+    container_name: celery
+    command: celery -A django_framework worker -l info
+    networks:
+      - discount-service-net
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  redis:
+    image: redis:8.4.0-alpine
+    container_name: redis
+    env_file: ".env"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:6379"
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis && 
+        echo "requirepass $REDIS_PASSWORD" > /usr/local/etc/redis/redis.conf && redis-server /usr/local/etc/redis/redis.conf
+      '
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
 volumes:
   os_data:
+  redis_data:
 
 networks:
   discount-service-net:

@@ -19,6 +19,10 @@ class BaseConfigs(BaseSettings):
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
     django_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY")]
 
+    redis_host: Annotated[str, Field(alias="REDIS_SERVER_HOST")]
+    redis_port: Annotated[int, Field(alias="REDIS_PORT")]
+    redis_password: Annotated[str, Field(alias="REDIS_PASSWORD")]
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     @property
@@ -29,6 +33,14 @@ class BaseConfigs(BaseSettings):
     @property
     def django_dir(self) -> str:
         return str(Path(self.project_root_pythonpath) / "discount_service/frameworks_and_drivers/django_framework")
+
+    @property
+    def celery_broker_url(self) -> str:
+        return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/0"
+
+    @property
+    def celery_backend_url(self) -> str:
+        return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/1"
 
 
 class DevConfigs(BaseConfigs):
@@ -48,6 +60,8 @@ class DevConfigs(BaseConfigs):
     django_secret_key: Annotated[
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
+
+    redis_port: Annotated[int, Field(default="6379")]
 
 
 class TestConfigs(BaseConfigs):

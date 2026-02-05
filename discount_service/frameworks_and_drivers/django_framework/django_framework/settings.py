@@ -24,7 +24,7 @@ BASE_DIR = Path(discount_service_configs.django_dir)
 SECRET_KEY = discount_service_configs.django_secret_key
 
 
-ALLOWED_HOSTS: list[str] = []
+ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
 
 
 # Application definition
