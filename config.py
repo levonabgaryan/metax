@@ -61,7 +61,8 @@ class DevConfigs(BaseConfigs):
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
 
-    redis_port: Annotated[int, Field(default="6379")]
+    redis_host: Annotated[str, Field(default="localhost")]
+    redis_port: Annotated[int, Field(default=6379)]
 
 
 class TestConfigs(BaseConfigs):
