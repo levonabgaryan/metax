@@ -9,7 +9,7 @@ services:
     networks:
       - discount-service-net
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/healthcheck/ || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/healthcheck/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 10
@@ -75,7 +75,7 @@ services:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
-    container_name: celery_framework
+    container_name: celery
     command: celery_framework -A discount_service.frameworks_and_drivers.celery_framework.celery_application worker -B -l info
     networks:
       - discount-service-net

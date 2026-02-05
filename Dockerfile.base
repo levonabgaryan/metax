@@ -13,6 +13,7 @@ ARG package_args="--allow-downgrades --allow-remove-essential --allow-change-hel
 RUN echo "debconf debconf/frontend select noninteractive" | debconf-set-selections \
   && apt-get update \
   && apt-get -y $package_args install \
+      curl \
       # Meta-package for compiling Python packages with C extensions
       build-essential \
       # C headers/libraries for some Python packages (e.g. stdlib.h)
