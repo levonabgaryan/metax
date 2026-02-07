@@ -14,6 +14,8 @@ from pathlib import Path
 
 from config import discount_service_configs
 
+DEBUG = discount_service_configs.debug
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(discount_service_configs.django_dir)
 
@@ -120,3 +122,5 @@ DATABASES = {
         "NAME": BASE_DIR / discount_service_configs.sqlite_db_name,
     }
 }
+if __name__ == "__main__":
+    print(BASE_DIR)

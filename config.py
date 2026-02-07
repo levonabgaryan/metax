@@ -7,6 +7,8 @@ from pydantic import Field
 
 
 class BaseConfigs(BaseSettings):
+    debug: Annotated[bool, Field(alias="DEBUG")]
+
     sqlite_db_name: Annotated[str, Field(alias="SQLITE_DB_NAME")]
 
     opensearch_user: Annotated[str, Field(alias="DISCOUNT_SERVICE_OPENSEARCH_USER")]

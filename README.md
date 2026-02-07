@@ -4,25 +4,34 @@
 
 ### Setting up environment
 
-Current version of Python: **3.14**
+Current Python version: **3.14**
 
 ```commandline
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.14 python3.14-dev python3.14-venv python3-pip
+sudo apt install python3.14 python3.14-dev python3.14-venv
 ```
 
+Install the package manager
 ```commandline
-python3.14 -m venv .venv
+curl -LsSf https://astral.sh/uv/install.sh | UV_VERSION=0.10.0 sh
+```
+
+Create a `.venv` (it is recommended to use an IDE with uv support, if available)
+    
+Activate .venv
+```commandline
 source .venv/bin/activate
-pip install -r requirements.txt
+```
+
+Install dependencies
+```commandline
+uv sync
 ```
 
 ```commandline
 pre-commit install
 ```
-Select interpreter from .venv
-
 
 Create .env using env_tmpl
 
