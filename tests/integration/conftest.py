@@ -4,6 +4,7 @@ import pytest
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
+from config import discount_service_configs
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer, configured_service_container
 
 
@@ -21,6 +22,7 @@ async def service_container(service_container_instance: ServiceContainer) -> Asy
     service_container_instance.wire(
         packages=[__name__, "tests.integration"],
         warn_unresolved=True,
+        modules=["discount_service.frameworks_and_drivers.celery_framework.tasks"],
     )
     yield service_container_instance
 
@@ -51,6 +53,6 @@ async def setup_opensearch_migration(
 @pytest.fixture(scope="session")
 def celery_config() -> dict[str, str]:
     return {
-        "broker_url": "memory://",
-        "result_backend": "cache+memory://",
+        "broker_url": f"{discount_service_configs.celery_broker_url}",
+        "result_backend": f"{discount_service_configs.celery_result_backend_url}",
     }

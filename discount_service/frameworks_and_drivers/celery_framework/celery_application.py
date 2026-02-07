@@ -6,7 +6,7 @@ from discount_service.frameworks_and_drivers.di import get_service_container
 
 celery_app = Celery(
     main="discount_service",
-    backend=discount_service_configs.celery_backend_url,
+    backend=discount_service_configs.celery_result_backend_url,
     broker=discount_service_configs.celery_broker_url,
 )
 

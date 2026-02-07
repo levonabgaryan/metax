@@ -41,7 +41,7 @@ class BaseConfigs(BaseSettings):
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/0"
 
     @property
-    def celery_backend_url(self) -> str:
+    def celery_result_backend_url(self) -> str:
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/1"
 
 
