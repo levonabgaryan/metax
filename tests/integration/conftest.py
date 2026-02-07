@@ -46,3 +46,11 @@ async def setup_opensearch_migration(
     await migrate_indices(opensearch_async_client_)
     yield None
     await delete_all_indices(opensearch_async_client_)
+
+
+@pytest.fixture(scope="session")
+def celery_config() -> dict[str, str]:
+    return {
+        "broker_url": "memory://",
+        "result_backend": "cache+memory://",
+    }

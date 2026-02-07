@@ -123,5 +123,3 @@ DATABASES = {
         "NAME": BASE_DIR / discount_service_configs.sqlite_db_name,
     }
 }
-if __name__ == "__main__":
-    print(BASE_DIR)

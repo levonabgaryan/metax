@@ -5,12 +5,30 @@ from asgiref.sync import sync_to_async
 from django.db import transaction
 
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
-from discount_service.frameworks_and_drivers.patterns.repositories_factory import RepositoriesAbstractFactory
+from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
+from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
+    DiscountedProductRepository,
+)
+from discount_service.core.application.ports.repositories.entites_repositories.retailer import RetailerRepository
+from discount_service.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
+    IDiscountedProductReadModelRepository,
+)
 
 
 class UnitOfWork(AbstractUnitOfWork):
-    def __init__(self, repositories_abstract_factory: RepositoriesAbstractFactory) -> None:
-        super().__init__(repositories_abstract_factory=repositories_abstract_factory)
+    def __init__(
+        self,
+        discounted_product_repo: DiscountedProductRepository,
+        category_repo: CategoryRepository,
+        retailer_repo: RetailerRepository,
+        discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
+    ) -> None:
+        super().__init__(
+            discounted_product_repo=discounted_product_repo,
+            category_repo=category_repo,
+            retailer_repo=retailer_repo,
+            discounted_product_read_model_repo=discounted_product_read_model_repo,
+        )
         self.__committed = False
 
     async def __aenter__(self) -> Self:

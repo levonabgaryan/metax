@@ -7,6 +7,7 @@ from opensearchpy import AsyncOpenSearch
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
 from discount_service.frameworks_and_drivers.di.event_handlers_container import EventHandlersContainer
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
+from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
 from discount_service.frameworks_and_drivers.di.use_cases_container import UseCasesContainer
 from config import discount_service_configs
 
@@ -38,8 +39,11 @@ class ServiceContainer(containers.DeclarativeContainer):
         http_auth=config.opensearch.http_auth,
         verify_certs=config.opensearch.verify_certs,
     )
+    repositories_container: providers.Container[RepositoriesContainer] = providers.Container(
+        RepositoriesContainer, opensearch_async_client=opensearch_async_client
+    )
     patterns_container: providers.Container[PatternsContainer] = providers.Container(
-        PatternsContainer, opensearch_async_client=opensearch_async_client
+        PatternsContainer, repositories_container=repositories_container
     )
     commands_handlers_container: providers.Container[CommandsHandlersContainer] = providers.Container(
         CommandsHandlersContainer, patterns_container=patterns_container

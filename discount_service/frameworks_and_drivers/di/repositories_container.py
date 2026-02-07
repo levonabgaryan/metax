@@ -1,8 +1,6 @@
+from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
-from discount_service.core.application.ports.patterns.repositories_abstract_factory import (
-    IRepositoriesAbstractFactory,
-)
 from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
 from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
     DiscountedProductRepository,
@@ -21,23 +19,22 @@ from discount_service.frameworks_and_drivers.repositories.sql_lite.discounted_pr
 from discount_service.frameworks_and_drivers.repositories.sql_lite.retailer import DjangoSqlLiteRetailerRepository
 
 
-class RepositoriesAbstractFactory(IRepositoriesAbstractFactory):
-    def __init__(self, opensearch_async_client: AsyncOpenSearch) -> None:
-        self.opensearch_async_client = opensearch_async_client
-
-    @staticmethod
-    def create_discounted_product_repository() -> DiscountedProductRepository:
-        return DjangoSqlLiteDiscountedProductRepository()
-
-    @staticmethod
-    def create_retailer_repository() -> RetailerRepository:
-        return DjangoSqlLiteRetailerRepository()
-
-    @staticmethod
-    def create_category_repository() -> CategoryRepository:
-        return DjangoSqlLiteCategoryRepository()
-
-    def create_discounted_product_read_model_repository(self) -> IDiscountedProductReadModelRepository:
-        return OpenSearchDiscountedProductReadModelRepository(
-            opensearch_async_client=self.opensearch_async_client,
+class RepositoriesContainer(containers.DeclarativeContainer):
+    opensearch_async_client: providers.Dependency[AsyncOpenSearch] = providers.Dependency(
+        instance_of=AsyncOpenSearch
+    )
+    discounted_product_repository: providers.Provider[DiscountedProductRepository] = providers.Factory(
+        DjangoSqlLiteDiscountedProductRepository
+    )
+    category_repository: providers.Provider[CategoryRepository] = providers.Factory(
+        DjangoSqlLiteCategoryRepository
+    )
+    retailer_repository: providers.Provider[RetailerRepository] = providers.Factory(
+        DjangoSqlLiteRetailerRepository
+    )
+    discounted_product_read_model_repository: providers.Provider[IDiscountedProductReadModelRepository] = (
+        providers.Factory(
+            OpenSearchDiscountedProductReadModelRepository,
+            opensearch_async_client=opensearch_async_client,
         )
+    )

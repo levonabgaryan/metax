@@ -3,8 +3,13 @@ from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import AsyncIterator, Self
 
-from discount_service.core.application.ports.patterns.repositories_abstract_factory import (
-    IRepositoriesAbstractFactory,
+from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
+from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
+    DiscountedProductRepository,
+)
+from discount_service.core.application.ports.repositories.entites_repositories.retailer import RetailerRepository
+from discount_service.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
+    IDiscountedProductReadModelRepository,
 )
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity
 from discount_service.core.domain.event import Event
@@ -13,17 +18,16 @@ from discount_service.core.domain.event import Event
 class AbstractUnitOfWork(ABC):
     def __init__(
         self,
-        repositories_abstract_factory: IRepositoriesAbstractFactory,
+        discounted_product_repo: DiscountedProductRepository,
+        category_repo: CategoryRepository,
+        retailer_repo: RetailerRepository,
+        discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
     ) -> None:
-        self.repositories_abstract_factory = repositories_abstract_factory
         self.__events_queue: asyncio.Queue[Event] = asyncio.Queue()
-
-        self.discounted_product_repo = self.repositories_abstract_factory.create_discounted_product_repository()
-        self.category_repo = self.repositories_abstract_factory.create_category_repository()
-        self.retailer_repo = self.repositories_abstract_factory.create_retailer_repository()
-        self.discounted_product_read_model_repo = (
-            self.repositories_abstract_factory.create_discounted_product_read_model_repository()
-        )
+        self.discounted_product_repo = discounted_product_repo
+        self.category_repo = category_repo
+        self.retailer_repo = retailer_repo
+        self.discounted_product_read_model_repo = discounted_product_read_model_repo
 
     async def __aenter__(self) -> Self:
         return self
