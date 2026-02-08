@@ -9,7 +9,11 @@ from pydantic import Field
 class BaseConfigs(BaseSettings):
     debug: Annotated[bool, Field(alias="DEBUG")]
 
-    sqlite_db_name: Annotated[str, Field(alias="SQLITE_DB_NAME")]
+    postgres_user: Annotated[str, Field(alias="POSTGRES_USER")]
+    postgres_password: Annotated[str, Field(alias="POSTGRES_PASSWORD")]
+    postgres_db: Annotated[str, Field(alias="POSTGRES_DB")]
+    postgres_host: Annotated[str, Field(alias="POSTGRES_HOST")]
+    postgres_port: Annotated[int, Field(alias="POSTGRES_PORT")]
 
     opensearch_user: Annotated[str, Field(alias="OPENSEARCH_USERNAME")]
     opensearch_password: Annotated[str, Field(alias="OPENSEARCH_ADMIN_PASSWORD")]
@@ -49,7 +53,11 @@ class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
     debug: Annotated[bool, Field(default=True)]
 
-    sqlite_db_name: Annotated[str, Field(default="db_for_dev.sqlite3")]
+    postgres_user: Annotated[str, Field(default="admin")]
+    postgres_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    postgres_db: Annotated[str, Field(default="discount-system")]
+    postgres_host: Annotated[str, Field(default="localhost")]
+    postgres_port: Annotated[int, Field(default="5432")]
 
     opensearch_user: Annotated[str, Field(default="admin")]
     opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
@@ -71,7 +79,11 @@ class DevConfigs(BaseConfigs):
 class TestConfigs(BaseConfigs):
     debug: Annotated[bool, Field(default=False)]
 
-    sqlite_db_name: Annotated[str, Field(default="db_for_testing.sqlite3")]
+    postgres_user: Annotated[str, Field(default="admin")]
+    postgres_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    postgres_db: Annotated[str, Field(default="discount-system")]
+    postgres_host: Annotated[str, Field(default="localhost")]
+    postgres_port: Annotated[int, Field(default="5432")]
 
     opensearch_user: Annotated[str, Field(default="admin")]
     opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]

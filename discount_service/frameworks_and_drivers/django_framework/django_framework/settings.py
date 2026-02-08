@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+from django.db.backends.postgresql.psycopg_any import IsolationLevel
+
 from config import discount_service_configs
 
 DEBUG = discount_service_configs.debug
@@ -119,7 +121,17 @@ MEDIA_URL = "/media/"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / discount_service_configs.sqlite_db_name,
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": f"{discount_service_configs.postgres_db}",
+        "USER": f"{discount_service_configs.postgres_user}",
+        "PASSWORD": f"{discount_service_configs.postgres_password}",
+        "HOST": "localhost",
+        "PORT": "5432",
+        "OPTIONS": {
+            "pool": True,
+            "client_encoding": "UTF8",
+            "isolation_level": IsolationLevel.READ_COMMITTED,
+            "server_side_binding": True,
+        },
     }
 }
