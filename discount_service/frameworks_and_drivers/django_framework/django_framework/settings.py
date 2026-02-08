@@ -125,8 +125,8 @@ DATABASES = {
         "NAME": f"{discount_service_configs.postgres_db}",
         "USER": f"{discount_service_configs.postgres_user}",
         "PASSWORD": f"{discount_service_configs.postgres_password}",
-        "HOST": "localhost",
-        "PORT": "5432",
+        "HOST": f"{discount_service_configs.postgres_host}",
+        "PORT": f"{discount_service_configs.postgres_port}",
         "OPTIONS": {
             "pool": True,
             "client_encoding": "UTF8",
