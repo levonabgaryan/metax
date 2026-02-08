@@ -52,7 +52,7 @@ async def test_collect_discounted_products_from_retailer_use_case_saves_products
     with get_current_container().patterns_container.container.discounted_product_factory.override(
         mocked_factory_class
     ):
-        use_case = await get_current_container().use_cases_container.container.discounted_product.container.collect_discounted_products_from_all_retailers.async_()
+        use_case = await get_current_container().use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
         request = CollectDiscountedProductsFromRetailerRequest(
             retailer_url="https://test.com", started_time=started_date
         )
