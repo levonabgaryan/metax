@@ -4,7 +4,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV DEBIAN_FRONTEND=noninteractive
 
+ENV UV_SYSTEM_PYTHON=1
+ENV UV_COMPILE_BYTECODE=1
+ENV PATH="/root/.local/bin:$PATH"
+
 WORKDIR /discount-system
+COPY pyproject.toml uv.lock .
 
 
 # Minimal set of common packages to download
@@ -13,15 +18,15 @@ ARG package_args="--allow-downgrades --allow-remove-essential --allow-change-hel
 RUN echo "debconf debconf/frontend select noninteractive" | debconf-set-selections \
   && apt-get update \
   && apt-get -y $package_args install \
-      curl \
+      curl ca-certificates \
       # Meta-package for compiling Python packages with C extensions
       build-essential \
       # C headers/libraries for some Python packages (e.g. stdlib.h)
       libc-dev \
   && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN curl -LsSf https://astral.sh/uv/install.sh | UV_VERSION=0.10.0 sh && rm -f /uv-installer.sh
+RUN uv pip install -r pyproject.toml --system
 
 COPY . .
 
