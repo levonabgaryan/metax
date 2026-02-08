@@ -15,8 +15,12 @@ from .celery_application import celery_app
 
 
 @celery_app.task(name="CollectDiscountedProductsFromRetailer")
+async def celery_task_collect_discounted_products_from_all_retailers() -> None:
+    await collect_discounted_products_from_all_retailers()
+
+
 @inject
-async def collect_discounted_products_from_retailer(
+async def collect_discounted_products_from_all_retailers(
     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
     use_case: CollectDiscountedProductsFromRetailer = Provide[
         ServiceContainer.use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer
