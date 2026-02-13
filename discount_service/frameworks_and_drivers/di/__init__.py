@@ -10,8 +10,8 @@ def get_service_container() -> ServiceContainer:
     global _service_container
 
     if _service_container is None:
-        from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+        from discount_service.frameworks_and_drivers.di.bootstrap import configured_service_container
 
-        _service_container = ServiceContainer()
+        _service_container = configured_service_container()
 
     return _service_container

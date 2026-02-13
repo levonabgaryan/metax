@@ -5,6 +5,9 @@ from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
+from discount_service.frameworks_and_drivers.di.discounted_product_factories_container import (
+    DiscountedProductFactoriesContainer,
+)
 from discount_service.frameworks_and_drivers.di.event_handlers_container import EventHandlersContainer
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
@@ -32,11 +35,11 @@ async def async_opensearch_client_resource(
 class ServiceContainer(containers.DeclarativeContainer):
     config: providers.Configuration = providers.Configuration()
 
-    opensearch_async_client = providers.Resource(
+    opensearch_async_client: providers.Resource[AsyncOpenSearch] = providers.Resource(
         async_opensearch_client_resource,
         host=config.opensearch.host,
         port=config.opensearch.port,
-        http_auth=config.opensearch.http_auth,
+        http_auth=(config.opensearch.opensearch_user, config.opensearch.opensearch_password),
         verify_certs=config.opensearch.verify_certs,
     )
     repositories_container: providers.Container[RepositoriesContainer] = providers.Container(
@@ -54,21 +57,12 @@ class ServiceContainer(containers.DeclarativeContainer):
     use_cases_container: providers.Container[UseCasesContainer] = providers.Container(
         UseCasesContainer, patterns_container=patterns_container
     )
+    discounted_product_factories_container: providers.Container[DiscountedProductFactoriesContainer] = (
+        providers.Container(DiscountedProductFactoriesContainer, repositories_container=repositories_container)
+    )
 
 
 def configured_service_container() -> ServiceContainer:
     service_container_ = ServiceContainer()
-    service_container_.config.from_dict(
-        {
-            "opensearch": {
-                "host": discount_service_configs.opensearch_host,
-                "port": discount_service_configs.opensearch_port,
-                "http_auth": (
-                    discount_service_configs.opensearch_user,
-                    discount_service_configs.opensearch_password,
-                ),
-                "verify_certs": discount_service_configs.opensearch_verify_certs,
-            },
-        }
-    )
+    service_container_.config.from_pydantic(discount_service_configs)
     return service_container_

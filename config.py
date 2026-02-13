@@ -29,6 +29,9 @@ class BaseConfigs(BaseSettings):
     redis_port: Annotated[int, Field(alias="REDIS_PORT")]
     redis_password: Annotated[str, Field(alias="REDIS_PASSWORD")]
 
+    yerevan_city_api_url: Annotated[str, Field(alias="YEREVAN_CITY_API_URL")]
+    yerevan_city_discount_page_url: Annotated[str, Field(alias="YEREVAN_CITY_DISCOUNT_PAGE_URL")]
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     @property
@@ -96,6 +99,9 @@ class TestConfigs(BaseConfigs):
     django_secret_key: Annotated[
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
+
+    yerevan_city_api_url: Annotated[str, Field(default="mock")]
+    yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
 
 
 class ProdConfigs(BaseConfigs):

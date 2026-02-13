@@ -1,10 +1,8 @@
 from dependency_injector import containers, providers
 
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from discount_service.core.application.patterns.message_buss import MessageBus
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.frameworks_and_drivers.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
 from discount_service.frameworks_and_drivers.patterns.unit_of_work_factory import DjangoUnitOfWorkFactory
 
@@ -25,7 +23,3 @@ class PatternsContainer(containers.DeclarativeContainer):
     )
 
     message_bus: providers.Provider[MessageBus] = providers.ThreadSafeSingleton(MessageBus, unit_of_work_factory)
-
-    discounted_product_factory: providers.Provider[IDiscountedProductFactory] = providers.Factory(
-        DiscountedProductFactory,
-    )

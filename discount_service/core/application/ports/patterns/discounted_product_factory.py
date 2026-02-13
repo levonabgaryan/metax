@@ -10,7 +10,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
 class IDiscountedProductFactory(ABC):
     @abstractmethod
     def create_many_from_retailer(
-        self, retailer_url: str, started_time: datetime, batch_size: int = 500
+        self, started_time: datetime, batch_size: int = 500
     ) -> AsyncIterator[list[DiscountedProduct]]:
         # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
         pass

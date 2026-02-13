@@ -52,6 +52,17 @@ class CategoryRepository(ABC):
         await self._update_helper_words(updated_category=updated_category)
         self.seen.add(updated_category)
 
+    async def get_by_helper_words_in_text(self, text: str) -> Category:
+        category = await self._get_by_helper_words_in_text(text=text)
+        if category is None:
+            raise EntityIsNotFoundError(
+                entity_name="category",
+                searched_field_name="helper_words",
+                searched_field_value=text,
+                error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
+            )
+        return category
+
     @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
@@ -70,4 +81,8 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _update_helper_words(self, updated_category: Category) -> None:
+        pass
+
+    @abstractmethod
+    async def _get_by_helper_words_in_text(self, text: str) -> Category | None:
         pass

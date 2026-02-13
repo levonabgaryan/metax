@@ -27,7 +27,7 @@ class CollectDiscountedProductsFromRetailer(
         added_count = 0
 
         async for discounted_products in self.discounted_product_factory.create_many_from_retailer(
-            retailer_url=request.retailer_url, started_time=request.started_time
+            started_time=request.started_time
         ):
             async with self.unit_of_work as uow:
                 await uow.discounted_product_repo.add_many(discounted_products)
