@@ -17,7 +17,7 @@ from django_framework.discount_service.models import (
 )
 
 
-class DjangoSqlLiteDiscountedProductRepository(DiscountedProductRepository):
+class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         models = [
             DiscountedProductModel(

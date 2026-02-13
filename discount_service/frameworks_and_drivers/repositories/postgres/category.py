@@ -12,7 +12,7 @@ from django_framework.discount_service.models.category import CategoryModel
 from django_framework.discount_service.models.category_helper_words import CategoryHelperWordsModel
 
 
-class DjangoSqlLiteCategoryRepository(CategoryRepository):
+class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _add(self, category: Category) -> None:
         category_model = await CategoryModel._default_manager.acreate(
             category_uuid=category.get_uuid(), name=category.get_name()

@@ -12,11 +12,15 @@ from discount_service.core.application.ports.repositories.read_models_repositori
 from discount_service.frameworks_and_drivers.repositories.opensearch.discounted_product_read_model import (
     OpenSearchDiscountedProductReadModelRepository,
 )
-from discount_service.frameworks_and_drivers.repositories.sql_lite.category import DjangoSqlLiteCategoryRepository
-from discount_service.frameworks_and_drivers.repositories.sql_lite.discounted_product import (
-    DjangoSqlLiteDiscountedProductRepository,
+from discount_service.frameworks_and_drivers.repositories.postgres.category import (
+    DjangoPostgresqlCategoryRepository,
 )
-from discount_service.frameworks_and_drivers.repositories.sql_lite.retailer import DjangoSqlLiteRetailerRepository
+from discount_service.frameworks_and_drivers.repositories.postgres.discounted_product import (
+    DjangoPostgresqlDiscountedProductRepository,
+)
+from discount_service.frameworks_and_drivers.repositories.postgres.retailer import (
+    DjangoPostgresqlRetailerRepository,
+)
 
 
 class RepositoriesContainer(containers.DeclarativeContainer):
@@ -24,13 +28,13 @@ class RepositoriesContainer(containers.DeclarativeContainer):
         instance_of=AsyncOpenSearch
     )
     discounted_product_repository: providers.Provider[DiscountedProductRepository] = providers.Factory(
-        DjangoSqlLiteDiscountedProductRepository
+        DjangoPostgresqlDiscountedProductRepository
     )
     category_repository: providers.Provider[CategoryRepository] = providers.Factory(
-        DjangoSqlLiteCategoryRepository
+        DjangoPostgresqlCategoryRepository
     )
     retailer_repository: providers.Provider[RetailerRepository] = providers.Factory(
-        DjangoSqlLiteRetailerRepository
+        DjangoPostgresqlRetailerRepository
     )
     discounted_product_read_model_repository: providers.Provider[IDiscountedProductReadModelRepository] = (
         providers.Factory(

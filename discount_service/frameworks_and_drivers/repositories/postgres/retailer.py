@@ -8,7 +8,7 @@ from discount_service.core.domain.entities.retailer_entity.retailer import Retai
 from django_framework.discount_service.models import RetailerModel
 
 
-class DjangoSqlLiteRetailerRepository(RetailerRepository):
+class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _add(self, retailer: Retailer) -> None:
         await RetailerModel._default_manager.acreate(
             retailer_uuid=retailer.get_uuid(),
