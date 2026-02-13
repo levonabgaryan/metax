@@ -16,7 +16,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
-from tests.integration.conftest import get_current_container
+from tests.integration.conftest import get_current_container_for_tests
 
 
 def make_category_entity(
@@ -113,7 +113,7 @@ async def mock_create_many_discounted_products_from_retailer(
 def clear_opensearch_db[T, **P](func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        client: AsyncOpenSearch = await get_current_container().opensearch_async_client.async_()
+        client: AsyncOpenSearch = await get_current_container_for_tests().opensearch_async_client.async_()
 
         indices = await client.indices.get(index="*")
         user_indices = [idx for idx in indices if not idx.startswith(".")]

@@ -13,7 +13,7 @@ from discount_service.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
-from tests.integration.conftest import get_current_container
+from tests.integration.conftest import get_current_container_for_tests
 from tests.utils import mock_create_many_discounted_products_from_retailer, make_retailer_entity
 
 
@@ -45,7 +45,7 @@ async def test_collect_discounted_products_from_retailer_success(
     mocked_factory_class.create_many_from_retailer.side_effect = mock_gen
 
     # when
-    with get_current_container().patterns_container.container.discounted_product_factory.override(
+    with get_current_container_for_tests().patterns_container.container.discounted_product_factory.override(
         mocked_factory_class
     ):
         await collect_discounted_products_from_all_retailers()

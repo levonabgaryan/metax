@@ -16,7 +16,7 @@ from discount_service.core.application.use_cases.discounted_product.dtos import 
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from django_framework.discount_service.models import RetailerModel, DiscountedProductModel
-from tests.integration.conftest import get_current_container
+from tests.integration.conftest import get_current_container_for_tests
 from tests.utils import mock_create_many_discounted_products_from_retailer
 
 
@@ -49,10 +49,10 @@ async def test_collect_discounted_products_from_retailer_use_case_saves_products
 
     # when
     started_date = datetime.now(timezone.utc)
-    with get_current_container().patterns_container.container.discounted_product_factory.override(
+    with get_current_container_for_tests().patterns_container.container.discounted_product_factory.override(
         mocked_factory_class
     ):
-        use_case = await get_current_container().use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
+        use_case = await get_current_container_for_tests().use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
         request = CollectDiscountedProductsFromRetailerRequest(
             retailer_url="https://test.com", started_time=started_date
         )

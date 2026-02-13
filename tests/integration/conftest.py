@@ -5,12 +5,13 @@ from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
 from config import discount_service_configs
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer, configured_service_container
+from discount_service.frameworks_and_drivers.di import get_service_container
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.fixture(scope="session")
 def service_container_instance() -> ServiceContainer:
-    return configured_service_container()
+    return get_service_container()
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -34,7 +35,9 @@ async def service_container(service_container_instance: ServiceContainer) -> Asy
 
 
 @inject
-def get_current_container(service_container: ServiceContainer = Provide[ServiceContainer]) -> ServiceContainer:
+def get_current_container_for_tests(
+    service_container: ServiceContainer = Provide[ServiceContainer],
+) -> ServiceContainer:
     return service_container
 
 
