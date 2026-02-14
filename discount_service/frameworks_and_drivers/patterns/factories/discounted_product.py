@@ -85,7 +85,7 @@ class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
         if self.__retailer is None:
             self.__retailer = await self.__retailer_repository.get_by_name(constants.YEREVAN_CITY_RETAILER_NAME)
         category: Category | None
-        words = self.clean_text(text=discounted_product_from_retailer["name"])
+        words = self.clean_text_and_split(text=discounted_product_from_retailer["name"])
         try:
             category = await self.__category_repository.get_by_helper_words_in_words(words=words)
         except EntityIsNotFoundError as e:
@@ -107,10 +107,10 @@ class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
         )
 
     @staticmethod
-    def clean_text(text: str) -> list[str]:
+    def clean_text_and_split(text: str) -> list[str]:
         # Strips text of unnecessary characters and returns a list of words.
         # Only Latin letters and numbers are retained.
         text = text.lower()
         text = re.sub(r"[^a-z0-9а-яёա-ֆ]+", " ", text, flags=re.IGNORECASE)
-        words_ = [word for word in text.split() if word]
+        words_ = [word for word in text.lower().split() if word]
         return words_

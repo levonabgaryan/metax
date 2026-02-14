@@ -13,10 +13,10 @@ from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContaine
 @pytest.fixture(scope="session", autouse=True)
 async def service_container(django_db_blocker: DjangoDbBlocker) -> AsyncIterator[ServiceContainer]:
     service_container_instance = get_service_container()
-    with django_db_blocker.unblock():
-        init_task = service_container_instance.init_resources()
-        if init_task:
-            await init_task
+    # with django_db_blocker.unblock():
+    init_task = service_container_instance.init_resources()
+    if init_task:
+        await init_task
 
     service_container_instance.wire(
         packages=[__name__, "tests.integration"],

@@ -1,7 +1,4 @@
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 _service_container = None
 

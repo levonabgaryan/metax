@@ -17,12 +17,12 @@ from config import discount_service_configs
 
 @asynccontextmanager
 async def async_opensearch_client_resource(
-    host: str, port: int, http_auth: tuple[str, str], verify_certs: bool
+    host: str, port: int, user: str, password: str, verify_certs: bool
 ) -> AsyncIterator[AsyncOpenSearch]:
     # https://python-dependency-injector.ets-labs.org/providers/resource.html#:~:text=Asynchronous%20Context%20Manager%20initializer%3A
     client = AsyncOpenSearch(
         hosts=[{"host": host, "port": port}],
-        http_auth=http_auth,
+        http_auth=(user, password),
         use_ssl=True,
         verify_certs=verify_certs,
     )
@@ -37,10 +37,11 @@ class ServiceContainer(containers.DeclarativeContainer):
 
     opensearch_async_client: providers.Resource[AsyncOpenSearch] = providers.Resource(
         async_opensearch_client_resource,
-        host=config.opensearch.host,
-        port=config.opensearch.port,
-        http_auth=(config.opensearch.opensearch_user, config.opensearch.opensearch_password),
-        verify_certs=config.opensearch.verify_certs,
+        host=config.opensearch_host,
+        port=config.opensearch_port,
+        user=config.opensearch_user,
+        password=config.opensearch_password,
+        verify_certs=config.opensearch_verify_certs,
     )
     repositories_container: providers.Container[RepositoriesContainer] = providers.Container(
         RepositoriesContainer, opensearch_async_client=opensearch_async_client

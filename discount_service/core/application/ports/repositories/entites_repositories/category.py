@@ -53,6 +53,7 @@ class CategoryRepository(ABC):
         self.seen.add(updated_category)
 
     async def get_by_helper_words_in_words(self, words: list[str]) -> Category:
+        words = [w.lower() for w in words]
         category = await self._get_by_helper_words_in_words(words=words)
         if category is None:
             raise EntityIsNotFoundError(

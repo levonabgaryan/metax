@@ -1,5 +1,4 @@
 from django.apps import AppConfig
-from discount_service.frameworks_and_drivers.di import get_service_container
 
 
 class DiscountServiceConfig(AppConfig):
@@ -7,6 +6,8 @@ class DiscountServiceConfig(AppConfig):
 
     def ready(self) -> None:
         # https://python-dependency-injector.ets-labs.org/examples/django.html#app-config
+        from discount_service.frameworks_and_drivers.di import get_service_container
+
         container = get_service_container()
         container.wire(
             packages=[

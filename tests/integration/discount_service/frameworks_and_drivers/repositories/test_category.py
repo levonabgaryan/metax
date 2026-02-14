@@ -168,7 +168,6 @@ async def test_get_by_helper_words_in_words(
     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
 ) -> None:
     # given
-
     helper_words = CategoryHelperWords(words=frozenset(["գինի", "օղի", "vodka"]))
     category = make_category_entity(helper_words=helper_words, name="ալկոհոլ")
     async with unit_of_work as uow:
