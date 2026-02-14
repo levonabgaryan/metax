@@ -20,7 +20,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         helper_words_models_to_create = []
         for helper_word in category.get_helper_words():
             helper_words_models_to_create.append(
-                CategoryHelperWordsModel(word=helper_word, category=category_model)
+                CategoryHelperWordsModel(word=helper_word.lower(), category=category_model)
             )
 
         if helper_words_models_to_create:
@@ -83,3 +83,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return Category(
             category_uuid=category_uuid, name=model.name, helper_words=CategoryHelperWords(words=helper_words)
         )
+
+    async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
+        qs = CategoryHelperWordsModel.objects.filter(word__in=words).select_related("category")
+
+        helper_word = await qs.afirst()
+
+        if helper_word:
+            return await self.__map_to_entity(model=helper_word.category)
+        return None

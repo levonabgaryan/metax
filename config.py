@@ -56,8 +56,8 @@ class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
     debug: Annotated[bool, Field(default=True)]
 
-    postgres_user: Annotated[str, Field(default="admin")]
-    postgres_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    postgres_user: Annotated[str, Field(default="p_user")]
+    postgres_password: Annotated[str, Field(default="pass111")]
     postgres_db: Annotated[str, Field(default="discount-system")]
     postgres_host: Annotated[str, Field(default="localhost")]
     postgres_port: Annotated[int, Field(default="5432")]
@@ -82,8 +82,8 @@ class DevConfigs(BaseConfigs):
 class TestConfigs(BaseConfigs):
     debug: Annotated[bool, Field(default=False)]
 
-    postgres_user: Annotated[str, Field(default="admin")]
-    postgres_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
+    postgres_user: Annotated[str, Field(default="p_user")]
+    postgres_password: Annotated[str, Field(default="pass111")]
     postgres_db: Annotated[str, Field(default="discount-system")]
     postgres_host: Annotated[str, Field(default="localhost")]
     postgres_port: Annotated[int, Field(default="5432")]

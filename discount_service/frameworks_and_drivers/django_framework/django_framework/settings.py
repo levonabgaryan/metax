@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django_framework.discount_service",
     "rest_framework",
     "adrf",
+    "django.contrib.postgres",
 ]
 
 MIDDLEWARE = [

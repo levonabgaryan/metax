@@ -1,32 +1,36 @@
 import asyncio
+import re
 import uuid
 from datetime import datetime
 from typing import AsyncIterator, Any
-from uuid import UUID
 
 import httpx
 
+import constants
 from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
 from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
+from discount_service.core.application.ports.repositories.entites_repositories.retailer import RetailerRepository
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from discount_service.core.domain.entities.category_entity.category import Category
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
     PriceDetails,
 )
+from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
 
 
 class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
     def __init__(
         self,
         category_repository: CategoryRepository,
-        retailer_uuid: UUID,
+        retailer_repository: RetailerRepository,
         yerevan_city_api_url: str,
         yerevan_city_discount_page_url: str,
     ) -> None:
         self.__retailer_discounted_products_api_url = yerevan_city_api_url
         self.__category_repository = category_repository
-        self.__retailer_uuid = retailer_uuid
+        self.__retailer_repository = retailer_repository
+        self.__retailer: Retailer | None = None
         self.__yerevan_city_discount_page_url = yerevan_city_discount_page_url
 
     async def create_many_from_retailer(
@@ -78,11 +82,12 @@ class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
     async def __map_to_entity(
         self, discounted_product_from_retailer: dict[str, Any], created_at: datetime
     ) -> DiscountedProduct:
+        if self.__retailer is None:
+            self.__retailer = await self.__retailer_repository.get_by_name(constants.YEREVAN_CITY_RETAILER_NAME)
         category: Category | None
+        words = self.clean_text(text=discounted_product_from_retailer["name"])
         try:
-            category = await self.__category_repository.get_by_helper_words_in_text(
-                text=discounted_product_from_retailer["name"]
-            )
+            category = await self.__category_repository.get_by_helper_words_in_words(words=words)
         except EntityIsNotFoundError as e:
             category = None
             print(e.args[0])
@@ -96,7 +101,16 @@ class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
                 discounted_price=discounted_product_from_retailer["discountedPrice"],
             ),
             category_uuid=category.get_uuid() if category is not None else None,
-            retailer_uuid=self.__retailer_uuid,
+            retailer_uuid=self.__retailer.get_uuid(),
             created_at=created_at,
             url=f"{self.__yerevan_city_discount_page_url}/{id_from_retailer}",
         )
+
+    @staticmethod
+    def clean_text(text: str) -> list[str]:
+        # Strips text of unnecessary characters and returns a list of words.
+        # Only Latin letters and numbers are retained.
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9а-яёա-ֆ]+", " ", text, flags=re.IGNORECASE)
+        words_ = [word for word in text.split() if word]
+        return words_

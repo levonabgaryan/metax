@@ -1,6 +1,7 @@
 from typing import AsyncIterator
 
 import pytest
+from pytest_django.plugin import DjangoDbBlocker
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
@@ -9,16 +10,13 @@ from discount_service.frameworks_and_drivers.di import get_service_container
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
-@pytest.fixture(scope="session")
-def service_container_instance() -> ServiceContainer:
-    return get_service_container()
-
-
 @pytest.fixture(scope="session", autouse=True)
-async def service_container(service_container_instance: ServiceContainer) -> AsyncIterator[ServiceContainer]:
-    init_task = service_container_instance.init_resources()
-    if init_task:
-        await init_task
+async def service_container(django_db_blocker: DjangoDbBlocker) -> AsyncIterator[ServiceContainer]:
+    service_container_instance = get_service_container()
+    with django_db_blocker.unblock():
+        init_task = service_container_instance.init_resources()
+        if init_task:
+            await init_task
 
     service_container_instance.wire(
         packages=[__name__, "tests.integration"],

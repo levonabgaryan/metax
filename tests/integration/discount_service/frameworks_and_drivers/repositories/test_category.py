@@ -159,3 +159,24 @@ async def test_category_update_helper_words_when_deleting(
     category = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     assert category.get_helper_words() == frozenset(["b"])
     await uow.commit()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+@inject
+async def test_get_by_helper_words_in_words(
+    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+) -> None:
+    # given
+
+    helper_words = CategoryHelperWords(words=frozenset(["գինի", "օղի", "vodka"]))
+    category = make_category_entity(helper_words=helper_words, name="ալկոհոլ")
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category)
+        await uow.commit()
+
+    # when
+    category = await unit_of_work.category_repo.get_by_helper_words_in_words(words=["Գինի", "Ռոտշիլդ", "կարմիր"])
+
+    # then
+    assert category == category
