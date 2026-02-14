@@ -1,5 +1,4 @@
 import asyncio
-import re
 import uuid
 from datetime import datetime
 from typing import AsyncIterator, Any
@@ -7,7 +6,7 @@ from typing import AsyncIterator, Any
 import httpx
 
 import constants
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import RetailerRepository
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
@@ -19,7 +18,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
 
 
-class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
+class YerevanCityDiscountedProductFactory(DiscountedProductFactory):
     def __init__(
         self,
         category_repository: CategoryRepository,
@@ -105,12 +104,3 @@ class YerevanCityDiscountedProductFactory(IDiscountedProductFactory):
             created_at=created_at,
             url=f"{self.__yerevan_city_discount_page_url}/{id_from_retailer}",
         )
-
-    @staticmethod
-    def clean_text_and_split(text: str) -> list[str]:
-        # Strips text of unnecessary characters and returns a list of words.
-        # Only Latin letters and numbers are retained.
-        text = text.lower()
-        text = re.sub(r"[^a-z0-9а-яёա-ֆ]+", " ", text, flags=re.IGNORECASE)
-        words_ = [word for word in text.lower().split() if word]
-        return words_

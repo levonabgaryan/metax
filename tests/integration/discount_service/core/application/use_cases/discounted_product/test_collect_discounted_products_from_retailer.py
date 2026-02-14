@@ -7,7 +7,7 @@ from uuid import uuid4
 import pytest
 from dependency_injector.wiring import Provide, inject
 
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsFromRetailerRequest,
@@ -44,7 +44,7 @@ async def test_collect_discounted_products_from_retailer_use_case_saves_products
             yield batch
             await asyncio.sleep(0.0)
 
-    mocked_factory_class = Mock(spec=IDiscountedProductFactory)
+    mocked_factory_class = Mock(spec=DiscountedProductFactory)
     mocked_factory_class.create_many_from_retailer.side_effect = mock_gen
 
     # when

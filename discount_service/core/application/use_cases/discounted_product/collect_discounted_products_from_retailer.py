@@ -2,7 +2,7 @@ from discount_service.core.application.event_and_handlers.discounted_product.eve
     NewDiscountedProductsFromRetailerCollected,
 )
 from discount_service.core.application.patterns.use_case_abc import UseCase
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsFromRetailerRequest,
@@ -16,7 +16,7 @@ class CollectDiscountedProductsFromRetailer(
     def __init__(
         self,
         unit_of_work: AbstractUnitOfWork,
-        discounted_product_factory: IDiscountedProductFactory,
+        discounted_product_factory: DiscountedProductFactory,
     ) -> None:
         super().__init__(unit_of_work=unit_of_work)
         self.discounted_product_factory = discounted_product_factory

@@ -1,6 +1,6 @@
 from dependency_injector import providers, containers
 
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.frameworks_and_drivers.patterns.factories.discounted_product import (
     YerevanCityDiscountedProductFactory,
 )
@@ -11,7 +11,7 @@ class DiscountedProductFactoriesContainer(containers.DeclarativeContainer):
 
     repositories_container: providers.DependenciesContainer = providers.DependenciesContainer()
 
-    yerevan_city_discounted_product_factory: providers.ThreadSafeSingleton[IDiscountedProductFactory] = (
+    yerevan_city_discounted_product_factory: providers.ThreadSafeSingleton[DiscountedProductFactory] = (
         providers.ThreadSafeSingleton(
             YerevanCityDiscountedProductFactory,
             retailer_repository=repositories_container.retailer_repository,

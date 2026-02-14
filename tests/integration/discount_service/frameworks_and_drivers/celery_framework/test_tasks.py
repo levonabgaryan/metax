@@ -6,7 +6,7 @@ import pytest
 from dependency_injector.wiring import inject, Provide
 from celery.schedules import crontab
 
-from discount_service.core.application.ports.patterns.discounted_product_factory import IDiscountedProductFactory
+from discount_service.core.application.ports.patterns.discounted_product_factory import DiscountedProductFactory
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 from discount_service.frameworks_and_drivers.celery_framework.tasks import (
@@ -41,7 +41,7 @@ async def test_collect_discounted_products_from_retailer_success(
             yield batch
             await asyncio.sleep(0.0)
 
-    mocked_factory_class = Mock(spec=IDiscountedProductFactory)
+    mocked_factory_class = Mock(spec=DiscountedProductFactory)
     mocked_factory_class.create_many_from_retailer.side_effect = mock_gen
 
     # when
