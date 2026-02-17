@@ -34,7 +34,7 @@ async def test_add_many_discounted_products(
         retailer_uuid=sas_supermarket_uuid,
         name="SAS-SUPERMARKET",
         phone_number="test_phone_number",
-        url="test_url",
+        home_page_url="test_url",
     )
 
     discounted_product_1_uuid = uuid4()

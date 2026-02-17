@@ -21,7 +21,7 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
                 retailer_uuid=command.retailer_uuid,
                 name=command.name,
                 phone_number=command.phone_number,
-                url=command.url,
+                home_page_url=command.url,
             )
             await uow.retailer_repo.add(retailer)
             await uow.commit()

@@ -5,7 +5,9 @@ from discount_service.core.domain.entities.retailer_entity.retailer import Retai
 
 def test_retailer_update() -> None:
     # given
-    retailer = Retailer(retailer_uuid=uuid4(), name="test_name", url="test_url", phone_number="test_number")
+    retailer = Retailer(
+        retailer_uuid=uuid4(), name="test_name", home_page_url="test_url", phone_number="test_number"
+    )
 
     new_data = DataForRetailerUpdate(
         new_name="new_name",
@@ -18,5 +20,5 @@ def test_retailer_update() -> None:
 
     # then
     assert retailer.get_name() == new_data["new_name"]
-    assert retailer.get_url() == new_data["new_url"]
+    assert retailer.get_home_page_url() == new_data["new_url"]
     assert retailer.get_phone_number() == new_data["new_phone_number"]

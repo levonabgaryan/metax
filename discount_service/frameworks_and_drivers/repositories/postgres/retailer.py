@@ -13,7 +13,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         await RetailerModel._default_manager.acreate(
             retailer_uuid=retailer.get_uuid(),
             name=retailer.get_name(),
-            url=retailer.get_url(),
+            url=retailer.get_home_page_url(),
             phone_number=retailer.get_phone_number(),
         )
 
@@ -40,7 +40,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             update_data["name"] = updated_retailer.get_name()
 
         if fields_to_update.url:
-            update_data["url"] = updated_retailer.get_url()
+            update_data["url"] = updated_retailer.get_home_page_url()
 
         if fields_to_update.phone_number:
             update_data["phone_number"] = updated_retailer.get_phone_number()
@@ -60,5 +60,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     @staticmethod
     def __map_to_entity(model: RetailerModel) -> Retailer:
         return Retailer(
-            retailer_uuid=model.retailer_uuid, name=model.name, url=model.url, phone_number=model.phone_number
+            retailer_uuid=model.retailer_uuid,
+            name=model.name,
+            home_page_url=model.url,
+            phone_number=model.phone_number,
         )

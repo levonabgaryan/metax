@@ -43,5 +43,5 @@ async def test_update_retailer_command_handler(
         await uow.commit()
 
     assert updated_retailer.get_name() == "test_new_name"
-    assert updated_retailer.get_url() == "test_new_url"
+    assert updated_retailer.get_home_page_url() == "test_new_url"
     assert updated_retailer.get_phone_number() == "test_new_phone_number"

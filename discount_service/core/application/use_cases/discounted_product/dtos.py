@@ -5,11 +5,11 @@ from discount_service.core.application.patterns.use_case_abc import RequestDTO, 
 
 
 @dataclass(frozen=True)
-class CollectDiscountedProductsFromRetailerRequest(RequestDTO):
+class CollectDiscountedProductsRetailerRequest(RequestDTO):
     retailer_url: str
     started_time: datetime
 
 
 @dataclass(frozen=True)
-class CollectDiscountedProductsFromRetailerResponse(ResponseDTO):
+class CollectDiscountedProductsRetailerResponse(ResponseDTO):
     added_count: int

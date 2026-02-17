@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from uuid import UUID
 
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
@@ -76,6 +76,17 @@ class PriceDetails(ValueObject):
     discounted_price: Decimal
 
     def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "real_price",
+            self._normalize(self.real_price),
+        )
+
+        object.__setattr__(
+            self,
+            "discounted_price",
+            self._normalize(self.discounted_price),
+        )
         self.__validate_real_price()
         self.__validate_discounted_price()
         self.__validate_discount_is_less_than_real()
@@ -94,3 +105,14 @@ class PriceDetails(ValueObject):
                 discounted_price=self.discounted_price,
                 real_price=self.real_price,
             )
+
+    @staticmethod
+    def _normalize(value: Decimal) -> Decimal:
+        """
+        Force 2 decimal places: 12 -> 12.00, 12.5 -> 12.50
+        """
+
+        return value.quantize(
+            Decimal("0.00"),
+            rounding=ROUND_HALF_UP,
+        )

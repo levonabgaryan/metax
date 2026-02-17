@@ -9,7 +9,13 @@ from .base_model import BaseDbModel
 class CategoryHelperWordsModel(BaseDbModel):
     id = models.AutoField(primary_key=True)
     word = models.CharField(max_length=64, unique=True)
-    category = models.ForeignKey("CategoryModel", on_delete=models.CASCADE, db_column="category_uuid", null=False)
+    category = models.ForeignKey(
+        "CategoryModel",
+        on_delete=models.CASCADE,
+        db_column="category_uuid",
+        null=False,
+        related_name="helper_words",
+    )
 
     class Meta(TypedModelMeta):
         db_table = "category_helper_words"

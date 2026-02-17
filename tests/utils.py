@@ -37,7 +37,9 @@ def make_retailer_entity(
     url: str = "test_retailer_url",
     phone_number: str = "test_retailer_phone_number",
 ) -> Retailer:
-    return Retailer(retailer_uuid=retailer_uuid or uuid4(), name=name, phone_number=phone_number, url=url)
+    return Retailer(
+        retailer_uuid=retailer_uuid or uuid4(), name=name, phone_number=phone_number, home_page_url=url
+    )
 
 
 def make_discounted_product_entity(

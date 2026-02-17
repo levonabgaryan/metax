@@ -37,5 +37,5 @@ async def test_create_retailer_command_handler(
         await uow.commit()
 
     assert retailer.get_name() == "test_retailer"
-    assert retailer.get_url() == "https://example.com"
+    assert retailer.get_home_page_url() == "https://example.com"
     assert retailer.get_phone_number() == "test_phone_number"

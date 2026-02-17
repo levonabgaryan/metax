@@ -87,3 +87,7 @@ class CategoryRepository(ABC):
     @abstractmethod
     async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
         pass
+
+    @abstractmethod
+    async def get_all(self) -> list[Category]:
+        pass

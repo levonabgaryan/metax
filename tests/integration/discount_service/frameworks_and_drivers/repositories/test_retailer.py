@@ -73,7 +73,7 @@ async def test_retailer_repo_update(
     await uow.commit()
 
     assert retailer.get_name() == "new_name"
-    assert retailer.get_url() == "new_url"
+    assert retailer.get_home_page_url() == "new_url"
     assert retailer.get_phone_number() == "new_phone_number"
 
 
