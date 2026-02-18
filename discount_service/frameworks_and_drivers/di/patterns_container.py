@@ -1,14 +1,23 @@
 from dependency_injector import containers, providers
 
+from discount_service.core.application.patterns.discounted_products_collector_service_factory import (
+    DiscountedProductsCollectorServiceCreator,
+)
 from discount_service.core.application.patterns.message_buss import MessageBus
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
+from discount_service.frameworks_and_drivers.patterns.discounted_products_collector_service_factories import (
+    YerevanCityDiscountedProductsCollectorServiceCreator,
+)
 from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
 from discount_service.frameworks_and_drivers.patterns.unit_of_work_factory import DjangoUnitOfWorkFactory
 
 
 class PatternsContainer(containers.DeclarativeContainer):
     repositories_container: providers.DependenciesContainer = providers.DependenciesContainer()
+    discounted_products_collector_services_container: providers.DependenciesContainer = (
+        providers.DependenciesContainer()
+    )
 
     unit_of_work: providers.Provider[AbstractUnitOfWork] = providers.Factory(
         UnitOfWork,
@@ -23,3 +32,10 @@ class PatternsContainer(containers.DeclarativeContainer):
     )
 
     message_bus: providers.Provider[MessageBus] = providers.ThreadSafeSingleton(MessageBus, unit_of_work_factory)
+
+    yerevan_city_discounted_products_collector_service_factory: providers.ThreadSafeSingleton[
+        DiscountedProductsCollectorServiceCreator
+    ] = providers.ThreadSafeSingleton(
+        YerevanCityDiscountedProductsCollectorServiceCreator,
+        yerevan_city_discounted_products_collector_service_provider=discounted_products_collector_services_container.yerevan_city_discounted_products_collector_service.provider,
+    )

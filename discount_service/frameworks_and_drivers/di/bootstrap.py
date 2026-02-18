@@ -5,9 +5,7 @@ from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
-from discount_service.frameworks_and_drivers.di.discounted_products_collector_serice_factories_container import (
-    DiscountedProductsCollectorServiceFactoriesContainer,
-)
+
 from discount_service.frameworks_and_drivers.di.discounted_products_collector_services_container import (
     DiscountedProductsCollectorServicesContainer,
 )
@@ -69,9 +67,6 @@ class ServiceContainer(containers.DeclarativeContainer):
         patterns_container=patterns_container,
         scrappers_adapters_container=scrappers_adapters_container,
     )
-    discounted_products_collector_service_factories_container: providers.Container[
-        DiscountedProductsCollectorServiceFactoriesContainer
-    ] = providers.Container(DiscountedProductsCollectorServiceFactoriesContainer)
 
 
 def configured_service_container() -> ServiceContainer:
