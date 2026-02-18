@@ -1,16 +1,16 @@
 from dependency_injector import containers, providers
 
-from discount_service.core.application.patterns.discounted_products_collector_service_factory import (
+from discount_service.core.application.ports.patterns.factories.discounted_products_collector_service_factory import (
     DiscountedProductsCollectorServiceCreator,
 )
 from discount_service.core.application.patterns.message_buss import MessageBus
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
-from discount_service.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.frameworks_and_drivers.patterns.discounted_products_collector_service_factories import (
+from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
+from discount_service.frameworks_and_drivers.patterns.factories.discounted_products_collector_service_factories import (
     YerevanCityDiscountedProductsCollectorServiceCreator,
 )
 from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
-from discount_service.frameworks_and_drivers.patterns.unit_of_work_factory import DjangoUnitOfWorkFactory
+from discount_service.frameworks_and_drivers.patterns.factories.unit_of_work_factory import DjangoUnitOfWorkFactory
 
 
 class PatternsContainer(containers.DeclarativeContainer):

@@ -33,7 +33,7 @@ from discount_service.core.application.event_and_handlers.retailer.update_in_dis
 from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from discount_service.core.application.patterns.event_handler_abc import EventHandler
-from discount_service.core.application.ports.patterns.unit_of_work_factory import IUnitOfWorkFactory
+from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
 from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated

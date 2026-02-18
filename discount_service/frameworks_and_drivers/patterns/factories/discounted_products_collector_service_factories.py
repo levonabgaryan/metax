@@ -1,6 +1,6 @@
 from dependency_injector import providers
 
-from discount_service.core.application.patterns.discounted_products_collector_service_factory import (
+from discount_service.core.application.ports.patterns.factories.discounted_products_collector_service_factory import (
     DiscountedProductsCollectorServiceCreator,
 )
 from discount_service.core.application.patterns.services.discounted_products_collector import (

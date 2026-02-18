@@ -1,5 +1,5 @@
 from constants import RetailersNames
-from discount_service.core.application.patterns.discounted_products_collector_service_factory import (
+from discount_service.core.application.ports.patterns.factories.discounted_products_collector_service_factory import (
     DiscountedProductsCollectorServiceCreator,
 )
 from discount_service.frameworks_and_drivers.di import get_service_container

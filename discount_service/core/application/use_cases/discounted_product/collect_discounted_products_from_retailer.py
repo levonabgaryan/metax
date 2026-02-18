@@ -1,7 +1,7 @@
 from discount_service.core.application.event_and_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
-from discount_service.core.application.patterns.discounted_products_collector_service_factory import (
+from discount_service.core.application.ports.patterns.factories.discounted_products_collector_service_factory import (
     DiscountedProductsCollectorServiceCreator,
 )
 from discount_service.core.application.patterns.use_case_abc import UseCase
