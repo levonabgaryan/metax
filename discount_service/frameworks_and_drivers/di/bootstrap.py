@@ -5,6 +5,9 @@ from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
+from discount_service.frameworks_and_drivers.di.discounted_products_collector_serice_factories_container import (
+    DiscountedProductsCollectorServiceFactoriesContainer,
+)
 from discount_service.frameworks_and_drivers.di.discounted_products_collector_services_container import (
     DiscountedProductsCollectorServicesContainer,
 )
@@ -13,7 +16,6 @@ from discount_service.frameworks_and_drivers.di.event_handlers_container import 
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
 from discount_service.frameworks_and_drivers.di.scrappers_adapters_container import ScrappersAdaptersContainer
-from discount_service.frameworks_and_drivers.di.use_cases_container import UseCasesContainer
 from config import discount_service_configs
 
 
@@ -57,9 +59,6 @@ class ServiceContainer(containers.DeclarativeContainer):
     event_handlers_container: providers.Container[EventHandlersContainer] = providers.Container(
         EventHandlersContainer, patterns_container=patterns_container
     )
-    use_cases_container: providers.Container[UseCasesContainer] = providers.Container(
-        UseCasesContainer, patterns_container=patterns_container
-    )
     scrappers_adapters_container: providers.Container[ScrappersAdaptersContainer] = providers.Container(
         ScrappersAdaptersContainer
     )
@@ -70,6 +69,9 @@ class ServiceContainer(containers.DeclarativeContainer):
         patterns_container=patterns_container,
         scrappers_adapters_container=scrappers_adapters_container,
     )
+    discounted_products_collector_service_factories_container: providers.Container[
+        DiscountedProductsCollectorServiceFactoriesContainer
+    ] = providers.Container(DiscountedProductsCollectorServiceFactoriesContainer)
 
 
 def configured_service_container() -> ServiceContainer:

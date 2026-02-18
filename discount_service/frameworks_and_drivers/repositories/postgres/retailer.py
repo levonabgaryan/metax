@@ -1,3 +1,4 @@
+from typing import AsyncIterator
 from uuid import UUID
 
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
@@ -65,3 +66,9 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             home_page_url=model.url,
             phone_number=model.phone_number,
         )
+
+    async def get_all(self) -> AsyncIterator[Retailer]:
+        queryset = RetailerModel.objects.all().aiterator()
+
+        async for model in queryset:
+            yield self.__map_to_entity(model=model)

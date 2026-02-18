@@ -1,9 +1,9 @@
 from dependency_injector import providers, containers
 
-from discount_service.core.application.services.discounted_products_collector import (
+from discount_service.core.application.patterns.services.discounted_products_collector import (
     DiscountedProductsCollectorService,
 )
-from discount_service.frameworks_and_drivers.services.discounted_products_collectors import (
+from discount_service.frameworks_and_drivers.patterns.services.discounted_products_collector_services import (
     YerevanCityDiscountedProductsCollectorService,
 )
 

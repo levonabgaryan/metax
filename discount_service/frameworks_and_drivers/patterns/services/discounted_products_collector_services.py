@@ -3,7 +3,7 @@ from datetime import datetime
 
 from constants import RetailersNames
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
-from discount_service.core.application.services.discounted_products_collector import (
+from discount_service.core.application.patterns.services.discounted_products_collector import (
     DiscountedProductsCollectorService,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer

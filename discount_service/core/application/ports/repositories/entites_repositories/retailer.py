@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import AsyncIterator
 from uuid import UUID
 from dataclasses import dataclass, field
 
@@ -68,4 +69,8 @@ class RetailerRepository(ABC):
 
     @abstractmethod
     async def get_all_retailers_urls(self) -> tuple[str, ...]:
+        pass
+
+    @abstractmethod
+    def get_all(self) -> AsyncIterator[Retailer]:
         pass

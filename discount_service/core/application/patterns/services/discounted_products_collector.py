@@ -13,7 +13,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     PriceDetails,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.services.errors import RetailerNameIsMissing
+from discount_service.frameworks_and_drivers.patterns.services.errors import RetailerNameIsMissing
 
 
 class DiscountedProductsCollectorService(ABC):
