@@ -5,10 +5,14 @@ from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from discount_service.frameworks_and_drivers.di.commands_handlers_container import CommandsHandlersContainer
+from discount_service.frameworks_and_drivers.di.discounted_products_collector_services_container import (
+    DiscountedProductsCollectorServicesContainer,
+)
 
 from discount_service.frameworks_and_drivers.di.event_handlers_container import EventHandlersContainer
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
+from discount_service.frameworks_and_drivers.di.scrappers_adapters_container import ScrappersAdaptersContainer
 from discount_service.frameworks_and_drivers.di.use_cases_container import UseCasesContainer
 from config import discount_service_configs
 
@@ -55,6 +59,16 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
     use_cases_container: providers.Container[UseCasesContainer] = providers.Container(
         UseCasesContainer, patterns_container=patterns_container
+    )
+    scrappers_adapters_container: providers.Container[ScrappersAdaptersContainer] = providers.Container(
+        ScrappersAdaptersContainer
+    )
+    discounted_products_collector_services_container: providers.Container[
+        DiscountedProductsCollectorServicesContainer
+    ] = providers.Container(
+        DiscountedProductsCollectorServicesContainer,
+        patterns_container=patterns_container,
+        scrappers_adapters_container=scrappers_adapters_container,
     )
 
 

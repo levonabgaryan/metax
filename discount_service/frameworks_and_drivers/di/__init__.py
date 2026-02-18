@@ -12,3 +12,6 @@ def get_service_container() -> ServiceContainer:
         _service_container = configured_service_container()
 
     return _service_container
+
+
+__all__ = ("ServiceContainer", "get_service_container")

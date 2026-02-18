@@ -15,14 +15,14 @@ class DiscountedProductDTOFromYerevanCityScrapper(ScrapperBaseDTO):
 
 
 class YerevanCityScrapperAdapter(ScrapperAdapter[DiscountedProductDTOFromYerevanCityScrapper]):
-    def __init__(self, scrapper_url: str, yerevan_city_products_details_url: str):
-        super().__init__(scrapper_url=scrapper_url)
+    def __init__(self, yerevan_city_data_source_url: str, yerevan_city_products_details_url: str):
+        super().__init__(data_source_url=yerevan_city_data_source_url)
         self._yerevan_city_products_details_url = yerevan_city_products_details_url
 
     async def fetch(self) -> AsyncIterator[DiscountedProductDTOFromYerevanCityScrapper]:
         async with httpx.AsyncClient(timeout=25) as client:
             try:
-                response = await client.post(url=self._scrapper_url, json=self.get_scrapper_payload())
+                response = await client.post(url=self._data_source_url, json=self.get_scrapper_payload())
                 response.raise_for_status()
             except Exception as e:
                 print(e.args[0])

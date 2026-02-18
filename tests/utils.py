@@ -2,7 +2,7 @@ import asyncio
 import functools
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import AsyncIterator, Callable, Awaitable
+from typing import AsyncIterator, Callable, Awaitable, Iterator, Any, Iterable
 from uuid import UUID, uuid4
 
 from dependency_injector.wiring import inject, Provide
@@ -152,3 +152,9 @@ async def refresh_opensearch_index(
     response = await opensearch_async_client_.indices.refresh(index=index_or_alias_name)
     is_refreshed = int(response["_shards"]["successful"]) != 0
     assert is_refreshed
+
+
+async def __aiter_wrapper(items: Iterator[Any] | Iterable[Any]) -> AsyncIterator[Any]:
+    for item in items:
+        yield item
+        await asyncio.sleep(0.0)
