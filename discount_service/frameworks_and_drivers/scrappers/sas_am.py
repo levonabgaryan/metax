@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncIterator
+from typing import AsyncIterator, ClassVar
 
 import httpx
 from bs4 import BeautifulSoup
@@ -11,18 +11,22 @@ from discount_service.frameworks_and_drivers.scrappers.scrapper_abc import (
 
 
 class SasAmScrapperAdapter(ScrapperAdapter):
-    def __init__(self, sas_am_data_source_url: str) -> None:
+    DATA_SOURCE_URL_LIMIT_PARAM: ClassVar[int] = 60
+    MAX_PRODUCTS_COUNT: ClassVar[int] = 900
+
+    def __init__(self, sas_am_data_source_url: str, sas_am_main_page_url: str) -> None:
         super().__init__(data_source_url=sas_am_data_source_url)
-        self.__data_source_url_offset = 60
-        self.__data_source_url_offset_max_count = 900
+        self._sas_am_main_page_url = sas_am_main_page_url
 
     async def fetch(self) -> AsyncIterator[DiscountedProductDTOFromYRetailer]:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            for offset_param in range(0, self.__data_source_url_offset_max_count, self.__data_source_url_offset):
+            for offset_param in range(0, self.MAX_PRODUCTS_COUNT, self.DATA_SOURCE_URL_LIMIT_PARAM):
                 if offset_param == 0:
-                    url_ = f"{self._data_source_url}/?LIMIT=60"
+                    url_ = f"{self._data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}"
                 else:
-                    url_ = f"{self._data_source_url}/?LIMIT=60&offset={offset_param}"
+                    url_ = (
+                        f"{self._data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}&offset={offset_param}"
+                    )
 
                 response = await client.get(url=url_)
                 soup = BeautifulSoup(response.text, "lxml")
@@ -71,7 +75,7 @@ class SasAmScrapperAdapter(ScrapperAdapter):
                     if not isinstance(href, str):
                         continue
 
-                    raw_product_url = f"https://www.sas.am{href}" if href.startswith("/") else href
+                    raw_product_url = f"{self._sas_am_main_page_url}{href}" if href.startswith("/") else href
 
                     yield DiscountedProductDTOFromYRetailer(
                         name=self._clean_discounted_product_name(text=name),

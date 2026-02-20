@@ -32,6 +32,8 @@ class BaseConfigs(BaseSettings):
     yerevan_city_products_details_url: Annotated[str, Field(alias="YEREVAN_CITY_PRODUCTS_DETAILS_URL")]
     yerevan_city_discount_page_url: Annotated[str, Field(alias="YEREVAN_CITY_DISCOUNT_PAGE_URL")]
 
+    sas_am_main_page_url: Annotated[str, Field(alias="SAS_AM_MAIN_URL")]
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     @property
@@ -102,6 +104,8 @@ class TestConfigs(BaseConfigs):
 
     yerevan_city_products_details_url: Annotated[str, Field(default="mock")]
     yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
+
+    sas_am_main_page_url: Annotated[str, Field(default="mock")]
 
 
 class ProdConfigs(BaseConfigs):
