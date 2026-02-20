@@ -1,11 +1,8 @@
 import pytest
-from dependency_injector.wiring import Provide, inject
 
 from discount_service.core.application.commands_and_handlers.cud.category import (
     UpdateCategoryCommand,
-    UpdateCategoryCommandHandler,
 )
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import make_category_entity
@@ -13,14 +10,11 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
 async def test_update_category_command_handler(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-    command_handler: UpdateCategoryCommandHandler = Provide[
-        ServiceContainer.commands_handlers_container.container.category.container.update_category
-    ],
+    service_container_for_tests: ServiceContainer,
 ) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     category = make_category_entity()
 
     async with unit_of_work as uow:
@@ -29,7 +23,7 @@ async def test_update_category_command_handler(
 
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
-    cmd_handler = command_handler
+    cmd_handler = await service_container_for_tests.commands_handlers_container.container.category.container.update_category.async_()
     await cmd_handler.handle(cmd)
 
     # then

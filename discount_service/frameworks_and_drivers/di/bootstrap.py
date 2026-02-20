@@ -58,7 +58,8 @@ class ServiceContainer(containers.DeclarativeContainer):
         EventHandlersContainer, patterns_container=patterns_container
     )
     scrappers_adapters_container: providers.Container[ScrappersAdaptersContainer] = providers.Container(
-        ScrappersAdaptersContainer
+        ScrappersAdaptersContainer,
+        config=config,
     )
     discounted_products_collector_services_container: providers.Container[
         DiscountedProductsCollectorServicesContainer

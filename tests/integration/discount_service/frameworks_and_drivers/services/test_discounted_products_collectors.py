@@ -3,23 +3,18 @@ from decimal import Decimal
 from unittest.mock import MagicMock
 
 import pytest
-from dependency_injector.wiring import inject, Provide
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di import ServiceContainer
 
-from tests.integration.conftest import get_current_container_for_tests
 from tests.utils import __aiter_wrapper, make_retailer_entity
 from constants import RetailersNames
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
-async def test_yerevan_city_collector_service(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_yerevan_city_collector_service(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
 
@@ -33,12 +28,11 @@ async def test_yerevan_city_collector_service(
 
     # when
     with (
-        get_current_container_for_tests().reset_singletons(),
-        get_current_container_for_tests().scrappers_adapters_container.container.yerevan_city_scrapper_adapter.override(
+        service_container_for_tests.scrappers_adapters_container.container.yerevan_city_scrapper_adapter.override(
             yerevan_city_scrapper_mock
         ),
     ):
-        yerevan_city_discounted_products_collector_service = await get_current_container_for_tests().discounted_products_collector_services_container.container.yerevan_city_discounted_products_collector_service.async_()
+        yerevan_city_discounted_products_collector_service = await service_container_for_tests.discounted_products_collector_services_container.container.yerevan_city_discounted_products_collector_service.async_()
         await yerevan_city_discounted_products_collector_service.collect_from_retailer_and_return_collected_count(
             started_time_of_collected=started_time
         )

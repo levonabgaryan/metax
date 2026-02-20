@@ -2,9 +2,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 
 import pytest
-from dependency_injector.wiring import inject, Provide
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
@@ -12,20 +10,21 @@ from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContaine
 from tests.utils import (
     clear_opensearch_db,
     make_discounted_product_read_model,
-    refresh_opensearch_index,
     make_category_entity,
     make_retailer_entity,
 )
+from tests.integration.conftest import refresh_opensearch_index
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-@inject
 async def test_delete_older_than_and_return_deleted_count(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+    service_container_for_tests: ServiceContainer,
 ) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     creation_date = datetime.now(tz=timezone.utc)
 
     discounted_products_read_models = [
@@ -55,12 +54,11 @@ async def test_delete_older_than_and_return_deleted_count(
 
 
 @pytest.mark.asyncio
-@inject
 @clear_opensearch_db
-async def test_update_category(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_update_category(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     created_at = datetime.now(tz=timezone.utc)
     category = make_category_entity()
     discounted_product_read_model_ = make_discounted_product_read_model(
@@ -89,11 +87,10 @@ async def test_update_category(
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-@inject
-async def test_update_retailer(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_update_retailer(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     retailer = make_retailer_entity()
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(
@@ -125,11 +122,10 @@ async def test_update_retailer(
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-@inject
-async def test_get_all(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_get_all(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_models = [
         make_discounted_product_read_model(
@@ -161,13 +157,11 @@ async def test_get_all(
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-@inject
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name_page(
-    query: str,
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_get_by_name_page(query: str, service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,

@@ -1,15 +1,10 @@
 from datetime import datetime, timezone, timedelta
 
 import pytest
-from dependency_injector.wiring import inject, Provide
 
-from discount_service.core.application.event_and_handlers.discounted_product.delete_old_discounted_products import (
-    DeleteOldDiscountedProducts,
-)
 from discount_service.core.application.event_and_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
@@ -17,14 +12,11 @@ from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
 async def test_event_handler_shall_delete_old_data(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-    event_handler: DeleteOldDiscountedProducts = Provide[
-        ServiceContainer.event_handlers_container.container.discounted_product.container.delete_old_discounted_products
-    ],
+    service_container_for_tests: ServiceContainer,
 ) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     retailer = make_retailer_entity()
     old_discounted_product_created_date = datetime.now(timezone.utc)
     old_discounted_product = make_discounted_product_entity(
@@ -45,7 +37,7 @@ async def test_event_handler_shall_delete_old_data(
     event = NewDiscountedProductsFromRetailerCollected(new_products_created_date)
 
     # when
-    event_handler_ = event_handler
+    event_handler_ = await service_container_for_tests.event_handlers_container.container.discounted_product.container.delete_old_discounted_products.async_()
     await event_handler_.handle(event)
 
     # expect

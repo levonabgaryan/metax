@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from decimal import Decimal
-from typing import ClassVar
 from uuid import UUID
 
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
@@ -13,27 +12,26 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     PriceDetails,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.patterns.services.errors import RetailerNameIsMissing
 
 
-class DiscountedProductsCollectorService(ABC):
-    RETAILER_NAME: ClassVar[str]
-
+class BaseDiscountedProductsCollectorService(ABC):
     def __init__(
         self,
         unit_of_work: AbstractUnitOfWork,
+        retailer_name: str,
+        batch_size_for_saving_discounted_products: int = 500,
     ) -> None:
-        if not getattr(self, "RETAILER_NAME", None):
-            raise RetailerNameIsMissing(service_class_name=f"{self.__class__.__name__}")
         self._unit_of_work = unit_of_work
         self._category_map: dict[str, Category] = {}
+        self._batch_size_for_saving_discounted_products = batch_size_for_saving_discounted_products
+        self._retailer_name = retailer_name
 
     async def collect_from_retailer_and_return_collected_count(self, started_time_of_collected: datetime) -> int:
         # Collects discounted products from some retailer sources, save them, and return the number of collected products.
         try:
-            retailer_ = await self.__get_retailer_by_name(retailer_name=self.RETAILER_NAME)
+            retailer_ = await self.__get_retailer_by_name(retailer_name=self._retailer_name)
         except EntityIsNotFoundError:
-            print(f"Collector failed: Retailer with name '{self.RETAILER_NAME}' not found in DB.")
+            print(f"Collector failed: Retailer with name '{self._retailer_name}' not found in DB.")
             return 0
         await self._ensure_categories_loaded()
         return await self._run_collect(started_time_of_collected, retailer=retailer_)

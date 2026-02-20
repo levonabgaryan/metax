@@ -1,11 +1,8 @@
 import pytest
-from dependency_injector.wiring import inject, Provide
 
 from discount_service.core.application.commands_and_handlers.cud.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
-    AddNewHelperWordsCommandHandler,
 )
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
@@ -13,15 +10,9 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
-async def test_add_new_helper_word_command(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-    command_handler: AddNewHelperWordsCommandHandler = Provide[
-        ServiceContainer.commands_handlers_container.container.category.container.add_new_helper_words
-    ],
-) -> None:
+async def test_add_new_helper_word_command(service_container_for_tests: ServiceContainer) -> None:
     # given
-
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     helper_words = CategoryHelperWords(words=frozenset(["a", "b"]))
     category = make_category_entity(
         helper_words=helper_words,
@@ -34,7 +25,7 @@ async def test_add_new_helper_word_command(
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
     # when
-    cmd_handler = command_handler
+    cmd_handler = await service_container_for_tests.commands_handlers_container.container.category.container.add_new_helper_words.async_()
     await cmd_handler.handle(cmd)
 
     # then

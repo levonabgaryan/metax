@@ -131,7 +131,7 @@ DATABASES = {
         "OPTIONS": {
             "pool": True,
             "client_encoding": "UTF8",
-            "isolation_level": IsolationLevel.READ_COMMITTED,
+            "isolation_level": IsolationLevel.REPEATABLE_READ,
             "server_side_binding": True,
         },
     }

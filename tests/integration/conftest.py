@@ -1,7 +1,6 @@
 from typing import AsyncIterator
 
 import pytest
-from pytest_django.plugin import DjangoDbBlocker
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
@@ -10,8 +9,8 @@ from discount_service.frameworks_and_drivers.di import get_service_container
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
-@pytest.fixture(scope="session", autouse=True)
-async def service_container(django_db_blocker: DjangoDbBlocker) -> AsyncIterator[ServiceContainer]:
+@pytest.fixture
+async def service_container_for_tests() -> AsyncIterator[ServiceContainer]:
     service_container_instance = get_service_container()
     # with django_db_blocker.unblock():
     init_task = service_container_instance.init_resources()
@@ -32,20 +31,13 @@ async def service_container(django_db_blocker: DjangoDbBlocker) -> AsyncIterator
     service_container_instance.unwire()
 
 
-@inject
-def get_current_container_for_tests(
-    service_container: ServiceContainer = Provide[ServiceContainer],
-) -> ServiceContainer:
-    return service_container
-
-
-@pytest.fixture(scope="session", autouse=True)
-@inject
+@pytest.fixture(scope="session")
 async def setup_opensearch_migration(
-    opensearch_async_client_: AsyncOpenSearch = Provide[ServiceContainer.opensearch_async_client],
+    service_container_for_tests: ServiceContainer,
 ) -> AsyncIterator[None]:
     from discount_service.frameworks_and_drivers.opensearch.migration import migrate_indices, delete_all_indices
 
+    opensearch_async_client_ = await service_container_for_tests.opensearch_async_client.async_()
     await migrate_indices(opensearch_async_client_)
     yield None
     await delete_all_indices(opensearch_async_client_)
@@ -57,3 +49,20 @@ def celery_config() -> dict[str, str]:
         "broker_url": f"{discount_service_configs.celery_broker_url}",
         "result_backend": f"{discount_service_configs.celery_result_backend_url}",
     }
+
+
+@inject
+async def refresh_opensearch_index(
+    index_or_alias_name: str,
+    opensearch_async_client_: AsyncOpenSearch = Provide[ServiceContainer.opensearch_async_client],
+) -> None:
+    response = await opensearch_async_client_.indices.refresh(index=index_or_alias_name)
+    is_refreshed = int(response["_shards"]["successful"]) != 0
+    assert is_refreshed
+
+
+@inject
+def get_current_container_for_tests(
+    service_container: ServiceContainer = Provide[ServiceContainer],
+) -> ServiceContainer:
+    return service_container

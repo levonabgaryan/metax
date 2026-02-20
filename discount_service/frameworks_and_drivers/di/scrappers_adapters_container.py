@@ -20,4 +20,5 @@ class ScrappersAdaptersContainer(containers.DeclarativeContainer):
     sas_am_scrapper_adapter: providers.Provider[ScrapperAdapter] = providers.ThreadSafeSingleton(
         SasAmScrapperAdapter,
         sas_am_data_source_url=config.sas_am_main_page_url,
+        sas_am_main_page_url=config.sas_am_main_page_url,
     )

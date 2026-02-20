@@ -1,25 +1,19 @@
 from uuid import uuid4
 import pytest
-from dependency_injector.wiring import Provide, inject
 
 from discount_service.core.application.commands_and_handlers.cud.retailer import (
     CreateRetailerCommand,
-    CreateRetailerCommandHandler,
 )
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
 async def test_create_retailer_command_handler(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-    command_handler: CreateRetailerCommandHandler = Provide[
-        ServiceContainer.commands_handlers_container.container.retailer.container.create_retailer
-    ],
+    service_container_for_tests: ServiceContainer,
 ) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
         name="test_retailer",
@@ -28,7 +22,7 @@ async def test_create_retailer_command_handler(
     )
 
     # when
-    cmd_handler = command_handler
+    cmd_handler = await service_container_for_tests.commands_handlers_container.container.retailer.container.create_retailer.async_()
     await cmd_handler.handle(cmd)
 
     # then

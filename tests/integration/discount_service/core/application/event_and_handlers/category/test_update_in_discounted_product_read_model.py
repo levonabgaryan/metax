@@ -1,11 +1,6 @@
 from datetime import datetime, timezone
 import pytest
-from dependency_injector.wiring import Provide, inject
 
-from discount_service.core.application.event_and_handlers.category.update_in_discounted_product_read_model import (
-    UpdateCategoryInDiscountedProductReadModel,
-)
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
@@ -19,23 +14,19 @@ from tests.utils import (
     make_retailer_entity,
     make_discounted_product_entity,
     clear_opensearch_db,
-    refresh_opensearch_index,
 )
+from tests.integration.conftest import refresh_opensearch_index
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 @clear_opensearch_db
-@inject
 async def test_event_handler_shall_update_category_in_read_model(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-    event_handler: UpdateCategoryInDiscountedProductReadModel = Provide[
-        ServiceContainer.event_handlers_container.container.category.container.update_discounted_product_read_model
-    ],
+    service_container_for_tests: ServiceContainer,
 ) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
     creation_date = datetime.now(tz=timezone.utc)
-
     category = make_category_entity(name="test_name")
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
@@ -72,7 +63,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     event = CategoryUpdated(
         category_uuid=found_category.get_uuid(),
     )
-    event_handler_ = event_handler
+    event_handler_ = await service_container_for_tests.event_handlers_container.container.category.container.update_discounted_product_read_model.async_()
 
     # when
     await event_handler_.handle(event)

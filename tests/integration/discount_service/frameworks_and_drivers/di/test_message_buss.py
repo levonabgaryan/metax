@@ -3,7 +3,8 @@ import pytest
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
-def test_message_buss_is_singleton(service_container_for_tests: ServiceContainer) -> None:
+@pytest.mark.asyncio
+async def test_message_buss_is_singleton(service_container_for_tests: ServiceContainer) -> None:
     msb_1 = service_container_for_tests.patterns_container.container.message_bus()
     msb_2 = service_container_for_tests.patterns_container.container.message_bus()
     msb_3 = service_container_for_tests.patterns_container.container.message_bus()

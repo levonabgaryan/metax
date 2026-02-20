@@ -3,9 +3,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
-from dependency_injector.wiring import Provide, inject
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
@@ -19,11 +17,10 @@ from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
-async def test_add_many_discounted_products(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_add_many_discounted_products(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     created_data = datetime.now(tz=timezone.utc)
     category_uuid = uuid4()
     helper_words = CategoryHelperWords(words=frozenset(["օղի", "գինի"]))
@@ -96,11 +93,10 @@ async def test_add_many_discounted_products(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
-async def test_discounted_products_is_not_found_by_uuid(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_discounted_products_is_not_found_by_uuid(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     random_uuid = uuid4()
     # expect
     async with unit_of_work as uow:
@@ -122,11 +118,10 @@ async def test_discounted_products_is_not_found_by_uuid(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@inject
-async def test_delete_older_than_and_return_deleted_count(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-) -> None:
+async def test_delete_older_than_and_return_deleted_count(service_container_for_tests: ServiceContainer) -> None:
     # given
+    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+
     creation_date = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(

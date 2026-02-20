@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
 from discount_service.core.application.patterns.services.discounted_products_collector import (
-    DiscountedProductsCollectorService,
+    BaseDiscountedProductsCollectorService,
 )
 
 
 class DiscountedProductsCollectorServiceCreator(ABC):
     @abstractmethod
-    async def factory_method(self) -> DiscountedProductsCollectorService:
+    async def factory_method(self) -> BaseDiscountedProductsCollectorService:
         pass

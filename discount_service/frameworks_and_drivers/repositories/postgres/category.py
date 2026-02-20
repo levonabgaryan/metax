@@ -1,6 +1,5 @@
 from uuid import UUID
 
-from asgiref.sync import sync_to_async
 
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryRepository,
@@ -36,18 +35,20 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         try:
-            model = await CategoryModel._default_manager.prefetch_related("helper_words").aget(
-                category_uuid=category_uuid
+            model = await CategoryModel._default_manager.aget(category_uuid=category_uuid)
+            words_qs = CategoryHelperWordsModel._default_manager.filter(category_id=model.pk)
+            words = [hw.word async for hw in words_qs]
+            return Category(
+                category_uuid=model.category_uuid,
+                name=model.name,
+                helper_words=CategoryHelperWords(words=frozenset(words)),
             )
         except CategoryModel.DoesNotExist:
             return None
 
-        return await self._map_to_entity(model)
-
     async def _get_by_name(self, category_name: str) -> Category | None:
-
         try:
-            model = await CategoryModel._default_manager.prefetch_related("helper_words").aget(name=category_name)
+            model = await CategoryModel._default_manager.aget(name=category_name)
         except CategoryModel.DoesNotExist:
             return None
 
@@ -103,7 +104,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         )
 
     async def _map_to_entity(self, model: CategoryModel) -> Category:
-        return await sync_to_async(self._map_to_entity_sync)(model)
+        return self._map_to_entity_sync(model)
 
     async def _get_by_helper_words_in_words(
         self,

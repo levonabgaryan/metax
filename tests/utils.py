@@ -5,7 +5,6 @@ from decimal import Decimal
 from typing import AsyncIterator, Callable, Awaitable, Iterator, Any, Iterable
 from uuid import UUID, uuid4
 
-from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
@@ -15,7 +14,6 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     DiscountedProduct,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.integration.conftest import get_current_container_for_tests
 
 
@@ -142,16 +140,6 @@ def clear_opensearch_db[T, **P](func: Callable[P, Awaitable[T]]) -> Callable[P, 
                 )
 
     return wrapper
-
-
-@inject
-async def refresh_opensearch_index(
-    index_or_alias_name: str,
-    opensearch_async_client_: AsyncOpenSearch = Provide[ServiceContainer.opensearch_async_client],
-) -> None:
-    response = await opensearch_async_client_.indices.refresh(index=index_or_alias_name)
-    is_refreshed = int(response["_shards"]["successful"]) != 0
-    assert is_refreshed
 
 
 async def __aiter_wrapper(items: Iterator[Any] | Iterable[Any]) -> AsyncIterator[Any]:
