@@ -36,4 +36,4 @@ async def collect_discounted_products_from_all_retailers(
         )
         tasks.append(use_case.execute(request=use_case_request))
 
-    await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks, return_exceptions=True)

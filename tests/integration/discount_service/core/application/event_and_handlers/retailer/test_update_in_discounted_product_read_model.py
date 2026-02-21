@@ -36,14 +36,6 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         await uow.discounted_product_repo.add_many(discounted_products=[discounted_product])
         await uow.commit()
 
-    async with unit_of_work as uow:
-        found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
-        new_data = DataForRetailerUpdate(new_name="test_retailer_new_name")
-        found_retailer.update(new_data)
-        fields_to_update = RetailerFieldsToUpdate(name=True)
-        await uow.retailer_repo.update(updated_retailer=found_retailer, fields_to_update=fields_to_update)
-        await uow.commit()
-
     discounted_product_read_model_ = DiscountedProductReadModel(
         discounted_product_uuid=str(discounted_product.get_uuid()),
         name=discounted_product.get_name(),
@@ -55,6 +47,15 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     )
     await unit_of_work.discounted_product_read_model_repo.add_many([discounted_product_read_model_])
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+
+    async with unit_of_work as uow:
+        found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
+        new_data = DataForRetailerUpdate(new_name="test_retailer_new_name")
+        found_retailer.update(new_data)
+        fields_to_update = RetailerFieldsToUpdate(name=True)
+        await uow.retailer_repo.update(updated_retailer=found_retailer, fields_to_update=fields_to_update)
+        await uow.commit()
+
     event = RetailerUpdated(found_retailer.get_uuid())
 
     event_handler_ = await service_container_for_tests.event_handlers_container.container.retailer.container.update_discounted_product_read_model.async_()
@@ -64,8 +65,10 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # then
-    updated_retailer = await unit_of_work.discounted_product_read_model_repo.get_by_uuid(
-        str(discounted_product.get_uuid())
-    )
+    async with unit_of_work as uow:
+        updated_retailer = await unit_of_work.discounted_product_read_model_repo.get_by_uuid(
+            str(discounted_product.get_uuid())
+        )
+        await uow.commit()
 
     assert updated_retailer["retailer_name"] == "test_retailer_new_name"

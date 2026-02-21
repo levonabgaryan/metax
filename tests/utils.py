@@ -114,7 +114,6 @@ def clear_opensearch_db[T, **P](func: Callable[P, Awaitable[T]]) -> Callable[P, 
     @functools.wraps(func)
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         client: AsyncOpenSearch = await get_current_container_for_tests().opensearch_async_client.async_()
-
         indices = await client.indices.get(index="*")
         user_indices = [idx for idx in indices if not idx.startswith(".")]
 

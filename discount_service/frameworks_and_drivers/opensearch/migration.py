@@ -14,18 +14,22 @@ async def opensearch_migrate_index(
     alias_name: str,
     index_body: dict[str, Any],
 ) -> None:
+    # Checks if there has been created index using alias-name
+    if await client.indices.exists(index=alias_name):
+        if not await client.indices.exists_alias(name=alias_name):
+            await client.indices.delete(index=alias_name)
+
     if not await client.indices.exists(index=new_index_name):
         old_index_name = None
         try:
-            response: dict[str, Any] = await client.indices.get_alias(name=alias_name)
+            response = await client.indices.get_alias(name=alias_name)
             old_index_name = list(response.keys())[0]
         except NotFoundError:
             pass
 
         await client.indices.create(index=new_index_name, body=index_body)
 
-        index_changed = old_index_name is not None
-        if index_changed and old_index_name != new_index_name:
+        if old_index_name and old_index_name != new_index_name:
             await client.reindex(
                 body={
                     "source": {"index": old_index_name},
@@ -35,19 +39,16 @@ async def opensearch_migrate_index(
             )
 
             await client.indices.update_aliases(
-                body={
-                    "actions": [
-                        {"remove": {"index": old_index_name, "alias": alias_name}},
-                        {"add": {"index": new_index_name, "alias": alias_name}},
-                    ]
-                }
+                body={"actions": [{"add": {"index": new_index_name, "alias": alias_name}}]}
             )
+
             await client.indices.delete(index=old_index_name)
     else:
         await client.indices.put_mapping(
             index=new_index_name,
             body=index_body["mappings"],
         )
+
     if not await client.indices.exists_alias(name=alias_name):
         await client.indices.put_alias(index=new_index_name, name=alias_name)
 
@@ -63,10 +64,19 @@ async def migrate_indices(client: AsyncOpenSearch) -> None:
         for metadata in INDICES_METADATA
     ]
     if tasks:
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
 
 
 async def delete_all_indices(client: AsyncOpenSearch) -> None:
     tasks = [client.indices.delete(index=metadata["index_name"]) for metadata in INDICES_METADATA]
     if tasks:
-        await asyncio.gather(*tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
+async def delete_all_aliases(client: AsyncOpenSearch) -> None:
+    tasks = [
+        client.indices.delete_alias(index=metadata["index_name"], name=metadata["alias_name"])
+        for metadata in INDICES_METADATA
+    ]
+    if tasks:
+        await asyncio.gather(*tasks, return_exceptions=True)

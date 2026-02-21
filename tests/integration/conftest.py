@@ -9,7 +9,7 @@ from discount_service.frameworks_and_drivers.di import get_service_container
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 async def service_container_for_tests() -> AsyncIterator[ServiceContainer]:
     service_container_instance = get_service_container()
     # with django_db_blocker.unblock():
@@ -31,7 +31,7 @@ async def service_container_for_tests() -> AsyncIterator[ServiceContainer]:
     service_container_instance.unwire()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="session", autouse=True)
 async def setup_opensearch_migration(
     service_container_for_tests: ServiceContainer,
 ) -> AsyncIterator[None]:

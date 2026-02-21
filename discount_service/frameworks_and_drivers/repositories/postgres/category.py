@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from asgiref.sync import sync_to_async
+from django.db.models import QuerySet
 
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryRepository,
@@ -18,60 +20,47 @@ from django_framework.discount_service.models.category_helper_words import (
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _add(self, category: Category) -> None:
         category_model = await CategoryModel._default_manager.acreate(
-            category_uuid=category.get_uuid(),
-            name=category.get_name(),
+            category_uuid=category.get_uuid(), name=category.get_name()
         )
-
-        helpers = [
-            CategoryHelperWordsModel(
-                word=word.lower(),
-                category=category_model,
+        helper_words_models_to_create = []
+        for helper_word in category.get_helper_words():
+            helper_words_models_to_create.append(
+                CategoryHelperWordsModel(word=helper_word, category=category_model)
             )
-            for word in category.get_helper_words()
-        ]
 
-        if helpers:
-            await CategoryHelperWordsModel._default_manager.abulk_create(helpers)
+        if helper_words_models_to_create:
+            await CategoryHelperWordsModel._default_manager.abulk_create(helper_words_models_to_create)
 
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         try:
-            model = await CategoryModel._default_manager.aget(category_uuid=category_uuid)
-            words_qs = CategoryHelperWordsModel._default_manager.filter(category_id=model.pk)
-            words = [hw.word async for hw in words_qs]
-            return Category(
-                category_uuid=model.category_uuid,
-                name=model.name,
-                helper_words=CategoryHelperWords(words=frozenset(words)),
-            )
+            category_model = await CategoryModel._default_manager.aget(category_uuid=category_uuid)
         except CategoryModel.DoesNotExist:
             return None
+
+        return await self.__map_to_entity(model=category_model)
 
     async def _get_by_name(self, category_name: str) -> Category | None:
         try:
-            model = await CategoryModel._default_manager.aget(name=category_name)
+            category_model = await CategoryModel._default_manager.aget(name=category_name)
         except CategoryModel.DoesNotExist:
             return None
 
-        return await self._map_to_entity(model)
+        return await self.__map_to_entity(model=category_model)
 
-    async def _update(
-        self,
-        updated_category: Category,
-        fields_to_update: CategoryFieldsToUpdate,
-    ) -> None:
-
-        data = {}
+    async def _update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
+        update_data = {}
 
         if fields_to_update.name:
-            data["name"] = updated_category.get_name()
+            update_data["name"] = updated_category.get_name()
 
-        if not data:
+        if not update_data:
             return
 
-        await CategoryModel._default_manager.filter(category_uuid=updated_category.get_uuid()).aupdate(**data)
+        await CategoryModel._default_manager.filter(category_uuid=updated_category.get_uuid()).aupdate(
+            **update_data
+        )
 
     async def _update_helper_words(self, updated_category: Category) -> None:
-
         updated_words = list(updated_category.get_helper_words())
 
         await (
@@ -79,54 +68,40 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             .exclude(word__in=updated_words)
             .adelete()
         )
-
         to_create = [
-            CategoryHelperWordsModel(
-                word=word,
-                category_id=updated_category.get_uuid(),
-            )
-            for word in updated_words
+            CategoryHelperWordsModel(word=word, category_id=updated_category.get_uuid()) for word in updated_words
         ]
-
         if to_create:
-            await CategoryHelperWordsModel._default_manager.abulk_create(
-                to_create,
-                ignore_conflicts=True,
-            )
+            await CategoryHelperWordsModel._default_manager.abulk_create(to_create, ignore_conflicts=True)
 
-    @staticmethod
-    def _map_to_entity_sync(model: CategoryModel) -> Category:
-        words = frozenset(hw.word for hw in model.helper_words.all())
+    @sync_to_async(thread_sensitive=True)
+    def __get_helper_words_by_category_uuid(self, category_uuid: UUID) -> frozenset[str]:
+        helper_words: QuerySet[CategoryHelperWordsModel, str] = CategoryHelperWordsModel._default_manager.filter(
+            category_id=category_uuid
+        ).values_list("word", flat=True)
+        return frozenset(helper_words)
+
+    async def __map_to_entity(self, model: CategoryModel) -> Category:
+        category_uuid = model.category_uuid
+        helper_words = await self.__get_helper_words_by_category_uuid(category_uuid)
+
         return Category(
-            category_uuid=model.category_uuid,
-            name=model.name,
-            helper_words=CategoryHelperWords(words=words),
+            category_uuid=category_uuid, name=model.name, helper_words=CategoryHelperWords(words=helper_words)
         )
-
-    async def _map_to_entity(self, model: CategoryModel) -> Category:
-        return self._map_to_entity_sync(model)
-
-    async def _get_by_helper_words_in_words(
-        self,
-        words: list[str],
-    ) -> Category | None:
-        helper = await (
-            CategoryHelperWordsModel._default_manager.select_related("category")
-            .prefetch_related("category__helper_words")
-            .filter(word__in=words)
-            .afirst()
-        )
-
-        if not helper or not helper.category:
-            return None
-
-        return await self._map_to_entity(helper.category)
 
     async def get_all(self) -> list[Category]:
-        qs = CategoryModel._default_manager.prefetch_related("helper_words").all()
-        categories = []
-
-        async for model in qs.aiterator():
-            categories.append(await self._map_to_entity(model))
-
+        categories: list[Category] = []
+        async for model in CategoryModel.objects.all():
+            entity = await self.__map_to_entity(model)
+            categories.append(entity)
         return categories
+
+    async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
+        helper_word_model = (
+            await CategoryHelperWordsModel.objects.select_related("category").filter(word__in=words).afirst()
+        )
+
+        if not helper_word_model:
+            return None
+
+        return await self.__map_to_entity(helper_word_model.category)

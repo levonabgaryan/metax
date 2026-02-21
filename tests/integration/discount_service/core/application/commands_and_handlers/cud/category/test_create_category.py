@@ -30,4 +30,4 @@ async def test_create_category_command_handler(
     category = await unit_of_work.category_repo.get_by_uuid(category_uuid)
     assert category.get_uuid() == category_uuid
     assert category.get_name() == cmd.name
-    assert category.get_helper_words() == {"a", "b"}
+    assert category.get_helper_words() == {"B", "A"}
