@@ -4,13 +4,13 @@ from typing import AsyncIterator, ClassVar
 import httpx
 from bs4 import BeautifulSoup
 
-from discount_service.frameworks_and_drivers.scrappers.scrapper_abc import (
-    ScrapperAdapter,
+from discount_service.frameworks_and_drivers.scrappers_strategies.scrapper_strategy_abc import (
+    ScrapperStrategy,
     DiscountedProductDTOFromYRetailer,
 )
 
 
-class SasAmScrapperAdapter(ScrapperAdapter):
+class SasAmScrapperAdapter(ScrapperStrategy):
     DATA_SOURCE_URL_LIMIT_PARAM: ClassVar[int] = 60
     MAX_PRODUCTS_COUNT: ClassVar[int] = 900
 

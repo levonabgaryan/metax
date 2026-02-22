@@ -6,12 +6,6 @@ from discount_service.core.application.commands_and_handlers.cud.category import
     CreateCategoryCommand,
     UpdateCategoryCommand,
 )
-from discount_service.core.application.commands_and_handlers.cud.retailer import (
-    CreateRetailerCommandHandler,
-    UpdateRetailerCommandHandler,
-    CreateRetailerCommand,
-    UpdateRetailerCommand,
-)
 from discount_service.core.application.commands_and_handlers.cud.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
@@ -19,6 +13,12 @@ from discount_service.core.application.commands_and_handlers.cud.category.add_ne
 from discount_service.core.application.commands_and_handlers.cud.category.delete_helper_words import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
+)
+from discount_service.core.application.commands_and_handlers.cud.retailer import (
+    CreateRetailerCommandHandler,
+    UpdateRetailerCommandHandler,
+    CreateRetailerCommand,
+    UpdateRetailerCommand,
 )
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler
 

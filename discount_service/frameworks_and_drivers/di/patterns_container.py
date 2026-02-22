@@ -1,16 +1,10 @@
 from dependency_injector import containers, providers
 
-from discount_service.core.application.ports.patterns.factories.discounted_products_collector_service_factory import (
-    DiscountedProductsCollectorServiceCreator,
-)
 from discount_service.core.application.patterns.message_buss import MessageBus
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.frameworks_and_drivers.patterns.factories.discounted_products_collector_service_factories import (
-    GenericCollectorServiceCreator,
-)
-from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.patterns.factories.unit_of_work_factory import DjangoUnitOfWorkFactory
+from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
 
 
 class PatternsContainer(containers.DeclarativeContainer):
@@ -32,17 +26,3 @@ class PatternsContainer(containers.DeclarativeContainer):
     )
 
     message_bus: providers.Provider[MessageBus] = providers.ThreadSafeSingleton(MessageBus, unit_of_work_factory)
-
-    yerevan_city_discounted_products_collector_service_factory: providers.ThreadSafeSingleton[
-        DiscountedProductsCollectorServiceCreator
-    ] = providers.ThreadSafeSingleton(
-        GenericCollectorServiceCreator,
-        yerevan_city_discounted_products_collector_service_provider=discounted_products_collector_services_container.yerevan_city_discounted_products_collector_service.provider,
-    )
-
-    sas_am_discounted_products_collector_service_factory: providers.ThreadSafeSingleton[
-        DiscountedProductsCollectorServiceCreator
-    ] = providers.ThreadSafeSingleton(
-        GenericCollectorServiceCreator,
-        sas_am_product_collector_service_provider=discounted_products_collector_services_container.sas_am_discounted_products_collector_service_factory.provider,
-    )

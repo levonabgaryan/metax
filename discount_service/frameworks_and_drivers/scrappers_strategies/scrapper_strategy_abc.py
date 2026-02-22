@@ -1,14 +1,28 @@
+from __future__ import annotations
 import re
 from abc import ABC, abstractmethod
 from typing import AsyncIterator, TypedDict
 
+from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 
-class ScrapperAdapter(ABC):
+
+class ScrapperContext:
+    def __init__(self, scrapper_strategy: ScrapperStrategy) -> None:
+        self._scrapper_strategy = scrapper_strategy
+
+    def get_scrapper_strategy(self) -> ScrapperStrategy:
+        return self._scrapper_strategy
+
+    def set_scrapper_strategy(self, scrapper_strategy: ScrapperStrategy) -> None:
+        self._scrapper_strategy = scrapper_strategy
+
+
+class ScrapperStrategy(ABC):
     def __init__(self, data_source_url: str) -> None:
         self._data_source_url = data_source_url
 
     @abstractmethod
-    def fetch(self) -> AsyncIterator[DiscountedProductDTOFromYRetailer]:
+    def fetch(self) -> AsyncIterator[DiscountedProduct]:
         pass
 
     @staticmethod

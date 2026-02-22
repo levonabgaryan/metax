@@ -1,40 +1,41 @@
+# from datetime import datetime, timezone
+# from unittest.mock import MagicMock
+#
+# import pytest
+#
+# from discount_service.core.application.use_cases.discounted_product.dtos import (
+#     CollectDiscountedProductsFromRetailerRequest,
+# )
+# from discount_service.frameworks_and_drivers.di import ServiceContainer
+# from tests.utils import make_retailer_entity, __aiter_wrapper
+#
 #
 # @pytest.mark.django_db(transaction=True)
 # @pytest.mark.asyncio
-# @inject
 # async def test_collect_discounted_products_from_retailer_use_case_saves_products_in_db(
-#     unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+#     service_container_for_tests: ServiceContainer,
 # ) -> None:
 #     # given
-#     retailer_model = await RetailerModel._default_manager.acreate(
-#         retailer_uuid=uuid4(), name="Test Retailer", url="http://test.com"
-#     )
+#     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+#     retailer = make_retailer_entity()
 #
-#     expected_batches = [
-#         batch
-#         async for batch in mock_create_many_discounted_products_from_retailer(
-#             discounted_product_counts=5, retailer_uuid=retailer_model.retailer_uuid
-#         )
+#     await unit_of_work.retailer_repo.add(retailer)
+#     scrapper_mock = MagicMock()
+#     mock_data = [
+#         {"name": "lays", "real_price": "850", "discounted_price": "650.0", "url": "http://test.com/1"},
+#         {"name": "cola", "real_price": "450.0", "discounted_price": 350, "url": "http://test.com/2"},
 #     ]
-#     expected_products = [p for batch in expected_batches for p in batch]
-#
-#     async def mock_gen(*args: Any, **kwargs: Any) -> AsyncIterator[list[DiscountedProduct]]:
-#         for batch in expected_batches:
-#             yield batch
-#             await asyncio.sleep(0.0)
-#
-#     mocked_factory_class = Mock(spec=DiscountedProductFactory)
-#     mocked_factory_class.create_many_from_retailer.side_effect = mock_gen
+#     scrapper_mock.fetch.side_effect = lambda: __aiter_wrapper(mock_data)
 #
 #     # when
-#     started_date = datetime.now(timezone.utc)
+#     started_date = datetime.now(tz=timezone.utc)
+#     request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
+#
 #     with get_current_container_for_tests().patterns_container.container.discounted_product_factory.override(
 #         mocked_factory_class
 #     ):
 #         use_case = await get_current_container_for_tests().use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
-#         request = CollectDiscountedProductsFromRetailerRequest(
-#             retailer_url="https://test.com", started_time=started_date
-#         )
+#         request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
 #         response = await use_case.execute(request)
 #
 #     # then
