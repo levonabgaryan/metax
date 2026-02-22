@@ -1,16 +1,22 @@
 import asyncio
+import uuid
+from datetime import datetime
+from decimal import Decimal
 from typing import AsyncIterator, ClassVar
 
 import httpx
 from bs4 import BeautifulSoup
 
-from discount_service.frameworks_and_drivers.scrappers_strategies.scrapper_strategy_abc import (
-    ScrapperStrategy,
+from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct, \
+    PriceDetails
+from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
+from discount_service.frameworks_and_drivers.scrappers_adapters.scrapper_adapter import (
+    ScrapperAdapter,
     DiscountedProductDTOFromYRetailer,
 )
 
 
-class SasAmScrapperAdapter(ScrapperStrategy):
+class SasAmScrapperAdapter(ScrapperAdapter):
     DATA_SOURCE_URL_LIMIT_PARAM: ClassVar[int] = 60
     MAX_PRODUCTS_COUNT: ClassVar[int] = 900
 
@@ -18,7 +24,7 @@ class SasAmScrapperAdapter(ScrapperStrategy):
         super().__init__(data_source_url=sas_am_data_source_url)
         self._sas_am_main_page_url = sas_am_main_page_url
 
-    async def fetch(self) -> AsyncIterator[DiscountedProductDTOFromYRetailer]:
+    async def fetch(self, started_time: datetime, retailer: Retailer) -> AsyncIterator[DiscountedProduct]:
         async with httpx.AsyncClient(timeout=10.0) as client:
             for offset_param in range(0, self.MAX_PRODUCTS_COUNT, self.DATA_SOURCE_URL_LIMIT_PARAM):
                 if offset_param == 0:
@@ -77,10 +83,16 @@ class SasAmScrapperAdapter(ScrapperStrategy):
 
                     raw_product_url = f"{self._sas_am_main_page_url}{href}" if href.startswith("/") else href
 
-                    yield DiscountedProductDTOFromYRetailer(
+                    yield DiscountedProduct(
+                        discounted_product_uuid=uuid.uuid4(),
                         name=self._clean_discounted_product_name(text=name),
-                        real_price=self._clean_discounted_product_price(old_span.text.strip()),
-                        discounted_price=self._clean_discounted_product_price(new_span.text.strip()),
+                        price_details=PriceDetails(
+                            real_price=Decimal(self._clean_discounted_product_price(old_span.text.strip())),
+                            discounted_price=Decimal(self._clean_discounted_product_price(new_span.text.strip())),
+                        ),
                         url=raw_product_url,
+                        created_at=started_time,
+                        retailer_uuid=retailer.get_uuid(),
+                        category_uuid=None
                     )
                     await asyncio.sleep(0.1)

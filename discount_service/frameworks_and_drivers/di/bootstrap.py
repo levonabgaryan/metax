@@ -9,6 +9,9 @@ from discount_service.frameworks_and_drivers.di.commands_handlers_container impo
 from discount_service.frameworks_and_drivers.di.event_handlers_container import EventHandlersContainer
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
+from discount_service.frameworks_and_drivers.di.scrappers_adapters_container import ScrappersAdaptersContainer
+from discount_service.frameworks_and_drivers.di.scrappers_adapters_selector_container import \
+    ScrappersAdaptersSelectorContainer
 
 
 @asynccontextmanager
@@ -50,6 +53,12 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
     event_handlers_container: providers.Container[EventHandlersContainer] = providers.Container(
         EventHandlersContainer, patterns_container=patterns_container
+    )
+    scrappers_adapters_container: providers.Container[ScrappersAdaptersContainer] = providers.Container(
+        ScrappersAdaptersContainer, config=config
+    )
+    scrappers_adapters_selector_container: providers.Container[ScrappersAdaptersSelectorContainer] = providers.Container(
+        ScrappersAdaptersSelectorContainer, scrappers_adapters_container=scrappers_adapters_container
     )
 
 

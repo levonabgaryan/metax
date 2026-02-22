@@ -405,7 +405,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "adrf", specifier = "==0.1.12" },
-    { name = "beautifulsoup4", specifier = ">=4.14.3" },
+    { name = "beautifulsoup4", specifier = "==4.14.3" },
     { name = "celery", extras = ["pytest"], specifier = "==5.6.2" },
     { name = "celery-types", specifier = "==0.24.0" },
     { name = "dependency-injector", extras = ["pydantic2"], specifier = "==4.48.3" },
@@ -413,7 +413,7 @@ requires-dist = [
     { name = "djangorestframework-stubs", specifier = "==3.16.8" },
     { name = "gunicorn", specifier = "==25.1.0" },
     { name = "httpx", specifier = "==0.28.1" },
-    { name = "lxml", specifier = ">=6.0.2" },
+    { name = "lxml", specifier = "==6.0.2" },
     { name = "mypy", specifier = "==1.19.1" },
     { name = "opensearch-py", extras = ["async"], specifier = "==3.1.0" },
     { name = "pre-commit", specifier = "==4.5.1" },

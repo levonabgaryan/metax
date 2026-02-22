@@ -29,6 +29,7 @@ class BaseConfigs(BaseSettings):
     redis_port: Annotated[int, Field(alias="REDIS_PORT")]
     redis_password: Annotated[str, Field(alias="REDIS_PASSWORD")]
 
+    yerevan_city_data_source_url: Annotated[str, Field(alias="YEREVAN_CITY_DATA_SOURCE_URL")]
     yerevan_city_products_details_url: Annotated[str, Field(alias="YEREVAN_CITY_PRODUCTS_DETAILS_URL")]
     yerevan_city_discount_page_url: Annotated[str, Field(alias="YEREVAN_CITY_DISCOUNT_PAGE_URL")]
 

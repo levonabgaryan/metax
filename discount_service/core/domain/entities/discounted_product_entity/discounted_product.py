@@ -69,6 +69,9 @@ class DiscountedProduct(AggregateRootEntity):
             f")"
         )
 
+    def set_category_uuid(self, category_uuid: UUID) -> None:
+        self.__category_uuid = category_uuid
+
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
 class PriceDetails(ValueObject):

@@ -1,25 +1,25 @@
 import asyncio
 import uuid
-from decimal import Decimal
+from datetime import datetime
 from typing import Any, AsyncIterator
 
 import httpx
 
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
-    PriceDetails,
 )
-from discount_service.frameworks_and_drivers.scrappers_strategies.scrapper_strategy_abc import (
-    ScrapperStrategy,
+from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
+from discount_service.frameworks_and_drivers.scrappers_adapters.scrapper_adapter import (
+    ScrapperAdapter,
 )
 
 
-class YerevanCityScrapperStrategy(ScrapperStrategy):
+class YerevanCityScrapperAdapter(ScrapperAdapter):
     def __init__(self, yerevan_city_data_source_url: str, yerevan_city_products_details_url: str):
         super().__init__(data_source_url=yerevan_city_data_source_url)
         self._yerevan_city_products_details_url = yerevan_city_products_details_url
 
-    async def fetch(self) -> AsyncIterator[DiscountedProduct]:
+    async def fetch(self, started_time: datetime, retailer: Retailer) -> AsyncIterator[DiscountedProduct]:
         async with httpx.AsyncClient(timeout=25) as client:
             try:
                 response = await client.post(url=self._data_source_url, json=self.get_scrapper_payload())
@@ -32,17 +32,14 @@ class YerevanCityScrapperStrategy(ScrapperStrategy):
         raw_products: list[dict[str, Any]] = data.get("data", {}).get("list", [])
 
         for raw_product in raw_products:
-            yield DiscountedProduct(
+            yield self._create_discounted_product(
                 discounted_product_uuid=uuid.uuid4(),
-                name=self._clean_discounted_product_name(raw_product["name"]),
-                price_details=PriceDetails(
-                    real_price=Decimal(str(raw_product["price"])),
-                    discounted_price=Decimal(str(raw_product["discounted_price"])),
-                ),
+                retailer_uuid=retailer.get_uuid(),
+                real_price=str(raw_product["price"]),
+                discounted_price=str(raw_product["discounted_price"]),
+                name=raw_product["name"],
+                created_at=started_time,
                 url=f"{self._yerevan_city_products_details_url}/{raw_product['id']}",
-                retailer_uuid=...,
-                created_at=...,
-                category_uuid=None,
             )
             await asyncio.sleep(0)
 
