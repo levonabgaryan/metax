@@ -7,12 +7,13 @@ from typing import AsyncIterator, ClassVar
 import httpx
 from bs4 import BeautifulSoup
 
-from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct, \
-    PriceDetails
+from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
+    DiscountedProduct,
+    PriceDetails,
+)
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
 from discount_service.frameworks_and_drivers.scrappers_adapters.scrapper_adapter import (
     ScrapperAdapter,
-    DiscountedProductDTOFromYRetailer,
 )
 
 
@@ -93,6 +94,6 @@ class SasAmScrapperAdapter(ScrapperAdapter):
                         url=raw_product_url,
                         created_at=started_time,
                         retailer_uuid=retailer.get_uuid(),
-                        category_uuid=None
+                        category_uuid=None,
                     )
                     await asyncio.sleep(0.1)

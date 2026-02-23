@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from typing import AsyncIterator
 
-from discount_service.core.application.ports.patterns.services.discounted_products_collector import (
+from discount_service.core.application.ports.services.discounted_products_collector import (
     BaseDiscountedProductsCollectorService,
 )
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
