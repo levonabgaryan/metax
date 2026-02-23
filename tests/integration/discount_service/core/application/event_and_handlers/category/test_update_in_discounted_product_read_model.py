@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
 import pytest
 
+from discount_service.core.application.event_and_handlers.category.update_in_discounted_product_read_model import (
+    UpdateCategoryInDiscountedProductReadModel,
+)
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
@@ -63,7 +66,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     event = CategoryUpdated(
         category_uuid=found_category.get_uuid(),
     )
-    event_handler_ = await service_container_for_tests.event_handlers_container.container.category.container.update_discounted_product_read_model.async_()
+    event_handler_ = UpdateCategoryInDiscountedProductReadModel(unit_of_work=unit_of_work)
 
     # when
     await event_handler_.handle(event)

@@ -2,6 +2,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.retailer import (
     UpdateRetailerCommand,
+    UpdateRetailerCommandHandler,
 )
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity
@@ -29,7 +30,7 @@ async def test_update_retailer_command_handler(
         await uow.commit()
 
     # when
-    cmd_handler = await service_container_for_tests.commands_handlers_container.container.retailer.container.update_retailer.async_()
+    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler.handle(cmd)
 
     # then

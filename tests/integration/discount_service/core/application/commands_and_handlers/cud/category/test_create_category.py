@@ -4,6 +4,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.category import (
     CreateCategoryCommand,
+    CreateCategoryCommandHandler,
 )
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
@@ -23,7 +24,7 @@ async def test_create_category_command_handler(
     )
 
     # when
-    cmd_handler_ = await service_container_for_tests.commands_handlers_container.container.category.container.create_category.async_()
+    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler_.handle(cmd)
 
     # then

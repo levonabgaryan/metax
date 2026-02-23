@@ -2,6 +2,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.category import (
     UpdateCategoryCommand,
+    UpdateCategoryCommandHandler,
 )
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
@@ -23,7 +24,7 @@ async def test_update_category_command_handler(
 
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
-    cmd_handler = await service_container_for_tests.commands_handlers_container.container.category.container.update_category.async_()
+    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler.handle(cmd)
 
     # then

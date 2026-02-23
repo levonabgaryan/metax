@@ -2,6 +2,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
+    AddNewHelperWordsCommandHandler,
 )
 from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
@@ -25,7 +26,7 @@ async def test_add_new_helper_word_command(service_container_for_tests: ServiceC
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
     # when
-    cmd_handler = await service_container_for_tests.commands_handlers_container.container.category.container.add_new_helper_words.async_()
+    cmd_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler.handle(cmd)
 
     # then

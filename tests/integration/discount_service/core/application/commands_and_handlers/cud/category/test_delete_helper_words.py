@@ -2,6 +2,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.category.delete_helper_words import (
     DeleteHelperWordsCommand,
+    DeleteHelperWordsCommandHandler,
 )
 from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
@@ -27,7 +28,7 @@ async def test_delete_helper_word_command(
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["d"]))
     # when
-    cmd_handler = await service_container_for_tests.commands_handlers_container.container.category.container.delete_helper_words.async_()
+    cmd_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler.handle(cmd)
 
     # then

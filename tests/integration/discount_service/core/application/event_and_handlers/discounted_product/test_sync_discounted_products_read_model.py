@@ -5,6 +5,9 @@ import pytest
 from discount_service.core.application.event_and_handlers.discounted_product.events import (
     OldDiscountedProductsDeleted,
 )
+from discount_service.core.application.event_and_handlers.discounted_product.sync_discounted_products_read_model import (
+    SyncDiscountedProductReadModel,
+)
 
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
@@ -56,7 +59,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     event = OldDiscountedProductsDeleted(
         new_discounted_products_creation_date=creation_data,
     )
-    event_handler = await service_container_for_tests.event_handlers_container.container.discounted_product.container.sync_discounted_product_read_model.async_()
+    event_handler = SyncDiscountedProductReadModel(unit_of_work=unit_of_work)
 
     # when
     await event_handler.handle(event)

@@ -3,6 +3,7 @@ import pytest
 
 from discount_service.core.application.commands_and_handlers.cud.retailer import (
     CreateRetailerCommand,
+    CreateRetailerCommandHandler,
 )
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
@@ -22,7 +23,7 @@ async def test_create_retailer_command_handler(
     )
 
     # when
-    cmd_handler = await service_container_for_tests.commands_handlers_container.container.retailer.container.create_retailer.async_()
+    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work)
     await cmd_handler.handle(cmd)
 
     # then
