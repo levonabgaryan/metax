@@ -35,7 +35,7 @@ class UpdateRetailerCommand(Command):
 
 class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
     async def handle(self, command: UpdateRetailerCommand) -> None:
-        async with self.unit_of_work as uow:
+        async with self.__unit_of_work as uow:
             repo = uow.retailer_repo
             retailer = await repo.get_by_uuid(command.retailer_uuid)
             new_data = command.new_data

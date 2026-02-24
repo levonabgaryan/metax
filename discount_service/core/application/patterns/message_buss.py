@@ -1,3 +1,4 @@
+from __future__ import annotations
 import asyncio
 import logging
 from typing import cast
@@ -33,8 +34,6 @@ from discount_service.core.application.event_and_handlers.retailer.update_in_dis
 from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from discount_service.core.application.patterns.event_handler_abc import EventHandler
-from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
 from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
 from discount_service.core.domain.event import Event, GenericEvent
@@ -42,84 +41,83 @@ from discount_service.core.domain.event import Event, GenericEvent
 logger = logging.getLogger(__name__)
 
 
-class MessageBus:
-    def __init__(
-        self,
-        unit_of_work_factory: IUnitOfWorkFactory,
-    ) -> None:
-        self.unit_of_work_factory = unit_of_work_factory
+Message = Event | Command
 
-    async def handle(self, message: Command | Event) -> None:
-        queue: asyncio.Queue[Command | Event] = asyncio.Queue()
-        uow = await self.create_unit_of_work()
+
+class MessageBus:
+    # https://refactoring.guru/design-patterns/mediator
+    async def handle(self, message: Message) -> None:
+        queue: asyncio.Queue[Message] = asyncio.Queue()
         await queue.put(message)
 
         while not queue.empty():
             message = await queue.get()
 
             if isinstance(message, Event):
-                await self.handle_event(message, unit_of_work=uow, queue=queue)
+                await self.__handle_event(message)
             elif isinstance(message, Command):
-                await self.handle_command(message, unit_of_work=uow, queue=queue)
+                await self.__handle_command(message)
 
-    @staticmethod
-    async def handle_event(
+    async def __handle_event(
+        self,
         event: Event,
-        unit_of_work: AbstractUnitOfWork,
-        queue: asyncio.Queue[Event | Command],
     ) -> None:
         handler_type: type[EventHandler[Event]]
 
-        for handler_type in get_event_handlers(event):
+        for handler_type in self.get_event_handlers(event):
             try:
                 logger.debug("handling event %s with handler %s", event)
-                handler = handler_type(unit_of_work=unit_of_work)
+                handler = handler_type()
                 await handler.handle(event)
-                async for new_event in unit_of_work.collect_new_events():
-                    await queue.put(new_event)
             except Exception:
                 logger.exception("Exception handling event %s", event)
                 continue
 
-    @staticmethod
-    async def handle_command(
+    async def __handle_command(
+        self,
         command: Command,
-        unit_of_work: AbstractUnitOfWork,
-        queue: asyncio.Queue[Command | Event],
     ) -> None:
         logger.debug("handling command %s", command)
         try:
-            handler = get_command_handler(command)
-            await handler(unit_of_work=unit_of_work).handle(command)
-            async for new_event in unit_of_work.collect_new_events():
-                await queue.put(new_event)
+            handler = self.get_command_handler(command)
+            await handler().handle(command)
         except Exception:
             logger.exception("Exception handling command %s", command)
             raise
 
-    async def create_unit_of_work(self) -> AbstractUnitOfWork:
-        return await self.unit_of_work_factory.create()
+    @staticmethod
+    def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericCommand]]:
+        commands_handlers = {
+            CreateCategoryCommand: CreateCategoryCommandHandler,
+            UpdateCategoryCommand: UpdateCategoryCommandHandler,
+            CreateRetailerCommand: CreateRetailerCommandHandler,
+            UpdateRetailerCommand: UpdateRetailerCommandHandler,
+        }
+        command_type = type(command)
+        handler_class = commands_handlers[command_type]
+        return cast(type[CommandHandler[GenericCommand]], handler_class)
 
+    @staticmethod
+    def get_event_handlers(event: GenericEvent) -> list[type[EventHandler[GenericEvent]]]:
+        event_handlers = {
+            NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
+            OldDiscountedProductsDeleted: [SyncDiscountedProductReadModel],
+            CategoryUpdated: [UpdateCategoryInDiscountedProductReadModel],
+            RetailerUpdated: [UpdateRetailerInDiscountedProductReadModel],
+        }
+        event_type = type(event)
+        handler_classes = event_handlers[event_type]
+        return cast(list[type[EventHandler[GenericEvent]]], handler_classes)
 
-def get_command_handler(command: GenericCommand) -> type[CommandHandler[GenericCommand]]:
-    commands_handlers = {
-        CreateCategoryCommand: CreateCategoryCommandHandler,
-        UpdateCategoryCommand: UpdateCategoryCommandHandler,
-        CreateRetailerCommand: CreateRetailerCommandHandler,
-        UpdateRetailerCommand: UpdateRetailerCommandHandler,
-    }
-    command_type = type(command)
-    handler_class = commands_handlers[command_type]
-    return cast(type[CommandHandler[GenericCommand]], handler_class)
+    @staticmethod
+    async def handle_(message_handler, message: Message) -> None:
+        queue: asyncio.Queue[Message] = asyncio.Queue()
+        await queue.put(message)
 
+        while not queue.empty():
+            message = await queue.get()
 
-def get_event_handlers(event: GenericEvent) -> list[type[EventHandler[GenericEvent]]]:
-    event_handlers = {
-        NewDiscountedProductsFromRetailerCollected: [DeleteOldDiscountedProducts],
-        OldDiscountedProductsDeleted: [SyncDiscountedProductReadModel],
-        CategoryUpdated: [UpdateCategoryInDiscountedProductReadModel],
-        RetailerUpdated: [UpdateRetailerInDiscountedProductReadModel],
-    }
-    event_type = type(event)
-    handler_classes = event_handlers[event_type]
-    return cast(list[type[EventHandler[GenericEvent]]], handler_classes)
+            if isinstance(message, Event):
+                await message_handler.handle(message)
+            elif isinstance(message, Command):
+                await message_handler.handle(message)

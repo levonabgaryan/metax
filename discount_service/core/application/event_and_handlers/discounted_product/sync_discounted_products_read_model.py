@@ -20,9 +20,9 @@ class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted])
         current_batch = []
         date_limit = event.new_discounted_products_creation_date
 
-        repo: DiscountedProductRepository = self.unit_of_work.discounted_product_repo
+        repo: DiscountedProductRepository = self.__unit_of_work.discounted_product_repo
         read_model_repo: IDiscountedProductReadModelRepository = (
-            self.unit_of_work.discounted_product_read_model_repo
+            self.__unit_of_work.discounted_product_read_model_repo
         )
 
         discounted_product: DiscountedProductWithDetails

@@ -25,7 +25,7 @@ class UpdateCategoryCommand(Command):
 
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
     async def handle(self, command: UpdateCategoryCommand) -> None:
-        async with self.unit_of_work as uow:
+        async with self.__unit_of_work as uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
             new_data = command.new_data

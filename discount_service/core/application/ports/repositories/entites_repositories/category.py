@@ -13,9 +13,6 @@ class CategoryFieldsToUpdate:
 
 
 class CategoryRepository(ABC):
-    def __init__(self) -> None:
-        self.seen: set[Category] = set()
-
     async def get_by_uuid(self, category_uuid: UUID) -> Category:
         category = await self._get_by_uuid(category_uuid=category_uuid)
         if category is None:
@@ -25,7 +22,6 @@ class CategoryRepository(ABC):
                 searched_field_value=str(category_uuid),
                 error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
-        self.seen.add(category)
         return category
 
     async def get_by_name(self, category_name: str) -> Category:
@@ -37,20 +33,16 @@ class CategoryRepository(ABC):
                 searched_field_value=category_name,
                 error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
-        self.seen.add(category)
         return category
 
     async def add(self, category: Category) -> None:
         await self._add(category)
-        self.seen.add(category)
 
     async def update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
         await self._update(updated_category=updated_category, fields_to_update=fields_to_update)
-        self.seen.add(updated_category)
 
     async def update_helper_words(self, updated_category: Category) -> None:
         await self._update_helper_words(updated_category=updated_category)
-        self.seen.add(updated_category)
 
     async def get_by_helper_words_in_words(self, words: list[str]) -> Category:
         words = [w.lower() for w in words]

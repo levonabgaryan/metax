@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
 from types import TracebackType
-from typing import AsyncIterator, Self
+from typing import Self
 
 from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
 from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
@@ -11,7 +11,6 @@ from discount_service.core.application.ports.repositories.entites_repositories.r
 from discount_service.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
     IDiscountedProductReadModelRepository,
 )
-from discount_service.core.domain.ddd_patterns import AggregateRootEntity
 from discount_service.core.domain.event import Event
 
 
@@ -44,24 +43,3 @@ class AbstractUnitOfWork(ABC):
     @abstractmethod
     async def rollback(self) -> None:
         pass
-
-    def add_event(self, event: Event) -> None:
-        self.__events_queue.put_nowait(event)
-
-    @property
-    def has_events(self) -> bool:
-        return not self.__events_queue.empty()
-
-    async def collect_new_events(self) -> AsyncIterator[Event]:
-        repos = (self.discounted_product_repo, self.category_repo, self.retailer_repo)
-        for repo in repos:
-            for aggregate in repo.seen:
-                if isinstance(aggregate, AggregateRootEntity):
-                    while aggregate.has_events:
-                        event = aggregate.get_one_event()
-                        await self.__events_queue.put(event)
-            repo.seen.clear()
-
-        while not self.__events_queue.empty():
-            yield await self.__events_queue.get()
-            self.__events_queue.task_done()

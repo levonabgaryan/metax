@@ -16,9 +16,6 @@ class RetailerFieldsToUpdate:
 
 
 class RetailerRepository(ABC):
-    def __init__(self) -> None:
-        self.seen: set[Retailer] = set()
-
     async def get_by_uuid(self, retailer_uuid: UUID) -> Retailer:
         retailer = await self._get_by_uuid(retailer_uuid=retailer_uuid)
         if retailer is None:
@@ -28,7 +25,6 @@ class RetailerRepository(ABC):
                 searched_field_value=str(retailer_uuid),
                 error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
             )
-        self.seen.add(retailer)
         return retailer
 
     async def get_by_name(self, retailer_name: str) -> Retailer:
@@ -40,16 +36,13 @@ class RetailerRepository(ABC):
                 searched_field_value=retailer_name,
                 error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
             )
-        self.seen.add(retailer)
         return retailer
 
     async def add(self, retailer: Retailer) -> None:
         await self._add(retailer)
-        self.seen.add(retailer)
 
     async def update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
         await self._update(updated_retailer, fields_to_update)
-        self.seen.add(updated_retailer)
 
     @abstractmethod
     async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:

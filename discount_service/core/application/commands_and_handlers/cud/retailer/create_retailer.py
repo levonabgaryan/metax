@@ -16,7 +16,7 @@ class CreateRetailerCommand(Command):
 
 class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
     async def handle(self, command: CreateRetailerCommand) -> None:
-        async with self.unit_of_work as uow:
+        async with self.__unit_of_work as uow:
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
                 name=command.name,

@@ -17,9 +17,6 @@ class DiscountedProductWithDetails(NamedTuple):
 
 
 class DiscountedProductRepository(ABC):
-    def __init__(self) -> None:
-        self.seen: set[DiscountedProduct] = set()
-
     async def get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct:
         discounted_product = await self._get_by_uuid(discounted_product_uuid)
         if discounted_product is None:
@@ -29,7 +26,6 @@ class DiscountedProductRepository(ABC):
                 searched_field_value=str(discounted_product_uuid),
                 error_code=RepositoriesErrorCodes.DISCOUNTED_PRODUCT_IS_NOT_FOUND,
             )
-        self.seen.add(discounted_product)
         return discounted_product
 
     @abstractmethod

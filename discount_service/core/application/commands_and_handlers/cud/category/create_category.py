@@ -15,7 +15,7 @@ class CreateCategoryCommand(Command):
 
 class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
     async def handle(self, command: CreateCategoryCommand) -> None:
-        async with self.unit_of_work as uow:
+        async with self.__unit_of_work as uow:
             helper_words = CategoryHelperWords(command.helper_words)
             category = Category(category_uuid=command.category_uuid, name=command.name, helper_words=helper_words)
             repo = uow.category_repo
