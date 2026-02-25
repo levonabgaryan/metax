@@ -9,8 +9,11 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from discount_service.core.application.commands_and_handlers.category import CreateCategoryCommand
-from discount_service.core.application.patterns.message_buss import MessageBus
+from discount_service.core.application.commands_handlers.category import (
+    CreateCategoryCommand,
+    CreateCategoryCommandHandler,
+)
+from discount_service.core.application.patterns.event_bus import EventBus
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from django_framework.discount_service.serializers.category import CreateCategorySerializer
@@ -22,7 +25,8 @@ class CategoryViewSet(ViewSet):
     async def create_new(
         self,
         request: AsyncRequest,
-        message_bus: MessageBus = Provide[ServiceContainer.patterns_container.container.message_bus],
+        unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+        event_bus: EventBus = Provide[ServiceContainer.patterns_container.container.event_bus],
     ) -> Response:
         # api/category/create/
         serializer = CreateCategorySerializer(data=request.data)
@@ -35,7 +39,8 @@ class CategoryViewSet(ViewSet):
             name=serializer.validated_data["category_name"],
             helper_words=frozenset(serializer.validated_data["helper_words"]),
         )
-        await message_bus.handle(cmd)
+        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+        await command_handler.handle_command(cmd)
 
         return Response({"message": f"Category is created with {category_uuid} uuid"}, status=201)
 

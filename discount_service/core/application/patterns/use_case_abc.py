@@ -1,7 +1,7 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TypeVar
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.patterns.mediator import BaseHandler
 
 
 class RequestDTO:
@@ -16,10 +16,7 @@ GenericRequestDTO = TypeVar("GenericRequestDTO", bound=RequestDTO)
 GenericResponseDTO = TypeVar("GenericResponseDTO", bound=ResponseDTO)
 
 
-class UseCase[GenericRequestDTO, GenericResponseDTO](ABC):
-    def __init__(self, unit_of_work: AbstractUnitOfWork) -> None:
-        self.unit_of_work = unit_of_work
-
+class UseCase[GenericRequestDTO, GenericResponseDTO](BaseHandler):
     @abstractmethod
-    async def execute(self, request: GenericRequestDTO) -> GenericResponseDTO:
+    async def handle_use_case(self, request: GenericRequestDTO) -> GenericResponseDTO:
         pass

@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.category.add_new_helper_words import (
+from discount_service.core.application.commands_handlers.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
 )
@@ -14,6 +14,7 @@ from tests.utils import make_category_entity
 async def test_add_new_helper_word_command(service_container_for_tests: ServiceContainer) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     helper_words = CategoryHelperWords(words=frozenset(["a", "b"]))
     category = make_category_entity(
         helper_words=helper_words,
@@ -26,8 +27,8 @@ async def test_add_new_helper_word_command(service_container_for_tests: ServiceC
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
     # when
-    cmd_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler.handle(cmd)
+    cmd_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler.handle_command(cmd)
 
     # then
     updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())

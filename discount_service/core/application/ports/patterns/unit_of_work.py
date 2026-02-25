@@ -1,4 +1,3 @@
-import asyncio
 from abc import ABC, abstractmethod
 from types import TracebackType
 from typing import Self
@@ -11,7 +10,6 @@ from discount_service.core.application.ports.repositories.entites_repositories.r
 from discount_service.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
     IDiscountedProductReadModelRepository,
 )
-from discount_service.core.domain.event import Event
 
 
 class AbstractUnitOfWork(ABC):
@@ -22,7 +20,6 @@ class AbstractUnitOfWork(ABC):
         retailer_repo: RetailerRepository,
         discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
     ) -> None:
-        self.__events_queue: asyncio.Queue[Event] = asyncio.Queue()
         self.discounted_product_repo = discounted_product_repo
         self.category_repo = category_repo
         self.retailer_repo = retailer_repo

@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.category import (
+from discount_service.core.application.commands_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
@@ -16,6 +16,7 @@ async def test_update_category_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     category = make_category_entity()
 
     async with unit_of_work as uow:
@@ -24,8 +25,8 @@ async def test_update_category_command_handler(
 
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
-    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler.handle(cmd)
+    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler.handle_command(cmd)
 
     # then
     assert cmd.fields_to_update.name is True

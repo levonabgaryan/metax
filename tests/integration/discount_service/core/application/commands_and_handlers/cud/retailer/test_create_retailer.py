@@ -1,7 +1,7 @@
 from uuid import uuid4
 import pytest
 
-from discount_service.core.application.commands_and_handlers.retailer import (
+from discount_service.core.application.commands_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )
@@ -15,6 +15,7 @@ async def test_create_retailer_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
         name="test_retailer",
@@ -23,8 +24,8 @@ async def test_create_retailer_command_handler(
     )
 
     # when
-    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler.handle(cmd)
+    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler.handle_command(cmd)
 
     # then
     async with unit_of_work as uow:

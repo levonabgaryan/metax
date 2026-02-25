@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 import pytest
 
-from discount_service.core.application.event_and_handlers.category.update_in_discounted_product_read_model import (
+from discount_service.core.application.event_handlers.category.update_in_discounted_product_read_model import (
     UpdateCategoryInDiscountedProductReadModel,
 )
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
@@ -9,7 +9,7 @@ from discount_service.core.application.ports.repositories.entites_repositories.c
 )
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from discount_service.core.application.event_and_handlers.category.events import CategoryUpdated
+from discount_service.core.application.event_handlers.category.events import CategoryUpdated
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
@@ -29,6 +29,7 @@ async def test_event_handler_shall_update_category_in_read_model(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     creation_date = datetime.now(tz=timezone.utc)
     category = make_category_entity(name="test_name")
     retailer = make_retailer_entity()
@@ -66,10 +67,10 @@ async def test_event_handler_shall_update_category_in_read_model(
     event = CategoryUpdated(
         category_uuid=found_category.get_uuid(),
     )
-    event_handler_ = UpdateCategoryInDiscountedProductReadModel(unit_of_work=unit_of_work)
+    event_handler_ = UpdateCategoryInDiscountedProductReadModel(unit_of_work=unit_of_work, mediator=event_bus)
 
     # when
-    await event_handler_.handle(event)
+    await event_handler_.handle_event(event)
 
     # then
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)

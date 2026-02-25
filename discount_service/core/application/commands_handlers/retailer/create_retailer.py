@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.patterns.message_bus_1 import Command
+from discount_service.core.application.patterns.command import Command
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
 
 
@@ -14,9 +14,9 @@ class CreateRetailerCommand(Command):
     phone_number: str
 
 
-class CreateRetailerCommandHandler(CommandHandler):
+class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
     async def handle_command(self, command: CreateRetailerCommand) -> None:
-        async with self.__unit_of_work as uow:
+        async with self._unit_of_work as uow:
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
                 name=command.name,

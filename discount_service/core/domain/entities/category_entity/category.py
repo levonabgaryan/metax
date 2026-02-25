@@ -9,7 +9,6 @@ from discount_service.core.domain.entities.category_entity.errors.errors import 
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
-from discount_service.core.application.event_and_handlers.category.events import CategoryUpdated
 
 
 class Category(AggregateRootEntity):
@@ -58,8 +57,6 @@ class Category(AggregateRootEntity):
             handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
-
-        self._record_event(event=CategoryUpdated(category_uuid=self.get_uuid()))
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

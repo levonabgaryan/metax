@@ -2,14 +2,14 @@ from datetime import timezone, datetime
 
 import pytest
 
-from discount_service.core.application.event_and_handlers.retailer.update_in_discounted_product_read_model import (
+from discount_service.core.application.event_handlers.retailer.update_in_discounted_product_read_model import (
     UpdateRetailerInDiscountedProductReadModel,
 )
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
-from discount_service.core.application.event_and_handlers.retailer.events import RetailerUpdated
+from discount_service.core.application.event_handlers.retailer.events import RetailerUpdated
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
@@ -29,6 +29,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity(name="test_retailer")
     discounted_product = make_discounted_product_entity(
         retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=timezone.utc)
@@ -61,10 +62,10 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 
     event = RetailerUpdated(found_retailer.get_uuid())
 
-    event_handler_ = UpdateRetailerInDiscountedProductReadModel(unit_of_work=unit_of_work)
+    event_handler_ = UpdateRetailerInDiscountedProductReadModel(unit_of_work=unit_of_work, mediator=event_bus)
 
     # when
-    await event_handler_.handle(event)
+    await event_handler_.handle_event(event)
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # then

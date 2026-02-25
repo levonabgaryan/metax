@@ -1,3 +1,4 @@
+from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
@@ -5,6 +6,8 @@ from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from config import discount_service_configs
+
+
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from discount_service.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
 from discount_service.frameworks_and_drivers.di.scrappers_adapters_container import ScrappersAdaptersContainer

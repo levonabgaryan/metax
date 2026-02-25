@@ -2,10 +2,10 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from discount_service.core.application.event_and_handlers.discounted_product.delete_old_discounted_products import (
+from discount_service.core.application.event_handlers.discounted_product.delete_old_discounted_products import (
     DeleteOldDiscountedProducts,
 )
-from discount_service.core.application.event_and_handlers.discounted_product.events import (
+from discount_service.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
@@ -20,6 +20,7 @@ async def test_event_handler_shall_delete_old_data(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     old_discounted_product_created_date = datetime.now(timezone.utc)
     old_discounted_product = make_discounted_product_entity(
@@ -40,8 +41,8 @@ async def test_event_handler_shall_delete_old_data(
     event = NewDiscountedProductsFromRetailerCollected(new_products_created_date)
 
     # when
-    event_handler_ = DeleteOldDiscountedProducts(unit_of_work=unit_of_work)
-    await event_handler_.handle(event)
+    event_handler_ = DeleteOldDiscountedProducts(unit_of_work=unit_of_work, mediator=event_bus)
+    await event_handler_.handle_event(event)
 
     # expect
     async with unit_of_work as uow:

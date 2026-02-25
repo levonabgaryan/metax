@@ -1,6 +1,7 @@
-from discount_service.core.application.event_and_handlers.discounted_product.events import (
+from discount_service.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
+from discount_service.core.application.patterns.mediator import Mediator
 from discount_service.core.application.patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
@@ -23,14 +24,17 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest, Collec
         unit_of_work: AbstractUnitOfWork,
         discounted_product_collector_service: BaseDiscountedProductsCollectorService,
         category_classifier_service: CategoryClassifierService,
+        mediator: Mediator,
         batch_size_for_saving_discounted_products: int = 500,
     ) -> None:
-        super().__init__(unit_of_work=unit_of_work)
+        super().__init__(unit_of_work=unit_of_work, mediator=mediator)
         self.__discounted_product_collector_service = discounted_product_collector_service
         self.__batch_size_for_saving_discounted_products = batch_size_for_saving_discounted_products
         self.__category_classifier_service = category_classifier_service
 
-    async def execute(self, request: CollectDiscountedProductsRequest) -> CollectDiscountedProductsResponse:
+    async def handle_use_case(
+        self, request: CollectDiscountedProductsRequest
+    ) -> CollectDiscountedProductsResponse:
         total_count = 0
         batch = []
 
@@ -52,13 +56,14 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest, Collec
         if batch:
             await self._save_batch(batch)
             total_count += len(batch)
-
-        self.unit_of_work.add_event(
-            NewDiscountedProductsFromRetailerCollected(new_products_created_date=request.started_time)
+        mediator = self.get_mediator()
+        await mediator.notify(
+            sender=self,
+            event=NewDiscountedProductsFromRetailerCollected(new_products_created_date=request.started_time),
         )
         return CollectDiscountedProductsResponse(added_count=total_count)
 
     async def _save_batch(self, batch: list[DiscountedProduct]) -> None:
-        async with self.unit_of_work as uow:
+        async with self._unit_of_work as uow:
             await uow.discounted_product_repo.add_many(batch)
             await uow.commit()

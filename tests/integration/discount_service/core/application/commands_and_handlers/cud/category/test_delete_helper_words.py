@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.category.delete_helper_words import (
+from discount_service.core.application.commands_handlers.category.delete_helper_words import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
@@ -16,6 +16,7 @@ async def test_delete_helper_word_command(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
     category = make_category_entity(
         helper_words=helper_words,
@@ -28,8 +29,8 @@ async def test_delete_helper_word_command(
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["d"]))
     # when
-    cmd_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler.handle(cmd)
+    cmd_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler.handle_command(cmd)
 
     # then
     updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())

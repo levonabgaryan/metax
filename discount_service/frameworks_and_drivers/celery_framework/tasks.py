@@ -16,6 +16,8 @@ from ..scrappers_adapters.scrapper_adapter import ScrapperAdapter
 from discount_service.core.application.patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
+from ...core.application.patterns.event_bus import EventBus
+from ...core.application.patterns.mediator import Mediator
 from ...core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from ...core.application.use_cases.discounted_product.collect_discounted_products import CollectDiscountedProducts
 from ...core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
@@ -23,6 +25,7 @@ from ...core.application.use_cases.discounted_product.dtos import CollectDiscoun
 
 async def collect_discounted_products_from_all_retailers(
     unit_of_work: AbstractUnitOfWork,
+    event_bus: Mediator,
     scrappers_adapters_selector_container: ScrappersAdaptersSelectorContainer,
     category_classifier_service: CategoryClassifierService,
     started_time: datetime,
@@ -40,8 +43,9 @@ async def collect_discounted_products_from_all_retailers(
             unit_of_work=unit_of_work,
             discounted_product_collector_service=collector_service,
             category_classifier_service=category_classifier_service,
+            mediator=event_bus,
         )
-        tasks.append(use_case.execute(request=use_case_request))
+        tasks.append(use_case.handle_use_case(request=use_case_request))
     await asyncio.gather(*tasks)
 
 
@@ -55,6 +59,7 @@ async def celery_task_collect_discounted_products_from_all_retailers(
     category_classifier_service: CategoryClassifierService = Provide[
         ServiceContainer.patterns_container.container.category_classifier_service
     ],
+    event_bus: EventBus = Provide[ServiceContainer.patterns_container.event_bus],
 ) -> None:
     started_time = datetime.now(tz=timezone.utc)
 
@@ -63,4 +68,5 @@ async def celery_task_collect_discounted_products_from_all_retailers(
         scrappers_adapters_selector_container=scrappers_adapters_selector_container,
         category_classifier_service=category_classifier_service,
         started_time=started_time,
+        event_bus=event_bus,
     )

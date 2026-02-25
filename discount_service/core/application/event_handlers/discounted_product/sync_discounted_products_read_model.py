@@ -1,4 +1,4 @@
-from discount_service.core.application.event_and_handlers.discounted_product.events import (
+from discount_service.core.application.event_handlers.discounted_product.events import (
     OldDiscountedProductsDeleted,
 )
 from discount_service.core.application.patterns.event_handler_abc import EventHandler
@@ -12,7 +12,7 @@ from discount_service.core.application.ports.repositories.read_models_repositori
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 
 
-class SyncDiscountedProductReadModel(EventHandler):
+class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted]):
     async def handle_event(self, event: OldDiscountedProductsDeleted) -> None:
         # add new data and delete old data from discounted product read model
 
@@ -20,9 +20,9 @@ class SyncDiscountedProductReadModel(EventHandler):
         current_batch = []
         date_limit = event.new_discounted_products_creation_date
 
-        repo: DiscountedProductRepository = self.__unit_of_work.discounted_product_repo
+        repo: DiscountedProductRepository = self._unit_of_work.discounted_product_repo
         read_model_repo: IDiscountedProductReadModelRepository = (
-            self.__unit_of_work.discounted_product_read_model_repo
+            self._unit_of_work.discounted_product_read_model_repo
         )
 
         discounted_product: DiscountedProductWithDetails

@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.retailer import (
+from discount_service.core.application.commands_handlers.retailer import (
     UpdateRetailerCommand,
     UpdateRetailerCommandHandler,
 )
@@ -15,6 +15,7 @@ async def test_update_retailer_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
 
     retailer = make_retailer_entity()
 
@@ -30,8 +31,8 @@ async def test_update_retailer_command_handler(
         await uow.commit()
 
     # when
-    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler.handle(cmd)
+    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler.handle_command(cmd)
 
     # then
     async with unit_of_work as uow:

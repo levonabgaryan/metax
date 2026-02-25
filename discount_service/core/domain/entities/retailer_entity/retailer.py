@@ -3,7 +3,6 @@ from typing import Callable, TypedDict, NotRequired
 from uuid import UUID
 
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity
-from discount_service.core.application.event_and_handlers.retailer.events import RetailerUpdated
 
 
 class Retailer(AggregateRootEntity):
@@ -47,8 +46,6 @@ class Retailer(AggregateRootEntity):
             handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
-
-        self._record_event(RetailerUpdated(retailer_uuid=self.get_uuid()))
 
 
 class DataForRetailerUpdate(TypedDict):

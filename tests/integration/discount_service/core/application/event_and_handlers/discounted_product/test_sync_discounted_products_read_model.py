@@ -2,10 +2,10 @@ from datetime import datetime, timezone
 
 import pytest
 
-from discount_service.core.application.event_and_handlers.discounted_product.events import (
+from discount_service.core.application.event_handlers.discounted_product.events import (
     OldDiscountedProductsDeleted,
 )
-from discount_service.core.application.event_and_handlers.discounted_product.sync_discounted_products_read_model import (
+from discount_service.core.application.event_handlers.discounted_product.sync_discounted_products_read_model import (
     SyncDiscountedProductReadModel,
 )
 
@@ -28,6 +28,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     creation_data = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()
     discounted_products = [
@@ -59,10 +60,10 @@ async def test_event_handler_shall_save_in_empty_read_model(
     event = OldDiscountedProductsDeleted(
         new_discounted_products_creation_date=creation_data,
     )
-    event_handler = SyncDiscountedProductReadModel(unit_of_work=unit_of_work)
+    event_handler = SyncDiscountedProductReadModel(unit_of_work=unit_of_work, mediator=event_bus)
 
     # when
-    await event_handler.handle(event)
+    await event_handler.handle_event(event)
 
     # then
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)

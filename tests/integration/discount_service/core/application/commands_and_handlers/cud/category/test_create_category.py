@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.application.commands_and_handlers.category import (
+from discount_service.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
@@ -16,6 +16,7 @@ async def test_create_category_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
     category_uuid = uuid4()
     cmd = CreateCategoryCommand(
         category_uuid=category_uuid,
@@ -24,8 +25,8 @@ async def test_create_category_command_handler(
     )
 
     # when
-    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work)
-    await cmd_handler_.handle(cmd)
+    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    await cmd_handler_.handle_command(cmd)
 
     # then
     category = await unit_of_work.category_repo.get_by_uuid(category_uuid)
