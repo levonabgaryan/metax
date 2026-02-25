@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.application.commands_and_handlers.cud.category import (
+from discount_service.core.application.commands_and_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )

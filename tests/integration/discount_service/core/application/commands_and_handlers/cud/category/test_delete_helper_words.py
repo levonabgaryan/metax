@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.cud.category.delete_helper_words import (
+from discount_service.core.application.commands_and_handlers.category.delete_helper_words import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )

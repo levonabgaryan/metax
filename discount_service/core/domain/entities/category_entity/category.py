@@ -9,7 +9,7 @@ from discount_service.core.domain.entities.category_entity.errors.errors import 
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
-from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
+from discount_service.core.application.event_and_handlers.category.events import CategoryUpdated
 
 
 class Category(AggregateRootEntity):

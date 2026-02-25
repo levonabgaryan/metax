@@ -9,7 +9,7 @@ from discount_service.core.application.ports.repositories.entites_repositories.r
     RetailerFieldsToUpdate,
 )
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
-from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
+from discount_service.core.application.event_and_handlers.retailer.events import RetailerUpdated
 from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model

@@ -1,7 +1,7 @@
 from uuid import uuid4
 import pytest
 
-from discount_service.core.application.commands_and_handlers.cud.retailer import (
+from discount_service.core.application.commands_and_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )

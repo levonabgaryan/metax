@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.cud.category.add_new_helper_words import (
+from discount_service.core.application.commands_and_handlers.category.add_new_helper_words import (
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
 )

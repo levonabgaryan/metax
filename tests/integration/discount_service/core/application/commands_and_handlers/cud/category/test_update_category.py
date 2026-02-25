@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.core.application.commands_and_handlers.cud.category import (
+from discount_service.core.application.commands_and_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )

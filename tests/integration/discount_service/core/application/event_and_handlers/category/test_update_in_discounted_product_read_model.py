@@ -9,7 +9,7 @@ from discount_service.core.application.ports.repositories.entites_repositories.c
 )
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
+from discount_service.core.application.event_and_handlers.category.events import CategoryUpdated
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (

@@ -1,17 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar
 
-from discount_service.core.application.patterns.command import Command
-
+from discount_service.core.application.patterns.mediator import BaseMessageHandler, Mediator
+from discount_service.core.application.patterns.message_bus_1 import Command
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 
-GenericCommand = TypeVar("GenericCommand", bound=Command)
 
-
-class CommandHandler[GenericCommand](ABC):
-    def __init__(self, unit_of_work: AbstractUnitOfWork) -> None:
+class CommandHandler(ABC, BaseMessageHandler):
+    def __init__(self, mediator: Mediator, unit_of_work: AbstractUnitOfWork) -> None:
+        super().__init__(mediator)
         self.__unit_of_work = unit_of_work
 
     @abstractmethod
-    async def handle(self, command: GenericCommand) -> None:
+    async def handle_command(self, command: Command) -> None:
         pass

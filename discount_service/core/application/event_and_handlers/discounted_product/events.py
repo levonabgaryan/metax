@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from discount_service.core.domain.event import Event
+from discount_service.core.application.patterns.message_bus_1 import Event
 
 
 @dataclass(frozen=True)

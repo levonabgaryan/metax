@@ -1,8 +1,5 @@
-from collections import deque
 from typing import Final, override
 from uuid import UUID
-
-from discount_service.core.domain.event import Event
 
 
 class ValueObject:
@@ -66,20 +63,3 @@ class AggregateRootEntity(Entity):
 
     def __init__(self, _uuid: UUID) -> None:
         super().__init__(_uuid)
-        self._events: deque[Event] = deque()
-
-    @property
-    def has_events(self) -> bool:
-        return len(self._events) > 0
-
-    def get_one_event(self) -> Event:
-        return self._events.popleft()
-
-    def _record_event(self, event: Event) -> None:
-        self._events.append(event)
-
-    def pull_events(self) -> list[Event]:
-        # Helper method: take all events packed in list and clear dequeue
-        events = list(self._events)
-        self._events.clear()
-        return events

@@ -3,7 +3,7 @@ from typing import Callable, TypedDict, NotRequired
 from uuid import UUID
 
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity
-from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
+from discount_service.core.application.event_and_handlers.retailer.events import RetailerUpdated
 
 
 class Retailer(AggregateRootEntity):

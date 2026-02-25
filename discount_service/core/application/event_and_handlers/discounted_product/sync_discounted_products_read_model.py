@@ -12,8 +12,8 @@ from discount_service.core.application.ports.repositories.read_models_repositori
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 
 
-class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted]):
-    async def handle(self, event: OldDiscountedProductsDeleted) -> None:
+class SyncDiscountedProductReadModel(EventHandler):
+    async def handle_event(self, event: OldDiscountedProductsDeleted) -> None:
         # add new data and delete old data from discounted product read model
 
         batch_size = 500

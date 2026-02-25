@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic
 
-from discount_service.core.application.patterns.message_publisher import MessagePublisher
+from discount_service.core.application.patterns.mediator import BaseMessageHandler, Mediator
+from discount_service.core.application.patterns.message_bus_1 import Event
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
-from discount_service.core.domain.event import GenericEvent
 
 
-class EventHandler(Generic[GenericEvent], ABC):
-    def __init__(self, unit_of_work: AbstractUnitOfWork, message_publisher: MessagePublisher) -> None:
+class EventHandler(ABC, BaseMessageHandler):
+    def __init__(self, mediator: Mediator, unit_of_work: AbstractUnitOfWork) -> None:
+        super().__init__(mediator)
         self.__unit_of_work = unit_of_work
-        self.__message_publisher = message_publisher
 
     @abstractmethod
-    async def handle(self, event: GenericEvent) -> None:
+    async def handle_event(self, event: Event) -> None:
         pass

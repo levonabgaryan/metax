@@ -3,13 +3,13 @@ import asyncio
 import logging
 from typing import cast
 
-from discount_service.core.application.commands_and_handlers.cud.category import (
+from discount_service.core.application.commands_and_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
-from discount_service.core.application.commands_and_handlers.cud.retailer import (
+from discount_service.core.application.commands_and_handlers.retailer import (
     CreateRetailerCommandHandler,
     CreateRetailerCommand,
     UpdateRetailerCommand,
@@ -34,8 +34,8 @@ from discount_service.core.application.event_and_handlers.retailer.update_in_dis
 from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler, GenericCommand
 from discount_service.core.application.patterns.event_handler_abc import EventHandler
-from discount_service.core.domain.entities.category_entity.events import CategoryUpdated
-from discount_service.core.domain.entities.retailer_entity.events import RetailerUpdated
+from discount_service.core.application.event_and_handlers.category.events import CategoryUpdated
+from discount_service.core.application.event_and_handlers.retailer.events import RetailerUpdated
 from discount_service.core.domain.event import Event, GenericEvent
 
 logger = logging.getLogger(__name__)

@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from discount_service.core.application.commands_and_handlers.cud.category import CreateCategoryCommand
+from discount_service.core.application.commands_and_handlers.category import CreateCategoryCommand
 from discount_service.core.application.patterns.message_buss import MessageBus
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer

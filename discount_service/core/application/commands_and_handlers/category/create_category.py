@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from discount_service.core.application.patterns.command import Command
 from discount_service.core.application.patterns.command_handler_abc import CommandHandler
+from discount_service.core.application.patterns.message_bus_1 import Command
 from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
 
 
@@ -13,8 +13,8 @@ class CreateCategoryCommand(Command):
     helper_words: frozenset[str]
 
 
-class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
-    async def handle(self, command: CreateCategoryCommand) -> None:
+class CreateCategoryCommandHandler(CommandHandler):
+    async def handle_command(self, command: CreateCategoryCommand) -> None:
         async with self.__unit_of_work as uow:
             helper_words = CategoryHelperWords(command.helper_words)
             category = Category(category_uuid=command.category_uuid, name=command.name, helper_words=helper_words)
