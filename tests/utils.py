@@ -1,11 +1,9 @@
 import asyncio
-import functools
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import AsyncIterator, Callable, Awaitable, Iterator, Any, Iterable
+from typing import AsyncIterator, Iterator, Any, Iterable
 from uuid import UUID, uuid4
 
-from opensearchpy import AsyncOpenSearch
 
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords, Category
@@ -14,7 +12,6 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     DiscountedProduct,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from tests.integration.conftest import get_current_container_for_tests
 
 
 def make_category_entity(
@@ -108,37 +105,6 @@ async def mock_create_many_discounted_products_from_retailer(
 
     if discounted_products:
         yield discounted_products
-
-
-def clear_opensearch_db[T, **P](func: Callable[P, Awaitable[T]]) -> Callable[P, Awaitable[T]]:
-    @functools.wraps(func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        client: AsyncOpenSearch = await get_current_container_for_tests().opensearch_async_client.async_()
-        indices = await client.indices.get(index="*")
-        user_indices = [idx for idx in indices if not idx.startswith(".")]
-
-        if user_indices:
-            await client.delete_by_query(
-                index=user_indices,
-                body={"query": {"match_all": {}}},
-                refresh=True,
-                wait_for_completion=True,
-            )
-
-        try:
-            return await func(*args, **kwargs)
-        finally:
-            indices = await client.indices.get(index="*")
-            user_indices = [idx for idx in indices if not idx.startswith(".")]
-            if user_indices:
-                await client.delete_by_query(
-                    index=user_indices,
-                    body={"query": {"match_all": {}}},
-                    refresh=True,
-                    wait_for_completion=True,
-                )
-
-    return wrapper
 
 
 async def __aiter_wrapper(items: Iterator[Any] | Iterable[Any]) -> AsyncIterator[Any]:

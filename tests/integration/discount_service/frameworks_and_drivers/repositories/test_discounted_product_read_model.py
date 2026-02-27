@@ -8,7 +8,6 @@ from discount_service.core.domain.entities.retailer_entity.retailer import DataF
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import (
-    clear_opensearch_db,
     make_discounted_product_read_model,
     make_category_entity,
     make_retailer_entity,
@@ -18,7 +17,6 @@ from discount_service.frameworks_and_drivers.opensearch.indices import discounte
 
 
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_delete_older_than_and_return_deleted_count(
     service_container_for_integration_tests: ServiceContainer,
 ) -> None:
@@ -54,7 +52,6 @@ async def test_delete_older_than_and_return_deleted_count(
 
 
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_update_category(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -86,7 +83,6 @@ async def test_update_category(service_container_for_integration_tests: ServiceC
 
 
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_update_retailer(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -121,7 +117,6 @@ async def test_update_retailer(service_container_for_integration_tests: ServiceC
 
 
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_get_all(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -156,7 +151,6 @@ async def test_get_all(service_container_for_integration_tests: ServiceContainer
 
 
 @pytest.mark.asyncio
-@clear_opensearch_db
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
 async def test_get_by_name_page(query: str, service_container_for_integration_tests: ServiceContainer) -> None:
     # given

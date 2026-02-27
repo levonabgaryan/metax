@@ -13,14 +13,12 @@ from tests.utils import (
     make_category_entity,
     make_retailer_entity,
     make_discounted_product_entity,
-    clear_opensearch_db,
 )
 from tests.integration.conftest import refresh_opensearch_index
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_event_handler_shall_update_category_in_read_model(
     service_container_for_integration_tests: ServiceContainer,
 ) -> None:

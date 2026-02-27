@@ -12,14 +12,12 @@ from discount_service.frameworks_and_drivers.opensearch.indices import discounte
 from tests.utils import (
     make_retailer_entity,
     make_discounted_product_entity,
-    clear_opensearch_db,
 )
 from tests.integration.conftest import refresh_opensearch_index
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-@clear_opensearch_db
 async def test_event_handler_shall_save_in_empty_read_model(
     service_container_for_integration_tests: ServiceContainer,
 ) -> None:

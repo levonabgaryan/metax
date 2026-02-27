@@ -67,6 +67,19 @@ def pytest_configure(config: pytest.Config) -> None:
 
     def patched_destroy_test_db(self: DatabaseCreation, test_database_name: str, verbosity: Any) -> Any:
         with self.connection._nodb_cursor() as cursor:
+            # Сначала посмотрим в глаза этим гадам
+            cursor.execute(f"""
+                SELECT pid, application_name, state, query 
+                FROM pg_stat_activity 
+                WHERE datname = '{test_database_name}' AND pid <> pg_backend_pid();
+            """)
+            active_sessions = cursor.fetchall()
+            if active_sessions:
+                print(f"\n[DETECTED GANDONS]: Найдено {len(active_sessions)} живых сессий!")
+                for s in active_sessions:
+                    print(f"PID: {s[0]} | App: {s[1]} | State: {s[2]} | Last SQL: {s[3]}")
+
+        with self.connection._nodb_cursor() as cursor:
             cursor.execute(f"""
                 SELECT pg_terminate_backend(pid)
                 FROM pg_stat_activity
@@ -76,3 +89,24 @@ def pytest_configure(config: pytest.Config) -> None:
         return original_destroy_test_db(self, test_database_name, verbosity)
 
     DatabaseCreation._destroy_test_db = patched_destroy_test_db  # type: ignore
+
+
+@pytest.fixture(autouse=True)
+async def clear_os_each_test(service_container_for_integration_tests: ServiceContainer) -> AsyncIterator[None]:
+    client: AsyncOpenSearch = await service_container_for_integration_tests.opensearch_async_client.async_()
+
+    async def cleanup() -> None:
+        try:
+            await client.delete_by_query(
+                index="*,-.*",
+                body={"query": {"match_all": {}}},
+                refresh=True,
+                ignore_unavailable=True,
+                wait_for_completion=True,
+            )
+        except Exception:
+            pass
+
+    await cleanup()
+    yield
+    await cleanup()
