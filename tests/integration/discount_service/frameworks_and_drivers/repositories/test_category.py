@@ -16,10 +16,10 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_add_and_get(service_container_for_tests: ServiceContainer) -> None:
+async def test_category_repo_add_and_get(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
     category = make_category_entity()
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     # when
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -38,9 +38,9 @@ async def test_category_repo_add_and_get(service_container_for_tests: ServiceCon
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_update(service_container_for_tests: ServiceContainer) -> None:
+async def test_category_repo_update(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     category = make_category_entity()
 
@@ -63,9 +63,9 @@ async def test_category_repo_update(service_container_for_tests: ServiceContaine
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_uuid(service_container_for_tests: ServiceContainer) -> None:
+async def test_category_is_not_found_by_uuid(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     random_uuid = uuid4()
 
@@ -82,9 +82,9 @@ async def test_category_is_not_found_by_uuid(service_container_for_tests: Servic
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_name(service_container_for_tests: ServiceContainer) -> None:
+async def test_category_is_not_found_by_name(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     test_name = "test_name"
 
@@ -102,10 +102,10 @@ async def test_category_is_not_found_by_name(service_container_for_tests: Servic
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_update_helper_words_when_adding_news(
-    service_container_for_tests: ServiceContainer,
+    service_container_for_integration_tests: ServiceContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
@@ -130,9 +130,11 @@ async def test_category_update_helper_words_when_adding_news(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_update_helper_words_when_deleting(service_container_for_tests: ServiceContainer) -> None:
+async def test_category_update_helper_words_when_deleting(
+    service_container_for_integration_tests: ServiceContainer,
+) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
@@ -156,9 +158,9 @@ async def test_category_update_helper_words_when_deleting(service_container_for_
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_by_helper_words_in_words(service_container_for_tests: ServiceContainer) -> None:
+async def test_get_by_helper_words_in_words(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     helper_words = CategoryHelperWords(words=frozenset(["գինի", "օղի", "vodka"]))
     category = make_category_entity(helper_words=helper_words, name="ալկոհոլ")

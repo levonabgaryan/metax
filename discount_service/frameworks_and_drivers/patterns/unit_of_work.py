@@ -32,7 +32,7 @@ class UnitOfWork(AbstractUnitOfWork):
         self.__committed = False
 
     async def __aenter__(self) -> Self:
-        await sync_to_async(transaction.set_autocommit)(False)
+        await sync_to_async(transaction.set_autocommit)(True)
         self.__committed = False
         return await super().__aenter__()
 

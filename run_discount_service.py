@@ -1,9 +1,19 @@
 import os
-import subprocess
 import sys
 from pathlib import Path
 
+from django.apps import AppConfig
+from opensearchpy import AsyncOpenSearch
+
 from config import discount_service_configs
+
+PROJECT_ROOT = discount_service_configs.project_root_pythonpath
+DJANGO_PATH = discount_service_configs.django_dir
+
+sys.path.insert(0, PROJECT_ROOT)
+sys.path.insert(0, DJANGO_PATH)
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")  # noqa: E402
 
 
 # -------------------------
@@ -11,27 +21,43 @@ from config import discount_service_configs
 # -------------------------
 
 
-def run_db_migrations() -> None:
+async def run_postgres_db_migrations() -> None:
     manage_py = Path(discount_service_configs.django_dir) / "manage.py"
 
-    subprocess.run(
-        [sys.executable, str(manage_py), "makemigrations"],
-        check=True,
-        cwd=discount_service_configs.django_dir,
-    )
-    subprocess.run(
-        [sys.executable, str(manage_py), "migrate"],
-        check=True,
-        cwd=discount_service_configs.django_dir,
-    )
+    for command in ["makemigrations", "migrate"]:
+        process = await asyncio.create_subprocess_exec(
+            sys.executable, str(manage_py), command, cwd=discount_service_configs.django_dir
+        )
+        await process.wait()
+        if process.returncode != 0:
+            raise RuntimeError(f"Django {command} failed with exit code {process.returncode}")
 
 
-def run_django_uvicorn_server() -> None:
+# -------------------------
+# OpenSearch (Native Async)
+# -------------------------
+
+
+async def run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
+    from discount_service.frameworks_and_drivers.opensearch.migration import migrate_indices  # noqa: E402
+
+    try:
+        print("🔍 Running OpenSearch migrations...")
+        await migrate_indices(client=client)
+    finally:
+        await client.close()
+
+
+# -------------------------
+# Server (Async Subprocess)
+# -------------------------
+
+
+async def run_django_uvicorn_server() -> None:
     env = os.environ.copy()
-    env["PYTHONPATH"] = str(discount_service_configs.project_root_pythonpath)
-
+    env["PYTHONPATH"] = os.pathsep.join([str(PROJECT_ROOT), str(DJANGO_PATH)])
+    env["DJANGO_SETTINGS_MODULE"] = "django_framework.settings"
     command = [
-        sys.executable,
         "-m",
         "gunicorn",
         "django_framework.asgi:application",
@@ -43,12 +69,24 @@ def run_django_uvicorn_server() -> None:
         f"{discount_service_configs.django_host}:{discount_service_configs.django_port}",
     ]
 
-    print(
-        f"🚀 Starting Django (Gunicorn + Uvicorn) on {discount_service_configs.django_host}:{discount_service_configs.django_port}"
-    )
-    print(f"📂 Project root: {discount_service_configs.project_root_pythonpath}")
+    print(f"🚀 Starting Django on {discount_service_configs.django_host}:{discount_service_configs.django_port}")
 
-    subprocess.run(command, check=True, cwd=discount_service_configs.django_dir, env=env)
+    process = await asyncio.create_subprocess_exec(
+        sys.executable, *command, cwd=discount_service_configs.django_dir, env=env
+    )
+    await process.wait()
+    if process.returncode != 0:
+        raise RuntimeError(f"Django {command} failed with exit code {process.returncode}")
+
+
+def create_app() -> AppConfig:
+    from django.apps import apps
+    from discount_service.frameworks_and_drivers.di.bootstrap import configured_service_container  # noqa: E402
+
+    container = configured_service_container()
+    discount_app = apps.get_app_config("discount_service")
+    discount_app.container = container  # type: ignore[attr-defined]
+    return discount_app
 
 
 # -------------------------
@@ -56,20 +94,40 @@ def run_django_uvicorn_server() -> None:
 # -------------------------
 
 
-def run_discount_service_app() -> None:
+async def run_discount_service_app() -> None:
+    import django
+
+    django.setup()
+    from discount_service.frameworks_and_drivers.di import ServiceContainer  # noqa: E402
+
+    app = create_app()
+    container: ServiceContainer = app.container  # type: ignore[attr-defined]
+    opensearch_client = await container.opensearch_async_client.async_()
     try:
-        run_db_migrations()
-        run_django_uvicorn_server()
-    except KeyboardInterrupt:
-        print("\n🛑 Received KeyboardInterrupt, shutting down gracefully...")
-        sys.exit(0)
-    except subprocess.CalledProcessError as e:
-        print(f"\n❌ Subprocess failed with exit code {e.returncode}")
-        sys.exit(e.returncode)
+        init_task = container.init_resources()
+        if init_task:
+            await init_task
+
+        await run_postgres_db_migrations()
+        await run_opensearch_db_migrations(client=opensearch_client)
+        await run_django_uvicorn_server()
+
+    except asyncio.CancelledError:
+        print("\n🛑 Task cancelled, shutting down...")
+        await asyncio.sleep(0.5)
     except Exception as e:
         print(f"\n❌ Unexpected error: {e}")
         sys.exit(1)
+    finally:
+        shutdown_task = container.shutdown_resources()
+        if shutdown_task:
+            await shutdown_task
 
 
 if __name__ == "__main__":
-    run_discount_service_app()
+    import asyncio
+
+    try:
+        asyncio.run(run_discount_service_app())
+    except KeyboardInterrupt:
+        print("\n🛑 Shutdown requested by user...")

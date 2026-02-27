@@ -11,10 +11,10 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_add_new_helper_word_command(service_container_for_tests: ServiceContainer) -> None:
+async def test_add_new_helper_word_command(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
     helper_words = CategoryHelperWords(words=frozenset(["a", "b"]))
     category = make_category_entity(
         helper_words=helper_words,

@@ -12,11 +12,11 @@ from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContaine
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_create_category_command_handler(
-    service_container_for_tests: ServiceContainer,
+    service_container_for_integration_tests: ServiceContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
     category_uuid = uuid4()
     cmd = CreateCategoryCommand(
         category_uuid=category_uuid,

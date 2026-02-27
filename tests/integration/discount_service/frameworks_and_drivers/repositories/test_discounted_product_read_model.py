@@ -13,17 +13,17 @@ from tests.utils import (
     make_category_entity,
     make_retailer_entity,
 )
-from tests.conftest import refresh_opensearch_index
+from tests.integration.conftest import refresh_opensearch_index
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
 @pytest.mark.asyncio
 @clear_opensearch_db
 async def test_delete_older_than_and_return_deleted_count(
-    service_container_for_tests: ServiceContainer,
+    service_container_for_integration_tests: ServiceContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     creation_date = datetime.now(tz=timezone.utc)
 
@@ -55,9 +55,9 @@ async def test_delete_older_than_and_return_deleted_count(
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-async def test_update_category(service_container_for_tests: ServiceContainer) -> None:
+async def test_update_category(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     category = make_category_entity()
@@ -87,9 +87,9 @@ async def test_update_category(service_container_for_tests: ServiceContainer) ->
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-async def test_update_retailer(service_container_for_tests: ServiceContainer) -> None:
+async def test_update_retailer(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     retailer = make_retailer_entity()
     created_at = datetime.now(tz=timezone.utc)
@@ -122,9 +122,9 @@ async def test_update_retailer(service_container_for_tests: ServiceContainer) ->
 
 @pytest.mark.asyncio
 @clear_opensearch_db
-async def test_get_all(service_container_for_tests: ServiceContainer) -> None:
+async def test_get_all(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_models = [
@@ -158,9 +158,9 @@ async def test_get_all(service_container_for_tests: ServiceContainer) -> None:
 @pytest.mark.asyncio
 @clear_opensearch_db
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name_page(query: str, service_container_for_tests: ServiceContainer) -> None:
+async def test_get_by_name_page(query: str, service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(

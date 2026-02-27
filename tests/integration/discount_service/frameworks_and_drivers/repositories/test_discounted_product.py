@@ -17,9 +17,9 @@ from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_add_many_discounted_products(service_container_for_tests: ServiceContainer) -> None:
+async def test_add_many_discounted_products(service_container_for_integration_tests: ServiceContainer) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_data = datetime.now(tz=timezone.utc)
     category_uuid = uuid4()
@@ -93,9 +93,11 @@ async def test_add_many_discounted_products(service_container_for_tests: Service
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_discounted_products_is_not_found_by_uuid(service_container_for_tests: ServiceContainer) -> None:
+async def test_discounted_products_is_not_found_by_uuid(
+    service_container_for_integration_tests: ServiceContainer,
+) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     random_uuid = uuid4()
     # expect
@@ -118,9 +120,11 @@ async def test_discounted_products_is_not_found_by_uuid(service_container_for_te
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_delete_older_than_and_return_deleted_count(service_container_for_tests: ServiceContainer) -> None:
+async def test_delete_older_than_and_return_deleted_count(
+    service_container_for_integration_tests: ServiceContainer,
+) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     creation_date = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()

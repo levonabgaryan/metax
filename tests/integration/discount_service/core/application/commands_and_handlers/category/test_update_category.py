@@ -12,11 +12,11 @@ from tests.utils import make_category_entity
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_update_category_command_handler(
-    service_container_for_tests: ServiceContainer,
+    service_container_for_integration_tests: ServiceContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_tests.patterns_container.container.event_bus.async_()
+    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
     category = make_category_entity()
 
     async with unit_of_work as uow:

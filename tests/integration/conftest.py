@@ -4,13 +4,12 @@ import pytest
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
-from config import discount_service_configs
 from discount_service.frameworks_and_drivers.di import get_service_container
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.fixture(scope="session")
-async def service_container_for_tests() -> AsyncIterator[ServiceContainer]:
+async def service_container_for_integration_tests() -> AsyncIterator[ServiceContainer]:
     service_container_instance = get_service_container()
     # with django_db_blocker.unblock():
     init_task = service_container_instance.init_resources()
@@ -33,22 +32,14 @@ async def service_container_for_tests() -> AsyncIterator[ServiceContainer]:
 
 @pytest.fixture(scope="session", autouse=True)
 async def setup_opensearch_migration(
-    service_container_for_tests: ServiceContainer,
+    service_container_for_integration_tests: ServiceContainer,
 ) -> AsyncIterator[None]:
     from discount_service.frameworks_and_drivers.opensearch.migration import migrate_indices, delete_all_indices
 
-    opensearch_async_client_ = await service_container_for_tests.opensearch_async_client.async_()
+    opensearch_async_client_ = await service_container_for_integration_tests.opensearch_async_client.async_()
     await migrate_indices(opensearch_async_client_)
     yield None
     await delete_all_indices(opensearch_async_client_)
-
-
-@pytest.fixture(scope="session")
-def celery_config() -> dict[str, str]:
-    return {
-        "broker_url": f"{discount_service_configs.celery_broker_url}",
-        "result_backend": f"{discount_service_configs.celery_result_backend_url}",
-    }
 
 
 @inject
