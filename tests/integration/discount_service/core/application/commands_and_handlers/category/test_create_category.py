@@ -25,7 +25,7 @@ async def test_create_category_command_handler(
     )
 
     # when
-    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler_.handle_command(cmd)
 
     # then

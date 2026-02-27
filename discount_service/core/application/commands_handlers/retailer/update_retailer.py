@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from discount_service.core.application.event_handlers.retailer.events import RetailerUpdated
-from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.patterns.command import Command
+from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
+from discount_service.core.application.commands_handlers.command import Command
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
@@ -43,6 +43,5 @@ class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
             retailer.update(new_data)
             await repo.update(updated_retailer=retailer, fields_to_update=command.fields_to_update)
             await uow.commit()
-        mediator = self.get_mediator()
         event = RetailerUpdated(retailer_uuid=retailer.get_uuid())
-        await mediator.notify(sender=self, event=event)
+        await self._event_bus.handle(event)

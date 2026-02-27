@@ -25,7 +25,7 @@ async def test_update_category_command_handler(
 
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
-    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from discount_service.core.application.patterns.use_case_abc import RequestDTO, ResponseDTO
+from discount_service.core.application.use_cases.base_use_case import RequestDTO, ResponseDTO
 
 
 @dataclass(frozen=True)

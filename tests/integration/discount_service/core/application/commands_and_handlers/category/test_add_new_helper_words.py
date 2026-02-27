@@ -27,7 +27,7 @@ async def test_add_new_helper_word_command(service_container_for_tests: ServiceC
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
     # when
-    cmd_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then

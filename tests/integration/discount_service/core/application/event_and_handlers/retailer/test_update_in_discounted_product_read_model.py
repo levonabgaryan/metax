@@ -2,9 +2,7 @@ from datetime import timezone, datetime
 
 import pytest
 
-from discount_service.core.application.event_handlers.retailer.update_in_discounted_product_read_model import (
-    UpdateRetailerInDiscountedProductReadModel,
-)
+
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
@@ -62,10 +60,8 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 
     event = RetailerUpdated(found_retailer.get_uuid())
 
-    event_handler_ = UpdateRetailerInDiscountedProductReadModel(unit_of_work=unit_of_work, mediator=event_bus)
-
     # when
-    await event_handler_.handle_event(event)
+    await event_bus.handle(event)
     await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
 
     # then

@@ -31,7 +31,7 @@ async def test_update_retailer_command_handler(
         await uow.commit()
 
     # when
-    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then

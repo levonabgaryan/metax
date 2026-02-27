@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.patterns.command import Command
+from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
+from discount_service.core.application.commands_handlers.command import Command
 from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
 
 

@@ -29,7 +29,7 @@ async def test_delete_helper_word_command(
 
     expected_helper_words = CategoryHelperWords(words=frozenset(["d"]))
     # when
-    cmd_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then

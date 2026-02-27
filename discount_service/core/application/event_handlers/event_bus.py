@@ -1,7 +1,14 @@
+from __future__ import annotations
+from functools import singledispatchmethod
+
+from discount_service.core.application.event_handlers.category.events import CategoryUpdated
 from discount_service.core.application.event_handlers.discounted_product.events import (
+    NewDiscountedProductsFromRetailerCollected,
     OldDiscountedProductsDeleted,
 )
-from discount_service.core.application.patterns.event_handler_abc import EventHandler
+from discount_service.core.application.event_handlers.retailer.events import RetailerUpdated
+from discount_service.core.application.event_handlers.event import Event
+from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
     DiscountedProductRepository,
     DiscountedProductWithDetails,
@@ -12,17 +19,47 @@ from discount_service.core.application.ports.repositories.read_models_repositori
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 
 
-class SyncDiscountedProductReadModel(EventHandler[OldDiscountedProductsDeleted]):
-    async def handle_event(self, event: OldDiscountedProductsDeleted) -> None:
-        # add new data and delete old data from discounted product read model
+class EventBus:
+    def __init__(self, unit_of_work: AbstractUnitOfWork) -> None:
+        self.__unit_of_work = unit_of_work
 
+    @singledispatchmethod
+    async def handle(self, event: Event) -> None:
+        raise NotImplementedError("No handler for this event type")
+
+    # Events handlers
+    @handle.register
+    async def _(self, event: CategoryUpdated) -> None:
+        # _update_category_in_discounted_product_read_model
+        updated_category = await self.__unit_of_work.category_repo.get_by_uuid(event.category_uuid)
+        await self.__unit_of_work.discounted_product_read_model_repo.update_category(updated_category)
+
+    @handle.register
+    async def _(self, event: RetailerUpdated) -> None:
+        # _update_retailer_in_discounted_product_read_model
+        updated_retailer = await self.__unit_of_work.retailer_repo.get_by_uuid(event.retailer_uuid)
+        await self.__unit_of_work.discounted_product_read_model_repo.update_retailer(updated_retailer)
+
+    @handle.register
+    async def _(self, event: NewDiscountedProductsFromRetailerCollected) -> None:
+        # _delete_old_discounted_products_in_entity_repo
+        await self.__unit_of_work.discounted_product_repo.delete_older_than_and_return_deleted_count(
+            date_limit=event.new_products_created_date
+        )
+        await self.handle(
+            OldDiscountedProductsDeleted(new_discounted_products_creation_date=event.new_products_created_date)
+        )
+
+    @handle.register
+    async def _(self, event: OldDiscountedProductsDeleted) -> None:
+        # _sync_discounted_products_from_entity_repo_to_read_model_repo
         batch_size = 500
         current_batch = []
         date_limit = event.new_discounted_products_creation_date
 
-        repo: DiscountedProductRepository = self._unit_of_work.discounted_product_repo
+        repo: DiscountedProductRepository = self.__unit_of_work.discounted_product_repo
         read_model_repo: IDiscountedProductReadModelRepository = (
-            self._unit_of_work.discounted_product_read_model_repo
+            self.__unit_of_work.discounted_product_read_model_repo
         )
 
         discounted_product: DiscountedProductWithDetails

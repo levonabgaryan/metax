@@ -24,7 +24,7 @@ async def test_create_retailer_command_handler(
     )
 
     # when
-    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then

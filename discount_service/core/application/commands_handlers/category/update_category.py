@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from uuid import UUID
 
 from discount_service.core.application.event_handlers.category.events import CategoryUpdated
-from discount_service.core.application.patterns.command_handler_abc import CommandHandler
-from discount_service.core.application.patterns.command import Command
+from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
+from discount_service.core.application.commands_handlers.command import Command
 from discount_service.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
@@ -33,6 +33,5 @@ class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
             category.update(new_data)
             await repo.update(updated_category=category, fields_to_update=command.fields_to_update)
             await uow.commit()
-        mediator = self.get_mediator()
         event = CategoryUpdated(category_uuid=category.get_uuid())
-        await mediator.notify(sender=self, event=event)
+        await self._event_bus.handle(event)
