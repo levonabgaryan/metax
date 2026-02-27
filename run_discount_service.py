@@ -41,11 +41,8 @@ async def run_postgres_db_migrations() -> None:
 async def run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
     from discount_service.frameworks_and_drivers.opensearch.migration import migrate_indices  # noqa: E402
 
-    try:
-        print("🔍 Running OpenSearch migrations...")
-        await migrate_indices(client=client)
-    finally:
-        await client.close()
+    print("🔍 Running OpenSearch migrations...")
+    await migrate_indices(client=client)
 
 
 # -------------------------
@@ -74,9 +71,16 @@ async def run_django_uvicorn_server() -> None:
     process = await asyncio.create_subprocess_exec(
         sys.executable, *command, cwd=discount_service_configs.django_dir, env=env
     )
-    await process.wait()
-    if process.returncode != 0:
-        raise RuntimeError(f"Django {command} failed with exit code {process.returncode}")
+    try:
+        await process.wait()
+    except asyncio.CancelledError:
+        print("⏳ Sending SIGTERM to Gunicorn...")
+        process.terminate()
+        await process.wait()
+        print("✅ Gunicorn shut down cleanly.")
+
+    if process.returncode != 0 and process.returncode != -15:
+        raise RuntimeError(f"Gunicorn failed with exit code {process.returncode}")
 
 
 def create_app() -> AppConfig:
@@ -112,7 +116,7 @@ async def run_discount_service_app() -> None:
         await run_opensearch_db_migrations(client=opensearch_client)
         await run_django_uvicorn_server()
 
-    except asyncio.CancelledError:
+    except asyncio.CancelledError, KeyboardInterrupt:
         print("\n🛑 Task cancelled, shutting down...")
         await asyncio.sleep(0.5)
     except Exception as e:
