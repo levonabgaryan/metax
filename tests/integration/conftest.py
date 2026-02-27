@@ -57,3 +57,22 @@ def get_current_container_for_tests(
     service_container: ServiceContainer = Provide[ServiceContainer],
 ) -> ServiceContainer:
     return service_container
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    from django.db.backends.postgresql.creation import DatabaseCreation
+    from typing import Any
+
+    original_destroy_test_db = DatabaseCreation._destroy_test_db  # type: ignore
+
+    def patched_destroy_test_db(self: DatabaseCreation, test_database_name: str, verbosity: Any) -> Any:
+        with self.connection._nodb_cursor() as cursor:
+            cursor.execute(f"""
+                SELECT pg_terminate_backend(pid)
+                FROM pg_stat_activity
+                WHERE datname = '{test_database_name}'
+                  AND pid <> pg_backend_pid();
+            """)
+        return original_destroy_test_db(self, test_database_name, verbosity)
+
+    DatabaseCreation._destroy_test_db = patched_destroy_test_db  # type: ignore
