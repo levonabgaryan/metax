@@ -14,7 +14,7 @@ from discount_service.core.domain.entities.discounted_product_entity.discounted_
     DiscountedProduct,
 )
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from tests.integration.conftest import get_current_container_for_tests
+from tests.conftest import get_current_container_for_tests
 
 
 def make_category_entity(

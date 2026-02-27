@@ -13,7 +13,7 @@ from tests.utils import (
     make_category_entity,
     make_retailer_entity,
 )
-from tests.integration.conftest import refresh_opensearch_index
+from tests.conftest import refresh_opensearch_index
 from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 

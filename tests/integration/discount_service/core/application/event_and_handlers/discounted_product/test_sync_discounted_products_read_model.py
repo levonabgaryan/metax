@@ -14,7 +14,7 @@ from tests.utils import (
     make_discounted_product_entity,
     clear_opensearch_db,
 )
-from tests.integration.conftest import refresh_opensearch_index
+from tests.conftest import refresh_opensearch_index
 
 
 @pytest.mark.django_db(transaction=True)
