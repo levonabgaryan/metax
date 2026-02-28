@@ -6,7 +6,14 @@ from django.http import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 
-from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
+from discount_service.core.application.commands_handlers.category import (
+    CreateCategoryCommand,
+    CreateCategoryCommandHandler,
+)
+from discount_service.core.application.commands_handlers.category.add_new_helper_words import (
+    AddNewHelperWordsCommandHandler,
+    AddNewHelperWordsCommand,
+)
 from discount_service.frameworks_and_drivers.di import get_service_container
 
 
@@ -20,7 +27,7 @@ class CategoryAdminHandler:
             helper_words = request.POST.getlist("helper_words")
 
             if category_name and helper_words:
-                async_to_sync(self._save_category)(category_name, helper_words)
+                async_to_sync(self._create_category)(category_name, helper_words)
                 return redirect("admin:index")
 
         context = {
@@ -31,24 +38,27 @@ class CategoryAdminHandler:
         return render(request, "admin/category/add.html", context)
 
     @staticmethod
-    async def _save_category(category_name: str, helper_words: list[str]) -> None:
+    async def _create_category(category_name: str, helper_words: list[str]) -> None:
         unit_of_work = await get_service_container().patterns_container.container.unit_of_work.async_()
-        entity = Category(
-            category_uuid=uuid.uuid4(),
-            name=category_name,
-            helper_words=CategoryHelperWords(frozenset(helper_words)),
+        event_bus = await get_service_container().patterns_container.container.event_bus.async_()
+
+        command = CreateCategoryCommand(
+            category_uuid=uuid.uuid4(), name=category_name, helper_words=frozenset(helper_words)
         )
-        async with unit_of_work as uow:
-            await uow.category_repo.add(entity)
-            await uow.commit()
+        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        await command_handler.handle_command(command)
 
     @staticmethod
-    async def _add_new_helper_words(category_name: str, helper_words: list[str]) -> None:
+    async def _add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
         unit_of_work = await get_service_container().patterns_container.container.unit_of_work.async_()
-        async with unit_of_work as uow:
-            category = await uow.category_repo.get_by_name(category_name)
-            await uow.commit()
-        category.add_new_helper_words(frozenset(helper_words))
+        event_bus = await get_service_container().patterns_container.container.event_bus.async_()
 
         async with unit_of_work as uow:
-            await uow.category_repo.update_helper_words(category)
+            category = await uow.category_repo.get_by_name(category_name)
+
+        command = AddNewHelperWordsCommand(
+            category_uuid=category.get_uuid(),
+            new_helper_words=frozenset(new_helper_words),
+        )
+        command_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        await command_handler.handle_command(command)

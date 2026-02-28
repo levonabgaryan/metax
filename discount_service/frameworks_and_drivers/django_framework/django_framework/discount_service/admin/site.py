@@ -1,6 +1,8 @@
 from typing import Any
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import User, Group
 from django.http import HttpRequest
 from django.urls import path, URLPattern, URLResolver
 
@@ -44,3 +46,5 @@ class DiscountAdminSite(admin.AdminSite):
 
 
 admin_site = DiscountAdminSite(name="discount_admin")
+admin_site.register(User, UserAdmin)
+admin_site.register(Group, GroupAdmin)
