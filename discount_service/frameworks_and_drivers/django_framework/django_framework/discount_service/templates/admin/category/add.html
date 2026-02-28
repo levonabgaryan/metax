@@ -1,0 +1,58 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .helper-word-row { margin-bottom: 10px; display: flex; align-items: center; }
+    .helper-word-row input { width: 300px; }
+    .remove-btn { color: red; margin-left: 10px; cursor: pointer; font-weight: bold; }
+    .add-row-link { font-weight: bold; cursor: pointer; color: #447e9b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <form method="post" id="category_form">
+        {% csrf_token %}
+        <div>
+            <fieldset class="module aligned">
+                <h2>Category Details</h2>
+                <div class="form-row">
+                    <label class="required" for="id_name">Category Name:</label>
+                    <input type="text" name="category_name" id="id_name" class="vTextField" required>
+                </div>
+            </fieldset>
+
+            <fieldset class="module aligned">
+                <h2>Helper Words</h2>
+                <div id="helper-words-container" style="padding: 10px;">
+                    <div class="helper-word-row">
+                        <input type="text" name="helper_words" class="vTextField" placeholder="helper word">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <a id="add-helper" class="add-row-link">+ Add another helper word</a>
+                </div>
+            </fieldset>
+
+            <div class="submit-row">
+                <input type="submit" value="Save Category" class="default" name="_save">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('add-helper').addEventListener('click', function() {
+        const container = document.getElementById('helper-words-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'helper-word-row';
+        newRow.innerHTML = `
+            <input type="text" name="helper_words" class="vTextField">
+            <span class="remove-btn" onclick="this.parentElement.remove()">✕</span>
+        `;
+        container.appendChild(newRow);
+    });
+</script>
+{% endblock %}

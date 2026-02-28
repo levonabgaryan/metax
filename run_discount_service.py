@@ -54,23 +54,39 @@ async def run_django_uvicorn_server() -> None:
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join([str(PROJECT_ROOT), str(DJANGO_PATH)])
     env["DJANGO_SETTINGS_MODULE"] = "django_framework.settings"
-    command = [
-        "-m",
-        "gunicorn",
-        "django_framework.asgi:application",
-        "-w",
-        "2",
-        "-k",
-        "uvicorn.workers.UvicornWorker",
-        "-b",
-        f"{discount_service_configs.django_host}:{discount_service_configs.django_port}",
-    ]
-
-    print(f"🚀 Starting Django on {discount_service_configs.django_host}:{discount_service_configs.django_port}")
+    if env.get("ENV") != "prod":
+        command = [
+            "-m",
+            "uvicorn",
+            "django_framework.asgi:application",
+            "--host",
+            discount_service_configs.django_host,
+            "--port",
+            str(discount_service_configs.django_port),
+            "--reload",
+            "--reload-dir",
+            str(PROJECT_ROOT),
+        ]
+    else:
+        command = [
+            "-m",
+            "gunicorn",
+            "django_framework.asgi:application",
+            "-w",
+            "2",
+            "-k",
+            "uvicorn.workers.UvicornWorker",
+            "-b",
+            f"{discount_service_configs.django_host}:{discount_service_configs.django_port}",
+        ]
 
     process = await asyncio.create_subprocess_exec(
         sys.executable, *command, cwd=discount_service_configs.django_dir, env=env
     )
+
+    print(command)
+    print(f"🚀 Starting Django on {discount_service_configs.django_host}:{discount_service_configs.django_port}")
+
     try:
         await process.wait()
     except asyncio.CancelledError:

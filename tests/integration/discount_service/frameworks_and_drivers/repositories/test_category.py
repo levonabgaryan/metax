@@ -153,7 +153,6 @@ async def test_category_update_helper_words_when_deleting(
     # then
     category = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     assert category.get_helper_words() == frozenset(["b"])
-    await uow.commit()
 
 
 @pytest.mark.django_db(transaction=True)

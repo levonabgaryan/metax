@@ -68,7 +68,6 @@ async def test_retailer_repo_update(
 
     # then
     retailer = await unit_of_work.retailer_repo.get_by_uuid(retailer.get_uuid())
-    await uow.commit()
 
     assert retailer.get_name() == "new_name"
     assert retailer.get_home_page_url() == "new_url"
