@@ -22,7 +22,6 @@ from discount_service.core.domain.entities.category_entity.category import Categ
 from discount_service.frameworks_and_drivers.di import get_service_container
 
 
-# ModelAdmin
 class CategoryAdminHandler:
     def __init__(self, admin_site: AdminSite):
         super().__init__()
@@ -77,6 +76,10 @@ class CategoryAdminHandler:
                 async_to_sync(self.__add_new_helper_words)(category_name, new_helper_words)
             return redirect("admin:categories_list")
         return render(request, "admin/category/add_new_helper_words.html")
+
+    # def update_category(self, request: HttpRequest) -> HttpResponse:
+    #     if request.method == "POST":
+    #         pass
 
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
