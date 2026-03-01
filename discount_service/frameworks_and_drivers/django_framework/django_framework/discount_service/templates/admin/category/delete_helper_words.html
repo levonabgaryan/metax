@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+    .helper-word-row { margin-bottom: 8px; display: flex; align-items: center; }
+    .helper-word-row input { width: 250px; }
+    .remove-btn { color: red; margin-left: 10px; cursor: pointer; font-weight: bold; }
+    .add-row-link { font-weight: bold; cursor: pointer; color: #447e9b; margin-top: 5px; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <h1>Manage Category: Delete Helper Words</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="module aligned">
+            <div class="form-row">
+                <label for="category_name"><strong>Category name:</strong></label>
+                <input type="text" id="category_name" name="category_name" value="{{ category.category_name }}">
+            </div>
+        </div>
+        <div class="module">
+            <h2>Helper Words</h2>
+            <div id="helper-words-container" style="padding: 10px;">
+                <div class="helper-word-row">
+                    <input type="text" name="words_to_delete" class="vTextField" placeholder="helper word">
+                </div>
+            </div>
+            <a id="add-helper" class="add-row-link">+ Add another helper word for deleting</a>
+        </div>
+
+        <div class="submit-row" style="margin-top: 15px;">
+            <input type="submit" value="Save Changes" class="default">
+            <a href="{% url 'admin:categories_list' %}" class="button cancel-link">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('add-helper').addEventListener('click', function() {
+        const container = document.getElementById('helper-words-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'helper-word-row';
+        newRow.innerHTML = `
+            <input type="text" name="new_helper_words" class="vTextField" placeholder="helper word">
+            <span class="remove-btn" onclick="this.parentElement.remove()">✕</span>
+        `;
+        container.appendChild(newRow);
+    });
+</script>
+{% endblock %}

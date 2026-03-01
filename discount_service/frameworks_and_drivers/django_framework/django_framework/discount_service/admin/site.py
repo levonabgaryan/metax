@@ -18,7 +18,13 @@ class DiscountAdminSite(admin.AdminSite):
         category_handler = CategoryAdminHandler(self)
 
         custom_urls = [
-            path("categories/add/", self.admin_view(category_handler.add_view), name="category_add"),
+            path("categories/", self.admin_view(category_handler.all_categories), name="categories_list"),
+            path("categories/add/", self.admin_view(category_handler.add_category), name="category_add"),
+            path(
+                "categories/delete-helper-words",
+                self.admin_view(category_handler.delete_helper_words),
+                name="category_delete_helper_words",
+            ),
         ]
         return custom_urls + urls
 
@@ -34,9 +40,8 @@ class DiscountAdminSite(admin.AdminSite):
                 {
                     "name": "Categories",
                     "object_name": "category",
-                    "admin_url": "/admin/categories/add/",
-                    "add_url": "/admin/categories/add/",
-                    "view_only": False,
+                    "admin_url": "/admin/categories/",
+                    "view_only": True,
                 },
             ],
         }
