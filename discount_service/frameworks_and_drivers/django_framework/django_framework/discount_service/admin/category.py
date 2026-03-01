@@ -61,13 +61,22 @@ class CategoryAdminHandler:
             category_name = request.POST.get("category_name")
             words_to_delete = request.POST.getlist("words_to_delete")
 
-            print(category_name, words_to_delete, "+++++++++++++++")
             if category_name and words_to_delete:
                 async_to_sync(self.__delete_helper_words)(category_name, words_to_delete)
 
             return redirect("admin:categories_list")
 
         return render(request, "admin/category/delete_helper_words.html")
+
+    def add_new_helper_words(self, request: HttpRequest) -> HttpResponse:
+        if request.method == "POST":
+            category_name = request.POST.get("category_name")
+            new_helper_words = request.POST.getlist("new_helper_words")
+
+            if category_name and new_helper_words:
+                async_to_sync(self.__add_new_helper_words)(category_name, new_helper_words)
+            return redirect("admin:categories_list")
+        return render(request, "admin/category/add_new_helper_words.html")
 
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:

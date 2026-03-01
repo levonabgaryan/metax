@@ -25,6 +25,11 @@ class DiscountAdminSite(admin.AdminSite):
                 self.admin_view(category_handler.delete_helper_words),
                 name="category_delete_helper_words",
             ),
+            path(
+                "categories/add-new-helper-words",
+                self.admin_view(category_handler.add_new_helper_words),
+                name="category_add_new_helper_words",
+            ),
         ]
         return custom_urls + urls
 
