@@ -46,25 +46,6 @@ exclude = [
 ]
 
 
-[[tool.mypy.overrides]]
-module = "django_framework.discount_service.views.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "django_framework.discount_service.serializers.*"
-ignore_errors = true
-
-[[tool.mypy.overrides]]
-module = "adrf.*"
-ignore_missing_imports = true
-
-[[tool.mypy.overrides]]
-module = "django.db.backends.postgresql.psycopg_any"
-ignore_missing_imports = true
-
-[tool.django-stubs]
-django_settings_module = "django_framework.settings"
-strict_model_abstract_attrs = true
 
 # Warns if function parameters and return value is not annotated
 disallow_untyped_defs = true
@@ -109,6 +90,28 @@ warn_no_return = true
 
 # See https://mypy.readthedocs.io/en/stable/config_file.html#confval-strict_equality:~:text=for%20more%20info.-,implicit_reexport,-%C2%B6
 implicit_reexport = false
+no_implicit_reexport = true
+disallow_any_generics = true
+
+[[tool.mypy.overrides]]
+module = "django_framework.discount_service.views.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "django_framework.discount_service.serializers.*"
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = "adrf.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "django.db.backends.postgresql.psycopg_any"
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "django_framework.settings"
+strict_model_abstract_attrs = true
 
 [tool.ruff]
 exclude = [
