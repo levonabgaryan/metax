@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, override
 
 
 class MainError(Exception):
@@ -16,5 +16,6 @@ class MainError(Exception):
         self.details = details or {}
         self.exc_type = self.__class__.__name__
 
+    @override
     def __repr__(self) -> str:
         return f"{self.exc_type}(message={self.message}, error_code={self.error_code}, details={self.details})"  # noqa: E501

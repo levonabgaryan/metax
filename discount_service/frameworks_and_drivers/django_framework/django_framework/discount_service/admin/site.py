@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, override
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
@@ -13,6 +13,7 @@ class DiscountAdminSite(admin.AdminSite):
     site_header = "Discount Service Administration"
     index_title = "Discount service admin panel"
 
+    @override
     def get_urls(self) -> list[URLPattern | URLResolver]:
         urls = super().get_urls()
         category_handler = CategoryAdminHandler(self)
@@ -33,6 +34,7 @@ class DiscountAdminSite(admin.AdminSite):
         ]
         return custom_urls + urls
 
+    @override
     def get_app_list(self, request: HttpRequest, app_label: str | None = None) -> list[Any]:
         app_list = super().get_app_list(request, app_label)
 

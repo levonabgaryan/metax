@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from datetime import datetime
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, override
 
 import httpx
 
@@ -19,6 +19,7 @@ class YerevanCityScrapperAdapter(ScrapperAdapter):
         super().__init__(data_source_url=yerevan_city_data_source_url)
         self._yerevan_city_products_details_url = yerevan_city_products_details_url
 
+    @override
     async def fetch(self, started_time: datetime, retailer: Retailer) -> AsyncIterator[DiscountedProduct]:
         async with httpx.AsyncClient(timeout=25) as client:
             try:

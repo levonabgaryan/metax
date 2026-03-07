@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import override
 from uuid import UUID
 
 from discount_service.core.application.event_handlers.category.events import CategoryUpdated
@@ -25,6 +26,7 @@ class UpdateCategoryCommand(Command):
 
 
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
+    @override
     async def handle_command(self, command: UpdateCategoryCommand) -> None:
         async with self._unit_of_work as uow:
             repo = uow.category_repo

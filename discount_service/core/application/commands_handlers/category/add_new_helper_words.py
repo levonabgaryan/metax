@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 from uuid import UUID
 
 from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
@@ -12,6 +13,7 @@ class AddNewHelperWordsCommand(Command):
 
 
 class AddNewHelperWordsCommandHandler(CommandHandler[AddNewHelperWordsCommand]):
+    @override
     async def handle_command(self, command: AddNewHelperWordsCommand) -> None:
         async with self._unit_of_work as uow:
             repo = uow.category_repo

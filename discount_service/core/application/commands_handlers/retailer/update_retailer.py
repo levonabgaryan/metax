@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 from uuid import UUID
 
 from discount_service.core.application.event_handlers.retailer.events import RetailerUpdated
@@ -35,6 +36,7 @@ class UpdateRetailerCommand(Command):
 
 
 class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
+    @override
     async def handle_command(self, command: UpdateRetailerCommand) -> None:
         async with self._unit_of_work as uow:
             repo = uow.retailer_repo

@@ -1,4 +1,4 @@
-from typing import AsyncIterator
+from typing import AsyncIterator, override
 from uuid import UUID
 
 from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
@@ -10,6 +10,7 @@ from django_framework.discount_service.models import RetailerModel
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
+    @override
     async def _add(self, retailer: Retailer) -> None:
         await RetailerModel._default_manager.acreate(
             retailer_uuid=retailer.get_uuid(),
@@ -18,6 +19,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             phone_number=retailer.get_phone_number(),
         )
 
+    @override
     async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
         try:
             retailer_model = await RetailerModel._default_manager.aget(retailer_uuid=retailer_uuid)
@@ -26,6 +28,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
 
         return self.__map_to_entity(model=retailer_model)
 
+    @override
     async def _get_by_name(self, retailer_name: str) -> Retailer | None:
         try:
             retailer_model = await RetailerModel._default_manager.aget(name=retailer_name)
@@ -34,6 +37,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
 
         return self.__map_to_entity(model=retailer_model)
 
+    @override
     async def _update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
         update_data = {}
 
@@ -53,6 +57,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             **update_data
         )
 
+    @override
     async def get_all_retailers_urls(self) -> tuple[str, ...]:
         urls_query_set = RetailerModel.objects.values_list("url", flat=True).aiterator()
         urls = [url async for url in urls_query_set]
@@ -67,6 +72,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             phone_number=model.phone_number,
         )
 
+    @override
     async def get_all(self) -> AsyncIterator[Retailer]:
         queryset = RetailerModel.objects.all().aiterator()
 

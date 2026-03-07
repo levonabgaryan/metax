@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import override
 
 from django_stubs_ext.db.models import TypedModelMeta
 
@@ -25,5 +26,6 @@ class DiscountedProductModel(BaseDbModel):
         verbose_name = "discounted product"
         verbose_name_plural = "discounted products"
 
+    @override
     def __str__(self) -> str:
         return f"{self.name} ({self.discounted_product_uuid})"

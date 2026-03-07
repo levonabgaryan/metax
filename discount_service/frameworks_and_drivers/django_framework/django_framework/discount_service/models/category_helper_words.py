@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from typing import override
+
 from django_stubs_ext.db.models import TypedModelMeta
 
 from django.db import models
@@ -16,5 +19,6 @@ class CategoryHelperWordsModel(BaseDbModel):
         verbose_name = "category helper word"
         verbose_name_plural = "category helper words"
 
+    @override
     def __str__(self) -> str:
         return self.word

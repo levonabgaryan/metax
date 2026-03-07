@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from typing import override
+
 from django_stubs_ext.db.models import TypedModelMeta
 
 from django.db import models
@@ -17,5 +20,6 @@ class RetailerModel(BaseDbModel):
         verbose_name = "retailer"
         verbose_name_plural = "retailers"
 
+    @override
     def __str__(self) -> str:
         return f"{self.name} ({self.retailer_uuid})"

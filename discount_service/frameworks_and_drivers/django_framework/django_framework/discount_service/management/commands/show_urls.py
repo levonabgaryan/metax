@@ -1,4 +1,4 @@
-from typing import Union, Any
+from typing import Union, Any, override
 
 from django.core.management.base import BaseCommand
 from django.urls import get_resolver, URLPattern, URLResolver
@@ -7,6 +7,7 @@ from django.urls import get_resolver, URLPattern, URLResolver
 class Command(BaseCommand):
     help = "Shows all api urls"
 
+    @override
     def handle(self, *args: Any, **options: Any) -> None:
         self.stdout.write(self.style.SUCCESS("🔍 List of all endpoints:"))
         resolver = get_resolver()

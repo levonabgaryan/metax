@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncIterator
+from typing import AsyncIterator, override
 
 from discount_service.core.application.ports.services.discounted_products_collector import (
     BaseDiscountedProductsCollectorService,
@@ -16,6 +16,7 @@ class DiscountedProductsCollectorServiceFromRetailer(BaseDiscountedProductsColle
         self._scrapper_adapter = scrapper_adapter
         self._retailer = retailer
 
+    @override
     async def collect_discounted_products(self, started_time: datetime) -> AsyncIterator[DiscountedProduct]:
         async for discounted_product in self._scrapper_adapter.fetch(
             started_time=started_time, retailer=self._retailer

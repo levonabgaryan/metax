@@ -1,9 +1,12 @@
+from typing import override
+
 from django.apps import AppConfig
 
 
 class DiscountServiceConfig(AppConfig):
     name = "django_framework.discount_service"
 
+    @override
     def ready(self) -> None:
         # https://python-dependency-injector.ets-labs.org/examples/django.html#app-config
         from discount_service.frameworks_and_drivers.di.bootstrap import configured_service_container

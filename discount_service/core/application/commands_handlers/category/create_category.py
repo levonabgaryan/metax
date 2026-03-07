@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 from uuid import UUID
 
 from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
@@ -14,6 +15,7 @@ class CreateCategoryCommand(Command):
 
 
 class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
+    @override
     async def handle_command(self, command: CreateCategoryCommand) -> None:
         async with self._unit_of_work as uow:
             helper_words = CategoryHelperWords(command.helper_words)

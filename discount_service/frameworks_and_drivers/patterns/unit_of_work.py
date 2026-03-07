@@ -1,5 +1,5 @@
 from types import TracebackType
-from typing import Self
+from typing import Self, override
 
 from asgiref.sync import sync_to_async
 from django.db import transaction
@@ -34,6 +34,7 @@ class UnitOfWork(AbstractUnitOfWork):
         self._rolled_back = False
         self._committed = False
 
+    @override
     async def __aenter__(self) -> Self:
         self._atomic = transaction.atomic()
         await sync_to_async(self._atomic.__enter__)()
@@ -41,6 +42,7 @@ class UnitOfWork(AbstractUnitOfWork):
         self._committed = False
         return self
 
+    @override
     async def __aexit__(
         self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> None:
@@ -52,10 +54,12 @@ class UnitOfWork(AbstractUnitOfWork):
             exc_val = RuntimeError("Rolled back manually")
         await sync_to_async(self._atomic.__exit__)(exc_type, exc_val, exc_tb)
 
+    @override
     async def commit(self) -> None:
         await sync_to_async(transaction.set_rollback)(False)
         self._committed = True
 
+    @override
     async def rollback(self) -> None:
         await sync_to_async(transaction.set_rollback)(True)
         self._rolled_back = True

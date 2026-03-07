@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import override
 from uuid import UUID
 
 from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
@@ -15,6 +16,7 @@ class CreateRetailerCommand(Command):
 
 
 class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
+    @override
     async def handle_command(self, command: CreateRetailerCommand) -> None:
         async with self._unit_of_work as uow:
             retailer = Retailer(

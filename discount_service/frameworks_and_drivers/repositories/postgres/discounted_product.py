@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import AsyncIterator
+from typing import AsyncIterator, override
 from uuid import UUID
 
 from django.db.models import QuerySet
@@ -18,6 +18,7 @@ from django_framework.discount_service.models import (
 
 
 class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
+    @override
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         models = [
             DiscountedProductModel(
@@ -34,6 +35,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         ]
         await DiscountedProductModel._default_manager.abulk_create(models)
 
+    @override
     async def _get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct | None:
         try:
             discounted_product_model = await DiscountedProductModel._default_manager.select_related(
@@ -44,6 +46,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
 
         return self.__convert_django_model_to_entity(discounted_product_model)
 
+    @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         deleted_count, _ = await DiscountedProductModel._default_manager.filter(
             created_at__lt=date_limit
@@ -51,11 +54,13 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
 
         return deleted_count
 
+    @override
     async def get_all(self) -> AsyncIterator[DiscountedProduct]:
         queryset = DiscountedProductModel._default_manager.select_related("category", "retailer").all()
         async for model in queryset.aiterator(chunk_size=100):
             yield self.__convert_django_model_to_entity(model)
 
+    @override
     async def get_all_by_date(self, date_: datetime) -> AsyncIterator[DiscountedProductWithDetails]:
         queryset: QuerySet[DiscountedProductModel, DiscountedProductModel] = (
             DiscountedProductModel._default_manager.select_related("category", "retailer").filter(created_at=date_)

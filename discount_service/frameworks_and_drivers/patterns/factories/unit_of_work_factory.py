@@ -1,3 +1,5 @@
+from typing import override
+
 from dependency_injector import providers
 
 from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
@@ -8,5 +10,6 @@ class DjangoUnitOfWorkFactory(IUnitOfWorkFactory):
     def __init__(self, unit_of_work_provider: providers.Provider[AbstractUnitOfWork]) -> None:
         self.unit_of_work_provider = unit_of_work_provider
 
+    @override
     async def create(self) -> AbstractUnitOfWork:
         return await self.unit_of_work_provider.async_()

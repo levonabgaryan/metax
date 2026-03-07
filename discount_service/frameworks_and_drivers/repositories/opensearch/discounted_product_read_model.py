@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncIterator, Any
+from typing import AsyncIterator, Any, override
 
 from opensearchpy import AsyncOpenSearch
 
@@ -20,6 +20,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         self.__opensearch_async_client = opensearch_async_client
         self.__alias_name = discounted_product_read_model.ALIAS_NAME
 
+    @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         # https://docs.opensearch.org/latest/api-reference/document-apis/delete-by-query/#example-request
         body = {"query": {"range": {"created_at": {"lt": date_limit.isoformat()}}}}
@@ -31,6 +32,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
 
         return int(response.get("deleted", 0))
 
+    @override
     async def update_category(self, updated_category: Category) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
@@ -46,6 +48,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             body=body,
         )
 
+    @override
     async def update_retailer(self, updated_retailer: Retailer) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
@@ -62,6 +65,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             body=body,
         )
 
+    @override
     async def get_all(self) -> AsyncIterator[DiscountedProductReadModel]:
         # https://github.com/opensearch-project/opensearch-py/blob/main/guides/search.md#basic-pagination
         response: dict[str, Any] = await self.__opensearch_async_client.search(
@@ -85,6 +89,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             )
             await asyncio.sleep(0)
 
+    @override
     async def get_all_count(self) -> int:
         # https://docs.opensearch.org/latest/api-reference/search-apis/count/#example-requests
         response = await self.__opensearch_async_client.count(
@@ -93,6 +98,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         )
         return int(response["count"])
 
+    @override
     async def add_one(self, discounted_product: DiscountedProductReadModel) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/guides/async.md#index-documents
         doc_id = discounted_product["discounted_product_uuid"]
@@ -100,6 +106,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
 
         await self.__opensearch_async_client.index(index=self.__alias_name, id=doc_id, body=doc_body)
 
+    @override
     async def add_many(self, discounted_products: list[DiscountedProductReadModel]) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/samples/bulk/bulk_array.py
         formatted_to_dict: list[dict[str, Any] | DiscountedProductReadModel] = []
@@ -120,6 +127,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         if response.get("errors"):
             raise
 
+    @override
     async def get_by_uuid(self, discounted_product_read_model_uuid: str) -> DiscountedProductReadModel:
         # https://docs.opensearch.org/latest/api-reference/document-apis/get-documents/#example-request
         response = await self.__opensearch_async_client.get(
@@ -140,6 +148,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             created_at=document["created_at"],
         )
 
+    @override
     async def get_by_name_page(
         self,
         name: str,

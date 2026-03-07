@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, ROUND_HALF_UP
+from typing import override
 from uuid import UUID
 
 from discount_service.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
@@ -57,6 +58,7 @@ class DiscountedProduct(AggregateRootEntity):
     def get_created_at(self) -> datetime:
         return self.__created_at
 
+    @override
     def __str__(self) -> str:
         return (
             f"DiscountedProduct(\n"

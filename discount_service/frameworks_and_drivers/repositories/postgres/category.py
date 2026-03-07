@@ -1,3 +1,4 @@
+from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -18,6 +19,7 @@ from django_framework.discount_service.models.category_helper_words import (
 
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
+    @override
     async def _add(self, category: Category) -> None:
         category_model = await CategoryModel._default_manager.acreate(
             category_uuid=category.get_uuid(), name=category.get_name()
@@ -31,6 +33,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         if helper_words_models_to_create:
             await CategoryHelperWordsModel._default_manager.abulk_create(helper_words_models_to_create)
 
+    @override
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         try:
             category_model = await CategoryModel._default_manager.aget(category_uuid=category_uuid)
@@ -39,6 +42,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
         return await self.__map_to_entity(model=category_model)
 
+    @override
     async def _get_by_name(self, category_name: str) -> Category | None:
         try:
             category_model = await CategoryModel._default_manager.aget(name=category_name)
@@ -47,6 +51,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
         return await self.__map_to_entity(model=category_model)
 
+    @override
     async def _update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
         update_data = {}
 
@@ -60,6 +65,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             **update_data
         )
 
+    @override
     async def _update_helper_words(self, updated_category: Category) -> None:
         updated_words = list(updated_category.get_helper_words())
 
@@ -89,6 +95,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             category_uuid=category_uuid, name=model.name, helper_words=CategoryHelperWords(words=helper_words)
         )
 
+    @override
     async def get_all(self) -> list[Category]:
         categories: list[Category] = []
         async for model in CategoryModel.objects.all():
@@ -96,6 +103,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             categories.append(entity)
         return categories
 
+    @override
     async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
         helper_word_model = (
             await CategoryHelperWordsModel.objects.select_related("category").filter(word__in=words).afirst()

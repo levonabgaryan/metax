@@ -2,7 +2,7 @@ import asyncio
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncIterator, ClassVar
+from typing import AsyncIterator, ClassVar, override
 
 import httpx
 from bs4 import BeautifulSoup
@@ -25,6 +25,7 @@ class SasAmScrapperAdapter(ScrapperAdapter):
         super().__init__(data_source_url=sas_am_data_source_url)
         self._sas_am_main_page_url = sas_am_main_page_url
 
+    @override
     async def fetch(self, started_time: datetime, retailer: Retailer) -> AsyncIterator[DiscountedProduct]:
         async with httpx.AsyncClient(timeout=10.0) as client:
             for offset_param in range(0, self.MAX_PRODUCTS_COUNT, self.DATA_SOURCE_URL_LIMIT_PARAM):
