@@ -5,7 +5,7 @@ from pathlib import Path
 from django.apps import AppConfig
 from opensearchpy import AsyncOpenSearch
 
-from config import discount_service_configs
+from config_ import discount_service_configs
 
 PROJECT_ROOT = discount_service_configs.project_root_pythonpath
 DJANGO_PATH = discount_service_configs.django_dir

@@ -1,7 +1,7 @@
 from celery import Celery
 from celery.schedules import crontab
 
-from config import discount_service_configs
+from config_ import discount_service_configs
 from discount_service.frameworks_and_drivers.di import get_service_container
 
 celery_app = Celery(

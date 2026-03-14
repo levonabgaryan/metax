@@ -5,7 +5,7 @@ from typing import AsyncIterator
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
-from config import discount_service_configs
+from config_ import discount_service_configs
 
 
 from discount_service.frameworks_and_drivers.di.patterns_container import PatternsContainer

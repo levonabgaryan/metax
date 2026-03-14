@@ -14,7 +14,7 @@ from pathlib import Path
 
 from django.db.backends.postgresql.psycopg_any import IsolationLevel
 
-from config import discount_service_configs
+from config_ import discount_service_configs
 
 DEBUG = discount_service_configs.debug
 
