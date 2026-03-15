@@ -2,7 +2,7 @@ from types import TracebackType
 from typing import Self, override
 
 from asgiref.sync import sync_to_async
-from django.db import transaction
+from django.db import transaction, close_old_connections
 from django.db.transaction import Atomic
 
 from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
@@ -48,11 +48,10 @@ class UnitOfWork(AbstractUnitOfWork):
     ) -> None:
         if self._atomic is None:
             return
-
-        if self._rolled_back and exc_type is None:
-            exc_type = RuntimeError
-            exc_val = RuntimeError("Rolled back manually")
-        await sync_to_async(self._atomic.__exit__)(exc_type, exc_val, exc_tb)
+        try:
+            await sync_to_async(self._atomic.__exit__)(exc_type, exc_val, exc_tb)
+        finally:
+            await sync_to_async(close_old_connections)()
 
     @override
     async def commit(self) -> None:
