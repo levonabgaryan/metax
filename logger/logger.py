@@ -51,12 +51,6 @@ def init_logger() -> None:
 
     handlers: list[logging.Handler] = [console_handler]
 
-    if not discount_service_configs.debug:
-        file_handler = logging.FileHandler("discount_service.log", mode="a", encoding="utf-8")
-        file_handler.setFormatter(formatter)
-        file_handler.setLevel(log_level)
-        handlers.append(file_handler)
-
     log_queue: queue.Queue[logging.LogRecord] = queue.Queue(-1)
 
     queue_handler = QueueHandler(queue=log_queue)
