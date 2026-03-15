@@ -139,8 +139,6 @@ services:
       volumes:
         - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
         - ./parsers.conf:/fluent-bit/etc/parsers.conf
-      environment:
-        - OPENSEARCH_LOGS_PASSWORD=${OPENSEARCH_LOGS_PASSWORD}
 
 volumes:
   os_data:
