@@ -21,6 +21,11 @@ services:
         condition: service_healthy
       postgres-db:
         condition: service_healthy
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:${FLUENT_BIT_PORT}"
+        tag: "discount-backend"
 
   postgres-db:
     image: postgres:18.1-alpine3.23
@@ -100,6 +105,11 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:${FLUENT_BIT_PORT}"
+        tag: "discount-celery"
 
   redis:
     image: redis:8.4.0-alpine
@@ -124,13 +134,14 @@ services:
       image: fluent/fluent-bit:4.2.3
       container_name: fluent-bit
       user: root
+      ports:
+        - "${FLUENT_BIT_PORT}:12201/udp"
       volumes:
         - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
         - ./parsers.conf:/fluent-bit/etc/parsers.conf
-        - /var/lib/docker/containers:/var/lib/docker/containers:ro
-        - /var/run/docker.sock:/var/run/docker.sock:ro
       environment:
-        - OPENSEARCH_HOST=opensearch.company.internal
+        - OPENSEARCH_LOGS_PASSWORD=${OPENSEARCH_LOGS_PASSWORD}
+
 volumes:
   os_data:
   redis_data:
