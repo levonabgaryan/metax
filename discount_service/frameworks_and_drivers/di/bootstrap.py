@@ -14,6 +14,7 @@ from discount_service.frameworks_and_drivers.di.scrappers_adapters_container imp
 from discount_service.frameworks_and_drivers.di.scrappers_adapters_selector_container import (
     ScrappersAdaptersSelectorContainer,
 )
+from logger.logger import init_logger
 
 
 @asynccontextmanager
@@ -61,6 +62,7 @@ class ServiceContainer(containers.DeclarativeContainer):
 
 
 def configured_service_container() -> ServiceContainer:
+    init_logger()
     service_container_ = ServiceContainer()
     service_container_.config.from_pydantic(discount_service_configs)
     return service_container_

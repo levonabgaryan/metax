@@ -1,17 +1,21 @@
 from typing import AsyncIterator
 
 import pytest
+from asgiref.sync import sync_to_async
 from dependency_injector.wiring import inject, Provide
+from django.db import connections
 from opensearchpy import AsyncOpenSearch
+from pytest_django import DjangoDbBlocker
 
 from discount_service.frameworks_and_drivers.di import get_service_container
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.fixture(scope="session")
-async def service_container_for_integration_tests() -> AsyncIterator[ServiceContainer]:
+async def service_container_for_integration_tests(
+    django_db_blocker: DjangoDbBlocker,
+) -> AsyncIterator[ServiceContainer]:
     service_container_instance = get_service_container()
-    # with django_db_blocker.unblock():
     init_task = service_container_instance.init_resources()
     if init_task:
         await init_task
@@ -22,6 +26,18 @@ async def service_container_for_integration_tests() -> AsyncIterator[ServiceCont
         modules=["discount_service.frameworks_and_drivers.celery_framework.tasks"],
     )
     yield service_container_instance
+    import asyncio
+
+    await asyncio.sleep(0.1)
+
+    with django_db_blocker.unblock():
+
+        def close_django_connections() -> None:
+            for conn in connections.all():
+                conn.close_if_unusable_or_obsolete()
+                conn.close()
+
+        await sync_to_async(close_django_connections)()
 
     shutdown_task = service_container_instance.shutdown_resources()
     if shutdown_task:
@@ -67,7 +83,6 @@ def pytest_configure(config: pytest.Config) -> None:
 
     def patched_destroy_test_db(self: DatabaseCreation, test_database_name: str, verbosity: Any) -> Any:
         with self.connection._nodb_cursor() as cursor:
-            # Сначала посмотрим в глаза этим гадам
             cursor.execute(f"""
                 SELECT pid, application_name, state, query 
                 FROM pg_stat_activity 
@@ -75,7 +90,7 @@ def pytest_configure(config: pytest.Config) -> None:
             """)
             active_sessions = cursor.fetchall()
             if active_sessions:
-                print(f"\n[DETECTED GANDONS]: Найдено {len(active_sessions)} живых сессий!")
+                print(f"\n[DETECTED]: Found {len(active_sessions)} open sessions!")
                 for s in active_sessions:
                     print(f"PID: {s[0]} | App: {s[1]} | State: {s[2]} | Last SQL: {s[3]}")
 
