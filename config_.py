@@ -7,7 +7,7 @@ from pydantic import Field
 
 
 class BaseConfigs(BaseSettings):
-    debug: Annotated[bool, Field(alias="DEBUG")]
+    debug: bool
 
     postgres_user: Annotated[str, Field(alias="POSTGRES_USER")]
     postgres_password: Annotated[str, Field(alias="POSTGRES_PASSWORD")]
@@ -58,7 +58,7 @@ class BaseConfigs(BaseSettings):
 
 class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
-    debug: Annotated[bool, Field(default=True)]
+    debug: bool = True
 
     postgres_user: Annotated[str, Field(default="p_user")]
     postgres_password: Annotated[str, Field(default="pass111")]
@@ -84,7 +84,7 @@ class DevConfigs(BaseConfigs):
 
 
 class TestConfigs(BaseConfigs):
-    debug: Annotated[bool, Field(default=False)]
+    debug: bool = True
 
     postgres_user: Annotated[str, Field(default="p_user")]
     postgres_password: Annotated[str, Field(default="pass111")]
@@ -112,7 +112,7 @@ class TestConfigs(BaseConfigs):
 
 
 class ProdConfigs(BaseConfigs):
-    debug: Annotated[bool, Field(default=False)]
+    debug: bool = False
 
 
 @lru_cache
