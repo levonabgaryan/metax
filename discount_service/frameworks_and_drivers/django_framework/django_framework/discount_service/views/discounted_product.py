@@ -4,7 +4,7 @@ from dependency_injector.wiring import inject, Provide
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 

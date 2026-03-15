@@ -6,9 +6,9 @@ from discount_service.core.application.patterns.services.category_classifier_ser
     CategoryClassifierService,
 )
 from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.patterns.factories.unit_of_work_factory import DjangoUnitOfWorkFactory
-from discount_service.frameworks_and_drivers.patterns.unit_of_work import UnitOfWork
+from discount_service.frameworks_and_drivers.patterns.unit_of_work.unit_of_work import UnitOfWork
 
 
 class PatternsContainer(containers.DeclarativeContainer):

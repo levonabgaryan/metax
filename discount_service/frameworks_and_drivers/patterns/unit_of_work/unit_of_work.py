@@ -5,7 +5,7 @@ from asgiref.sync import sync_to_async
 from django.db import transaction, close_old_connections
 from django.db.transaction import Atomic
 
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.entites_repositories.category import CategoryRepository
 from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
     DiscountedProductRepository,

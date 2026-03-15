@@ -14,7 +14,7 @@ from discount_service.core.application.commands_handlers.category import (
     CreateCategoryCommandHandler,
 )
 from discount_service.core.application.event_handlers.event_bus import EventBus
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from django_framework.discount_service.serializers.category import CreateCategorySerializer
 

@@ -7,11 +7,11 @@ from discount_service.core.application.event_handlers.event_bus import EventBus
 from discount_service.core.application.patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.services.discounted_products_collector import (
     BaseDiscountedProductsCollectorService,
 )
 from discount_service.core.application.use_cases.base_use_case import UseCase
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
 
 from discount_service.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,

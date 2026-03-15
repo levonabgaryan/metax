@@ -3,7 +3,7 @@ from typing import override
 from dependency_injector import providers
 
 from discount_service.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 
 
 class DjangoUnitOfWorkFactory(IUnitOfWorkFactory):

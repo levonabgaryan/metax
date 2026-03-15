@@ -17,7 +17,7 @@ from discount_service.core.application.patterns.services.category_classifier_ser
     CategoryClassifierService,
 )
 from ...core.application.event_handlers.event_bus import EventBus
-from ...core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from ...core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from ...core.application.use_cases.discounted_product.collect_discounted_products import CollectDiscountedProducts
 from ...core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
 

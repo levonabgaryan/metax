@@ -8,7 +8,7 @@ from discount_service.core.application.event_handlers.discounted_product.events 
 )
 from discount_service.core.application.event_handlers.retailer.events import RetailerUpdated
 from discount_service.core.application.event_handlers.event import Event
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from discount_service.core.application.ports.repositories.entites_repositories.discounted_product import (
     DiscountedProductRepository,
     DiscountedProductWithDetails,

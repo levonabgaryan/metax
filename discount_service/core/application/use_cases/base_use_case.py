@@ -1,7 +1,7 @@
 from abc import abstractmethod, ABC
 
 from discount_service.core.application.event_handlers.event_bus import EventBus
-from discount_service.core.application.ports.patterns.unit_of_work import AbstractUnitOfWork
+from discount_service.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 
 
 class RequestDTO:
