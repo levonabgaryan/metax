@@ -37,8 +37,11 @@ def init_logger() -> None:
     # Prevent duplicate initialization and clear default handlers (e.g., from Pytest)
     # If handlers already exist but aren't our QueueHandler, we clear them
     # to ensure our custom formatting and non-blocking logic take precedence.
-    if root_logger.hasHandlers() and not any(isinstance(h, QueueHandler) for h in root_logger.handlers):
-        root_logger.handlers = []
+    if any(isinstance(h, QueueHandler) for h in root_logger.handlers):
+        return None
+
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
 
     log_level = logging.DEBUG if discount_service_configs.debug else logging.INFO
     root_logger.setLevel(log_level)
@@ -66,3 +69,5 @@ def init_logger() -> None:
 
     listener.start()
     atexit.register(listener.stop)
+
+    return None
