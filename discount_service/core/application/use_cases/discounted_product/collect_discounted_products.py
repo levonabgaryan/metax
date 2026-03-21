@@ -1,3 +1,4 @@
+import logging
 from typing import override
 
 from discount_service.core.application.event_handlers.discounted_product.events import (
@@ -19,6 +20,8 @@ from discount_service.core.application.use_cases.discounted_product.dtos import 
 )
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
 
+logger = logging.getLogger(__name__)
+
 
 class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
     def __init__(
@@ -38,6 +41,10 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
     async def handle_use_case(
         self, request: CollectDiscountedProductsRequest
     ) -> CollectDiscountedProductsResponse:
+        logger.info(
+            "[Use Case: %s] | Status: STARTED",
+            self.__class__.__name__,
+        )
         total_count = 0
         batch = []
 
@@ -63,6 +70,10 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         event = NewDiscountedProductsFromRetailerCollected(new_products_created_date=request.started_time)
         await self._event_bus.handle(event)
 
+        logger.info(
+            "[Use Case: %s] | Status: SUCCESS",
+            self.__class__.__name__,
+        )
         return CollectDiscountedProductsResponse(added_count=total_count)
 
     async def _save_batch(self, batch: list[DiscountedProduct]) -> None:

@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import logging
 from functools import singledispatchmethod
 
 from discount_service.core.application.event_handlers.category.events import CategoryUpdated
@@ -18,6 +20,8 @@ from discount_service.core.application.ports.repositories.read_models_repositori
 )
 from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
 
+logger = logging.getLogger(__name__)
+
 
 class EventBus:
     def __init__(self, unit_of_work: AbstractUnitOfWork) -> None:
@@ -30,21 +34,46 @@ class EventBus:
     # Events handlers
     @handle.register
     async def _(self, event: CategoryUpdated) -> None:
-        # _update_category_in_discounted_product_read_model
+        logger.info(
+            "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
+            event.__class__.__name__,
+            event.category_uuid,
+        )
         updated_category = await self.__unit_of_work.category_repo.get_by_uuid(event.category_uuid)
         await self.__unit_of_work.discounted_product_read_model_repo.update_category(updated_category)
+        logger.info(
+            "[Event: %s] | Handler: Update category in read model | Status: SUCCESS | Target UUID: [%s]",
+            event.__class__.__name__,
+            event.category_uuid,
+        )
 
     @handle.register
     async def _(self, event: RetailerUpdated) -> None:
-        # _update_retailer_in_discounted_product_read_model
+        logger.info(
+            "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
+            event.__class__.__name__,
+            event.retailer_uuid,
+        )
         updated_retailer = await self.__unit_of_work.retailer_repo.get_by_uuid(event.retailer_uuid)
         await self.__unit_of_work.discounted_product_read_model_repo.update_retailer(updated_retailer)
+        logger.info(
+            "[Event: %s] | Handler: Update retailer in read model | Status: SUCCESS | Target UUID: [%s]",
+            event.__class__.__name__,
+            event.retailer_uuid,
+        )
 
     @handle.register
     async def _(self, event: NewDiscountedProductsFromRetailerCollected) -> None:
-        # _delete_old_discounted_products_in_entity_repo
+        logger.info(
+            "[Event: %s] | Handler: Delete old discount products from repo | Status: STARTED",
+            event.__class__.__name__,
+        )
         await self.__unit_of_work.discounted_product_repo.delete_older_than_and_return_deleted_count(
             date_limit=event.new_products_created_date
+        )
+        logger.info(
+            "[Event: %s] | Handler: Delete old discount products from repo | Status: SUCCESS",
+            event.__class__.__name__,
         )
         await self.handle(
             OldDiscountedProductsDeleted(new_discounted_products_creation_date=event.new_products_created_date)
@@ -52,7 +81,10 @@ class EventBus:
 
     @handle.register
     async def _(self, event: OldDiscountedProductsDeleted) -> None:
-        # _sync_discounted_products_from_entity_repo_to_read_model_repo
+        logger.info(
+            "[Event: %s] | Handler: Sync discount products from repo to read model | Status: STARTED",
+            event.__class__.__name__,
+        )
         batch_size = 500
         current_batch = []
         date_limit = event.new_discounted_products_creation_date
@@ -74,6 +106,10 @@ class EventBus:
             await read_model_repo.add_many([to_read_model(p) for p in current_batch])
 
         await read_model_repo.delete_older_than_and_return_deleted_count(date_limit=date_limit)
+        logger.info(
+            "[Event: %s] | Handler: Sync discount products from repo to read model | Status: SUCCESS",
+            event.__class__.__name__,
+        )
 
 
 def to_read_model(discounted_product_with_details: DiscountedProductWithDetails) -> DiscountedProductReadModel:

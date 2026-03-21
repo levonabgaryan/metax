@@ -23,18 +23,17 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
     async def handle_command(self, command: CreateCategoryCommand) -> None:
         async with self._unit_of_work as uow:
             logger.info(
-                "COMMAND HANDLING: [CreateCategory] | Category [%s]",
+                "[Command: %s] | Status: STARTED | Target UUID: [%s]",
+                command.__class__.__name__,
                 command.category_uuid,
-            )
-            logger.debug(
-                "COMMAND DETAILS: [CreateCategory] | Category [%s] | Name [%s] | HelperWords [%s]",
-                command.category_uuid,
-                command.name,
-                list(command.helper_words),
             )
             helper_words = CategoryHelperWords(command.helper_words)
             category = Category(category_uuid=command.category_uuid, name=command.name, helper_words=helper_words)
             repo = uow.category_repo
             await repo.add(category)
             await uow.commit()
-        logger.info("COMMAND SUCCESS: [CreateCategory] for Category [%s]", command.category_uuid)
+        logger.info(
+            "[Command: %s] | Status: SUCCESS | Target UUID: [%s]",
+            command.__class__.__name__,
+            category.get_uuid(),
+        )

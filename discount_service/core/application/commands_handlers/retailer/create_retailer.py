@@ -1,10 +1,14 @@
 from dataclasses import dataclass
 from typing import override
 from uuid import UUID
+import logging
 
 from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
 from discount_service.core.application.commands_handlers.command import Command
 from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -18,6 +22,11 @@ class CreateRetailerCommand(Command):
 class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
     @override
     async def handle_command(self, command: CreateRetailerCommand) -> None:
+        logger.info(
+            "[Command: %s] | Status: STARTED | Target UUID: [%s]",
+            command.__class__.__name__,
+            command.retailer_uuid,
+        )
         async with self._unit_of_work as uow:
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
@@ -27,3 +36,8 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
             )
             await uow.retailer_repo.add(retailer)
             await uow.commit()
+        logger.info(
+            "[Command: %s] | Status: SUCCESS | Target UUID: [%s]",
+            command.__class__.__name__,
+            retailer.get_uuid(),
+        )

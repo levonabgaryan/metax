@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import override
 from uuid import UUID
+import logging
 
 from discount_service.core.application.event_handlers.category.events import CategoryUpdated
 from discount_service.core.application.commands_handlers.base_command_handler import CommandHandler
@@ -9,6 +10,9 @@ from discount_service.core.application.ports.repositories.entites_repositories.c
     CategoryFieldsToUpdate,
 )
 from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -28,6 +32,11 @@ class UpdateCategoryCommand(Command):
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
     @override
     async def handle_command(self, command: UpdateCategoryCommand) -> None:
+        logger.info(
+            "[Command: %s] | Status: STARTED | Target UUID: [%s]",
+            command.__class__.__name__,
+            command.category_uuid,
+        )
         async with self._unit_of_work as uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
@@ -35,5 +44,10 @@ class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
             category.update(new_data)
             await repo.update(updated_category=category, fields_to_update=command.fields_to_update)
             await uow.commit()
+        logger.info(
+            "[Command: %s] | Status: SUCCESS | Target UUID: [%s]",
+            command.__class__.__name__,
+            category.get_uuid(),
+        )
         event = CategoryUpdated(category_uuid=category.get_uuid())
         await self._event_bus.handle(event)

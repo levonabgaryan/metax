@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncIterator, TypedDict
+from typing import AsyncIterator
 from uuid import UUID
 
 from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
@@ -76,10 +76,3 @@ class ScrapperAdapter(ABC):
             url=url,
         )
         return discounted_product
-
-
-class DiscountedProductDTOFromYRetailer(TypedDict):
-    name: str
-    real_price: str
-    discounted_price: str
-    url: str
