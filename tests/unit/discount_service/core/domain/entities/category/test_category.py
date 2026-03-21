@@ -2,8 +2,8 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-from discount_service.core.domain.entities.category_entity.errors.errors import (
+from metax.core.domain.entities.category_entity.category import Category, CategoryHelperWords
+from metax.core.domain.entities.category_entity.errors.errors import (
     DuplicateCategoryHelperWordsError,
     CategoryHelperWordsNotFoundForDeletionError,
 )

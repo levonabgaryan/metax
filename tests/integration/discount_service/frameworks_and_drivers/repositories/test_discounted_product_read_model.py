@@ -3,9 +3,9 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import (
     make_discounted_product_read_model,
@@ -13,7 +13,7 @@ from tests.utils import (
     make_retailer_entity,
 )
 from tests.integration.conftest import refresh_opensearch_index
-from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
 @pytest.mark.asyncio

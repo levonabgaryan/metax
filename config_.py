@@ -45,7 +45,7 @@ class BaseConfigs(BaseSettings):
 
     @property
     def django_dir(self) -> str:
-        return str(Path(self.project_root_pythonpath) / "discount_service/frameworks_and_drivers/django_framework")
+        return str(Path(self.project_root_pythonpath) / "metax/frameworks_and_drivers/django_framework")
 
     @property
     def celery_broker_url(self) -> str:
@@ -133,15 +133,4 @@ def get_configs() -> BaseConfigs:
             raise RuntimeError(f"Invalid ENV: {env_name}")
 
 
-discount_service_configs = get_configs()
-
-# Logging advices
-
-# STDIN (Standard Input):
-# Данные в stdin могут «вливаться» из другого файла или даже из вывода другой программы через символ конвейера (|). Например: cat data.txt | python script.py.
-#
-# STDOUT (Standard Output):
-# Нюанс: Важно помнить, что stdout буферизуется. Это значит, что данные могут не появиться на экране мгновенно, а копиться в памяти, пока их не станет достаточно много для вывода (или пока ты не вызовешь flush).
-#
-# STDERR (Standard Error):
-# Нюанс: Главная фишка в том, что stderr обычно не буферизуется. Ошибка должна «вылететь» на экран немедленно, как только она произошла, не дожидаясь наполнения буфера.
+metax_configs = get_configs()

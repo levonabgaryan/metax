@@ -1,11 +1,11 @@
 import pytest
 
-from discount_service.core.application.commands_handlers.category.delete_helper_words import (
+from metax.core.application.commands_handlers.category.delete_helper_words import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
-from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.category_entity.category import CategoryHelperWords
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
 
 

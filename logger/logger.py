@@ -4,7 +4,7 @@ import queue
 import sys
 from logging.handlers import QueueListener, QueueHandler
 
-from config_ import discount_service_configs
+from config_ import metax_configs
 
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)s %(threadName)s] [%(name)s] [%(message)s]"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -43,7 +43,7 @@ def init_logger() -> None:
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    log_level = logging.DEBUG if discount_service_configs.debug else logging.INFO
+    log_level = logging.DEBUG if metax_configs.debug else logging.INFO
     root_logger.setLevel(log_level)
 
     formatter = logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)

@@ -2,12 +2,12 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from discount_service.core.application.ports.repositories.entites_repositories.retailer import (
+from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
-from discount_service.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity
 
 

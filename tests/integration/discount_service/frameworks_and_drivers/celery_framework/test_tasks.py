@@ -5,16 +5,16 @@ from unittest.mock import MagicMock
 import pytest
 from celery.schedules import crontab
 
-from discount_service.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
-from discount_service.frameworks_and_drivers.celery_framework.tasks import (
+from metax.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
+from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from discount_service.frameworks_and_drivers.di import ServiceContainer
+from metax.frameworks_and_drivers.di import ServiceContainer
 from tests.utils import make_retailer_entity, __aiter_wrapper, make_discounted_product_entity
 
 
 def test_collect_products_task_schedule() -> None:
-    from discount_service.frameworks_and_drivers.celery_framework.celery_application import celery_app
+    from metax.frameworks_and_drivers.celery_framework.celery_application import celery_app
 
     task_name = "run-daily-task-at-0100"
 

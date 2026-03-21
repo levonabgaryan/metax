@@ -55,7 +55,7 @@ jobs:
 
       - name: Run Docker containers
         working-directory: ./
-        run: docker compose -f discount_service.docker-compose.yml up -d
+        run: docker compose -f metax.docker-compose.yml up -d
 
       - name: Wait for OpenSearch
         run: |
@@ -88,4 +88,4 @@ jobs:
       - name: Stop containers
         if: always()
         working-directory: ./
-        run: docker compose -f discount_service.docker-compose.yml down
+        run: docker compose -f metax.docker-compose.yml down

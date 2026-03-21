@@ -1,10 +1,10 @@
 import pytest
 
-from discount_service.core.application.commands_handlers.category import (
+from metax.core.application.commands_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import make_category_entity
 

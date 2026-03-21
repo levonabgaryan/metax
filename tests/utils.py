@@ -5,13 +5,13 @@ from typing import AsyncIterator, Iterator, Any, Iterable
 from uuid import UUID, uuid4
 
 
-from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
-from discount_service.core.domain.entities.category_entity.category import CategoryHelperWords, Category
-from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.domain.entities.category_entity.category import CategoryHelperWords, Category
+from metax.core.domain.entities.discounted_product_entity.discounted_product import (
     PriceDetails,
     DiscountedProduct,
 )
-from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.retailer_entity.retailer import Retailer
 
 
 def make_category_entity(

@@ -2,15 +2,15 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.application.ports.repositories.entites_repositories.category import (
+from metax.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
-from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from discount_service.core.domain.entities.category_entity.category import (
+from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from metax.core.domain.entities.category_entity.category import (
     CategoryHelperWords,
     DataForCategoryUpdate,
 )
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
 
 

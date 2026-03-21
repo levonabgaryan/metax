@@ -1,11 +1,11 @@
 from uuid import uuid4
 import pytest
 
-from discount_service.core.application.commands_handlers.retailer import (
+from metax.core.application.commands_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.mark.django_db(transaction=True)

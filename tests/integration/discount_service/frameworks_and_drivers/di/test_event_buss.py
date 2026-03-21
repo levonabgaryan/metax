@@ -1,6 +1,6 @@
 import pytest
 
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.mark.asyncio

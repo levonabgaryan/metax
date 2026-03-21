@@ -4,7 +4,7 @@
 #
 # import pytest
 #
-# from discount_service.frameworks_and_drivers.di import ServiceContainer
+# from metax.frameworks_and_drivers.di import ServiceContainer
 #
 # from tests.utils import __aiter_wrapper, make_retailer_entity
 # from constants import RetailersNames

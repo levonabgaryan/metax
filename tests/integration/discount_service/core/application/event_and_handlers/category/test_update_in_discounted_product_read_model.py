@@ -1,14 +1,14 @@
 from datetime import datetime, timezone
 import pytest
 
-from discount_service.core.application.ports.repositories.entites_repositories.category import (
+from metax.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
-from discount_service.core.application.read_models.discounted_product import DiscountedProductReadModel
-from discount_service.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from discount_service.core.application.event_handlers.category.events import CategoryUpdated
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
-from discount_service.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from metax.core.application.event_handlers.category.events import CategoryUpdated
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
     make_category_entity,
     make_retailer_entity,

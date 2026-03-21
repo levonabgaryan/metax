@@ -4,8 +4,8 @@ import pytest
 from dependency_injector.wiring import inject, Provide
 from opensearchpy import AsyncOpenSearch
 
-from discount_service.frameworks_and_drivers.di import get_service_container
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di import get_service_container
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 
 @pytest.fixture(scope="session")
@@ -18,7 +18,7 @@ async def service_container_for_integration_tests() -> AsyncIterator[ServiceCont
     service_container_instance.wire(
         packages=[__name__, "tests.integration", "tests.e2e"],
         warn_unresolved=True,
-        modules=["discount_service.frameworks_and_drivers.celery_framework.tasks"],
+        modules=["metax.frameworks_and_drivers.celery_framework.tasks"],
     )
     yield service_container_instance
 
@@ -33,7 +33,7 @@ async def service_container_for_integration_tests() -> AsyncIterator[ServiceCont
 async def setup_opensearch_migration(
     service_container_for_integration_tests: ServiceContainer,
 ) -> AsyncIterator[None]:
-    from discount_service.frameworks_and_drivers.opensearch.migration import migrate_indices, delete_all_indices
+    from metax.frameworks_and_drivers.opensearch.migration import migrate_indices, delete_all_indices
 
     opensearch_async_client_ = await service_container_for_integration_tests.opensearch_async_client.async_()
     await migrate_indices(opensearch_async_client_)

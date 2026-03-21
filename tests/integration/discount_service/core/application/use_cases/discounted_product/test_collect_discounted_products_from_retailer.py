@@ -3,10 +3,10 @@
 #
 # import pytest
 #
-# from discount_service.core.application.use_cases.discounted_product.dtos import (
+# from metax.core.application.use_cases.discounted_product.dtos import (
 #     CollectDiscountedProductsFromRetailerRequest,
 # )
-# from discount_service.frameworks_and_drivers.di import ServiceContainer
+# from metax.frameworks_and_drivers.di import ServiceContainer
 # from tests.utils import make_retailer_entity, __aiter_wrapper
 #
 #

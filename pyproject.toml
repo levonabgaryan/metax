@@ -1,5 +1,5 @@
 [project]
-name = "discount-system"
+name = "metax"
 version = "0.1.0"
 requires-python = "==3.14.2"
 dependencies = [
@@ -34,15 +34,15 @@ dependencies = [
 [tool.mypy]
 strict = true
 show_error_codes = true
-mypy_path = ".:discount_service/frameworks_and_drivers/django_framework"
+mypy_path = ".:metax/frameworks_and_drivers/django_framework"
 explicit_package_bases = true
 namespace_packages = true
 
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 
 exclude = [
-    'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/views/.*',
-    'discount_service/frameworks_and_drivers/django_framework/django_framework/discount_service/serializers/.*',
+    'metax/frameworks_and_drivers/django_framework/django_framework/metax/views/.*',
+    'metax/frameworks_and_drivers/django_framework/django_framework/metax/serializers/.*',
 ]
 
 
@@ -96,11 +96,11 @@ no_implicit_reexport = true
 disallow_any_generics = true
 
 [[tool.mypy.overrides]]
-module = "django_framework.discount_service.views.*"
+module = "django_framework.metax.views.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = "django_framework.discount_service.serializers.*"
+module = "django_framework.metax.serializers.*"
 ignore_errors = true
 
 [[tool.mypy.overrides]]
@@ -207,9 +207,9 @@ env = [
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-DJANGO_SETTINGS_MODULE = "discount_service.frameworks_and_drivers.django_framework.django_framework.settings"
+DJANGO_SETTINGS_MODULE = "metax.frameworks_and_drivers.django_framework.django_framework.settings"
 python_files = ["tests.py", "test_*.py", "*_tests.py"]
 pythonpath = [
     ".",
-    "discount_service/frameworks_and_drivers/django_framework",
+    "metax/frameworks_and_drivers/django_framework",
 ]

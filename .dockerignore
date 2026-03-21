@@ -91,7 +91,7 @@ venv/
 
 .pre-commit-config.yaml
 .github
-discount_service.docker-compose.yml
+metax.docker-compose.yml
 Dockerfile.base
 README.md
 tests/

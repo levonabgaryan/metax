@@ -4,14 +4,14 @@ from uuid import uuid4
 
 import pytest
 
-from discount_service.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from discount_service.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-from discount_service.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from metax.core.domain.entities.category_entity.category import Category, CategoryHelperWords
+from metax.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
     PriceDetails,
 )
-from discount_service.core.domain.entities.retailer_entity.retailer import Retailer
-from discount_service.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 

@@ -1,6 +1,6 @@
 from uuid import uuid4
 
-from discount_service.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
+from metax.core.domain.entities.retailer_entity.retailer import Retailer, DataForRetailerUpdate
 
 
 def test_retailer_update() -> None:
