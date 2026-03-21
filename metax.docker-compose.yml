@@ -22,9 +22,9 @@ services:
       metax-postgres-db:
         condition: service_healthy
     logging:
-      driver: gelf
+      driver: fluentd
       options:
-        gelf-address: "udp://${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
+        fluentd-address: "${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
         tag: "metax"
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -92,9 +92,9 @@ services:
       metax:
         condition: service_healthy
     logging:
-      driver: gelf
+      driver: fluentd
       options:
-        gelf-address: "udp://${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
+        fluentd-address: "${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
         tag: "metax-celery"
     extra_hosts:
       - "host.docker.internal:host-gateway"
