@@ -1,13 +1,13 @@
 services:
-  backend:
+  metax:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
-    container_name: backend
+    container_name: metax
     ports:
       - "${DJANGO_SERVER_PORT}:8000"
     networks:
-      - discount-service-net
+      - metax-net
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthcheck/').getcode()"]
       interval: 30s
@@ -15,26 +15,28 @@ services:
       retries: 10
       start_period: 20s
     depends_on:
-      opensearch-node:
+      metax-opensearch-db:
         condition: service_healthy
-      redis:
+      metax-redis:
         condition: service_healthy
-      postgres-db:
+      metax-postgres-db:
         condition: service_healthy
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:${FLUENT_BIT_PORT}"
-        tag: "discount-backend"
+        gelf-address: "udp://${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
+        tag: "metax"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  postgres-db:
+  metax-postgres-db:
     image: postgres:18.1-alpine3.23
     env_file: ".env"
-    container_name: postgres-db
+    container_name: metax-postgres-db
     ports:
       - "${POSTGRES_PORT}:5432"
     networks:
-      - discount-service-net
+      - metax-net
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
@@ -43,10 +45,10 @@ services:
       timeout: 5s
       retries: 5
 
-  opensearch-node:
+  metax-opensearch-db:
     image: opensearchproject/opensearch:3.4.0
     env_file: ".env"
-    container_name: opensearch-node
+    container_name: metax-opensearch-db
     environment:
       - discovery.type=single-node
       - cluster.name=opensearch-cluster
@@ -76,44 +78,30 @@ services:
       /usr/share/opensearch/opensearch-docker-entrypoint.sh
       "
     networks:
-      - discount-service-net
+      - metax-net
 
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:3.4.0
-    env_file: ".env"
-    container_name: opensearch-dashboards
-    ports:
-      - "${OPENSEARCH_DASHBOARD_PORT}:5601"
-    environment:
-      - OPENSEARCH_HOSTS=["https://opensearch-node:9200"]
-      - "OPENSEARCH_USERNAME=admin"
-      - "OPENSEARCH_PASSWORD=${OPENSEARCH_ADMIN_PASSWORD}"
-    depends_on:
-      opensearch-node:
-        condition: service_healthy
-    networks:
-      - discount-service-net
-
-  celery:
+  merax-celery:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
-    container_name: celery
+    container_name: metax-celery
     command: celery_framework -A metax.frameworks_and_drivers.celery_framework.celery_application worker -B -l info
     networks:
-      - discount-service-net
+      - metax-net
     depends_on:
-      backend:
+      metax:
         condition: service_healthy
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:${FLUENT_BIT_PORT}"
-        tag: "discount-celery"
+        gelf-address: "udp://${FLUENT_BIT_HOST}:${FLUENT_BIT_PORT}"
+        tag: "metax-celery"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  redis:
+  metax-redis:
     image: redis:8.4.0-alpine
-    container_name: redis
+    container_name: metax-redis
     env_file: ".env"
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -128,17 +116,7 @@ services:
       timeout: 3s
       retries: 3
     networks:
-      - discount-service-net
-
-  fluent-bit:
-      image: fluent/fluent-bit:4.2.3
-      container_name: fluent-bit
-      user: root
-      ports:
-        - "${FLUENT_BIT_PORT}:12201/udp"
-      volumes:
-        - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-        - ./parsers.conf:/fluent-bit/etc/parsers.conf
+      - metax-net
 
 volumes:
   os_data:
@@ -147,4 +125,4 @@ volumes:
 
 
 networks:
-  discount-service-net:
+  metax-net:

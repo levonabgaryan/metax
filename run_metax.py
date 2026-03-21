@@ -71,7 +71,7 @@ async def run_django_uvicorn_server() -> None:
     host = metax_configs.django_host
     port = metax_configs.django_port
 
-    if env.get("ENV") != "prod":
+    if env.get("ENV") == "dev":
         command = [
             "-m",
             "uvicorn",
@@ -160,7 +160,7 @@ async def run_metax_app() -> None:
         shutdown_task = container.shutdown_resources()
         if shutdown_task:
             await shutdown_task
-        logger.info("[SHUTDOWN] | Goodbye!")
+        logger.info("[SHUTDOWN] | Metax Shut downed!")
 
 
 if __name__ == "__main__":

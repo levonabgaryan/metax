@@ -13,6 +13,7 @@ WORKDIR /discount-system
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libc-dev \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml uv.lock ./
@@ -21,4 +22,4 @@ RUN uv lock --check && uv pip install -r pyproject.toml && rm -rf /root/.cache/u
 
 COPY . .
 
-ENTRYPOINT ["python", "run_discount_service.py"]
+ENTRYPOINT ["python", "run_metax.py"]

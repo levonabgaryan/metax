@@ -63,17 +63,9 @@ class DevConfigs(BaseConfigs):
     postgres_user: Annotated[str, Field(default="p_user")]
     postgres_password: Annotated[str, Field(default="pass111")]
     postgres_db: Annotated[str, Field(default="discount-system")]
-    postgres_host: Annotated[str, Field(default="localhost")]
-    postgres_port: Annotated[int, Field(default="5432")]
 
-    opensearch_user: Annotated[str, Field(default="admin")]
-    opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
-    opensearch_host: Annotated[str, Field(default="localhost")]
-    opensearch_port: Annotated[int, Field(default=9200)]
     opensearch_verify_certs: Annotated[bool, Field(default=False)]
 
-    django_host: Annotated[str, Field(default="localhost")]
-    django_port: Annotated[int, Field(default=8000)]
     django_secret_key: Annotated[
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
@@ -89,17 +81,9 @@ class TestConfigs(BaseConfigs):
     postgres_user: Annotated[str, Field(default="p_user")]
     postgres_password: Annotated[str, Field(default="pass111")]
     postgres_db: Annotated[str, Field(default="discount-system")]
-    postgres_host: Annotated[str, Field(default="localhost")]
-    postgres_port: Annotated[int, Field(default="5432")]
 
-    opensearch_user: Annotated[str, Field(default="admin")]
-    opensearch_password: Annotated[str, Field(default="My_Super_Secret_Pass_2026!")]
-    opensearch_host: Annotated[str, Field(default="localhost")]
-    opensearch_port: Annotated[int, Field(default=9200)]
     opensearch_verify_certs: Annotated[bool, Field(default=False)]
 
-    django_host: Annotated[str, Field(default="0.0.0.0")]
-    django_port: Annotated[int, Field(default=8000)]
     django_secret_key: Annotated[
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
