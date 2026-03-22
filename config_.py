@@ -1,5 +1,5 @@
 import os
-from functools import lru_cache
+import sys
 from pathlib import Path
 from typing import Annotated
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -86,7 +86,7 @@ class DevConfigs(BaseConfigs):
     redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
 
     fluent_bit_host: Annotated[str, Field(default="mock")]
-    fluent_bit_port: Annotated[int, Field(default="mock")]
+    fluent_bit_port: Annotated[int, Field(default=0)]
 
     yerevan_city_products_details_url: Annotated[str, Field(default="mock")]
     yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
@@ -98,11 +98,11 @@ class DevConfigs(BaseConfigs):
 class TestConfigs(BaseConfigs):
     debug: bool = True
 
-    postgres_host: Annotated[str, Field(alias="localhost")]
-    postgres_port: Annotated[int, Field(alias="5432")]
+    postgres_host: Annotated[str, Field(default="localhost")]
+    postgres_port: Annotated[int, Field(default="5432")]
     postgres_user: Annotated[str, Field(default="p_user")]
     postgres_password: Annotated[str, Field(default="pass111")]
-    postgres_db: Annotated[str, Field(default="discount-system")]
+    postgres_db: Annotated[str, Field(default="metax")]
 
     opensearch_user: Annotated[str, Field(default="admin")]
     opensearch_password: Annotated[str, Field(default="Os_Super_Secret_Pass_2026!")]
@@ -121,25 +121,32 @@ class TestConfigs(BaseConfigs):
     redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
 
     fluent_bit_host: Annotated[str, Field(default="mock")]
-    fluent_bit_port: Annotated[int, Field(default="mock")]
+    fluent_bit_port: Annotated[int, Field(default=0)]
 
     yerevan_city_products_details_url: Annotated[str, Field(default="mock")]
     yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
 
     sas_am_main_page_url: Annotated[str, Field(default="mock")]
     sas_am_data_source_url: Annotated[str, Field(default="mock")]
+    model_config = SettingsConfigDict(
+        env_file=None,
+        extra="ignore",
+        env_prefix="TEST_FORCE_IGNORE_",
+    )
 
 
 class ProdConfigs(BaseConfigs):
     debug: bool = False
 
 
-@lru_cache
 def get_configs() -> BaseConfigs:
     from dotenv import load_dotenv
 
     load_dotenv()
     env_name = os.getenv("ENV")
+
+    if "pytest" in sys.modules or "pytest" in sys.argv[0]:
+        env_name = "test"
 
     match env_name:
         case "dev":
