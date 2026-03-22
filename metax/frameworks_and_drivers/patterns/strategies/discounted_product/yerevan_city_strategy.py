@@ -35,7 +35,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
         async with httpx.AsyncClient(timeout=25) as client:
             try:
                 response = await client.post(
-                    url=self.__yerevan_city_data_source_url, json=self.get_scrapper_payload()
+                    url=self.__yerevan_city_data_source_url, json=self.__get_scrapper_payload()
                 )
                 response.raise_for_status()
             except Exception as e:
@@ -61,7 +61,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
             await asyncio.sleep(0.0)
 
     @staticmethod
-    def get_scrapper_payload() -> dict[str, Any]:
+    def __get_scrapper_payload() -> dict[str, Any]:
         return {
             "count": 10000,
             "page": 1,

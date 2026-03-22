@@ -25,7 +25,7 @@ from metax.frameworks_and_drivers.di import get_service_container
 class CategoryAdminHandler:
     def __init__(self, admin_site: AdminSite):
         super().__init__()
-        self.admin_site = admin_site
+        self.__admin_site = admin_site
 
     def add_category(self, request: HttpRequest) -> HttpResponse:
         if request.method == "POST":
@@ -37,7 +37,7 @@ class CategoryAdminHandler:
                 return redirect("admin:index")
 
         context = {
-            **self.admin_site.each_context(request),
+            **self.__admin_site.each_context(request),
             "title": "Add Category",
         }
         return render(request, "admin/category/add.html", context)
@@ -48,7 +48,7 @@ class CategoryAdminHandler:
         categories_data = [self.__convert_category_to_dict(category) for category in categories]
 
         context = {
-            **self.admin_site.each_context(request),
+            **self.__admin_site.each_context(request),
             "title": "Categories",
             "categories": categories_data,
         }

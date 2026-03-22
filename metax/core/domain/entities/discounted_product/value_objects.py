@@ -19,13 +19,13 @@ class PriceDetails(ValueObject):
         object.__setattr__(
             self,
             "real_price",
-            self._normalize(self.real_price),
+            self.__normalize(self.real_price),
         )
 
         object.__setattr__(
             self,
             "discounted_price",
-            self._normalize(self.discounted_price),
+            self.__normalize(self.discounted_price),
         )
         self.__validate_real_price()
         self.__validate_discounted_price()
@@ -47,7 +47,7 @@ class PriceDetails(ValueObject):
             )
 
     @staticmethod
-    def _normalize(value: Decimal) -> Decimal:
+    def __normalize(value: Decimal) -> Decimal:
         """
         Force 2 decimal places: 12 -> 12.00, 12.5 -> 12.50
         """

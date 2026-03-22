@@ -57,12 +57,12 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
             batch.append(discounted_product)
 
             if len(batch) >= self.__batch_size_for_saving_discounted_products:
-                await self._save_batch(batch)
+                await self.__save_batch(batch)
                 total_count += len(batch)
                 batch = []
 
         if batch:
-            await self._save_batch(batch)
+            await self.__save_batch(batch)
             total_count += len(batch)
 
         event = NewDiscountedProductsFromRetailerCollected(
@@ -76,7 +76,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         )
         return CollectDiscountedProductsResponse(added_count=total_count)
 
-    async def _save_batch(self, batch: list[DiscountedProduct]) -> None:
+    async def __save_batch(self, batch: list[DiscountedProduct]) -> None:
         async with self._unit_of_work as uow:
             await uow.discounted_product_repo.add_many(batch)
             await uow.commit()

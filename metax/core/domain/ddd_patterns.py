@@ -28,28 +28,26 @@ class Entity:
     """
 
     def __init__(self, _uuid: UUID) -> None:
-        self._uuid: Final[UUID] = _uuid
+        self.__uuid: Final[UUID] = _uuid
 
     @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._uuid == other._uuid
+        return self.get_uuid() == other.get_uuid()
 
     @override
     def __hash__(self) -> int:
         """
         Generates a hash based on the entity's ID.
 
-        Since '_uuid' is a UUID, the system ensures that the same entity will always
-        have the same ID throughout its lifecycle. This unique identity is used to
-        ensure database constraints (e.g., preventing the saving of two different
-        entities with the same logical ID).
+        The UUID ensures the same entity keeps the same identity for its lifecycle
+        and supports constraints (e.g. no two different entities with the same logical ID).
         """
-        return hash(self._uuid)
+        return hash(self.get_uuid())
 
     def get_uuid(self) -> UUID:
-        return self._uuid
+        return self.__uuid
 
 
 class AggregateRootEntity(Entity):
