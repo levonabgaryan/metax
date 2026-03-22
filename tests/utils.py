@@ -28,10 +28,6 @@ def make_category_entity(
     )
 
 
-def _retailers_name(name: RetailersNames | str) -> RetailersNames:
-    return name if isinstance(name, RetailersNames) else RetailersNames(name)
-
-
 def make_retailer_entity(
     retailer_uuid: UUID | None = None,
     name: RetailersNames = RetailersNames.YEREVAN_CITY,
@@ -40,7 +36,7 @@ def make_retailer_entity(
 ) -> Retailer:
     return Retailer(
         retailer_uuid=retailer_uuid or uuid4(),
-        name=_retailers_name(name),
+        name=name,
         phone_number=phone_number,
         home_page_url=url,
     )

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 from datetime import datetime, timezone
 
@@ -17,9 +19,6 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.frameworks_and_drivers.di.scrappers_adapters_selector_container import (
-    RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_STRATEGY,
-)
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.sas_am_strategy import SasAmStrategy
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
     YerevanCityStrategy,
@@ -27,6 +26,7 @@ from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan
 
 from ..di import ServiceContainer
 from .celery_application import celery_app
+from ...core.domain.entities.retailer.value_objects import RetailersNames
 
 
 async def collect_discounted_products_from_all_retailers(
@@ -90,3 +90,11 @@ async def celery_task_collect_discounted_products_from_all_retailers(
         start_date_of_collecting=started_time,
         event_bus=event_bus,
     )
+
+
+RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_STRATEGY: dict[
+    RetailersNames, type[DiscountedProductCollectorStrategy]
+] = {
+    RetailersNames.YEREVAN_CITY: YerevanCityStrategy,
+    RetailersNames.SAS_AM: SasAmStrategy,
+}
