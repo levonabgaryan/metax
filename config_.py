@@ -138,6 +138,8 @@ class TestConfigs(BaseConfigs):
 class ProdConfigs(BaseConfigs):
     debug: bool = False
 
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=False)
+
 
 def get_configs() -> BaseConfigs:
     from dotenv import load_dotenv

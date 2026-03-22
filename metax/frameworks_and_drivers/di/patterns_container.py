@@ -7,15 +7,12 @@ from metax.core.application.patterns.services.category_classifier_service import
 )
 from metax.core.application.ports.patterns.factories.unit_of_work_factory import IUnitOfWorkFactory
 from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.frameworks_and_drivers.patterns.factories.unit_of_work_factory import DjangoUnitOfWorkFactory
+from metax.frameworks_and_drivers.patterns.factory.unit_of_work_factory import DjangoUnitOfWorkFactory
 from metax.frameworks_and_drivers.patterns.unit_of_work.unit_of_work import UnitOfWork
 
 
 class PatternsContainer(containers.DeclarativeContainer):
     repositories_container: providers.DependenciesContainer = providers.DependenciesContainer()
-    discounted_products_collector_services_container: providers.DependenciesContainer = (
-        providers.DependenciesContainer()
-    )
     unit_of_work: providers.Factory[AbstractUnitOfWork] = providers.Factory(
         UnitOfWork,
         discounted_product_repo=repositories_container.discounted_product_repository,

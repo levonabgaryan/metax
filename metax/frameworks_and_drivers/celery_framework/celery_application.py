@@ -25,7 +25,7 @@ service_container.wire(
 
 celery_app.conf.beat_schedule = {
     "run-daily-task-at-0100": {
-        "task": "tasks.collect_discounted_products_from_retailer",
+        "task": "CollectDiscountedProducts",
         "schedule": crontab(hour=1, minute=0),
         "options": {"queue": "default"},
     },

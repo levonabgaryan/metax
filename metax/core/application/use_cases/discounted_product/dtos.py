@@ -6,7 +6,7 @@ from metax.core.application.use_cases.base_use_case import RequestDTO, ResponseD
 
 @dataclass(frozen=True)
 class CollectDiscountedProductsRequest(RequestDTO):
-    started_time: datetime
+    start_date_of_collecting: datetime
 
 
 @dataclass(frozen=True)

@@ -8,10 +8,10 @@ from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.core.application.ports.services.discounted_products_collector import (
-    BaseDiscountedProductsCollectorService,
+from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_context import (
+    DiscountedProductCollectorContext,
 )
+from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from metax.core.application.use_cases.base_use_case import UseCase
 
 from metax.core.application.use_cases.discounted_product.dtos import (
@@ -28,12 +28,12 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         self,
         unit_of_work: AbstractUnitOfWork,
         event_bus: EventBus,
-        discounted_product_collector_service: BaseDiscountedProductsCollectorService,
+        discounted_product_collector_context: DiscountedProductCollectorContext,
         category_classifier_service: CategoryClassifierService,
         batch_size_for_saving_discounted_products: int = 500,
     ) -> None:
         super().__init__(unit_of_work=unit_of_work, event_bus=event_bus)
-        self.__discounted_product_collector_service = discounted_product_collector_service
+        self.__discounted_product_collector_context = discounted_product_collector_context
         self.__batch_size_for_saving_discounted_products = batch_size_for_saving_discounted_products
         self.__category_classifier_service = category_classifier_service
 
@@ -48,9 +48,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         total_count = 0
         batch = []
 
-        async for discounted_product in self.__discounted_product_collector_service.collect_discounted_products(
-            started_time=request.started_time
-        ):
+        async for discounted_product in self.__discounted_product_collector_context.do_collect():
             category = await self.__category_classifier_service.classify_category(
                 discounted_product_name=discounted_product.get_name()
             )
@@ -67,7 +65,9 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
             await self._save_batch(batch)
             total_count += len(batch)
 
-        event = NewDiscountedProductsFromRetailerCollected(new_products_created_date=request.started_time)
+        event = NewDiscountedProductsFromRetailerCollected(
+            new_products_created_date=request.start_date_of_collecting
+        )
         await self._event_bus.handle(event)
 
         logger.info(

@@ -7,33 +7,42 @@ from typing import AsyncIterator, ClassVar, override
 import httpx
 from bs4 import BeautifulSoup
 
+from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
+    DiscountedProductCollectorStrategy,
+)
 from metax.core.domain.entities.discounted_product_entity.discounted_product import (
     DiscountedProduct,
     PriceDetails,
 )
 from metax.core.domain.entities.retailer_entity.retailer import Retailer
-from metax.frameworks_and_drivers.scrappers_adapters.scrapper_adapter import (
-    ScrapperAdapter,
+from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
+    DiscountedProductFieldsCleanerMixin,
 )
 
 
-class SasAmScrapperAdapter(ScrapperAdapter):
+class SasAmStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsCleanerMixin):
     DATA_SOURCE_URL_LIMIT_PARAM: ClassVar[int] = 60
     MAX_PRODUCTS_COUNT: ClassVar[int] = 900
 
-    def __init__(self, sas_am_data_source_url: str, sas_am_main_page_url: str) -> None:
-        super().__init__(data_source_url=sas_am_data_source_url)
-        self._sas_am_main_page_url = sas_am_main_page_url
+    def __init__(
+        self,
+        sas_am_data_source_url: str,
+        sas_am_main_page_url: str,
+        retailer: Retailer,
+    ) -> None:
+        super().__init__(retailer=retailer)
+        self.__sas_am_main_page_url = sas_am_main_page_url
+        self.__data_source_url = sas_am_data_source_url
 
     @override
-    async def fetch(self, started_time: datetime, retailer: Retailer) -> AsyncIterator[DiscountedProduct]:
+    async def collect(self, start_date_of_collecting: datetime) -> AsyncIterator[DiscountedProduct]:
         async with httpx.AsyncClient(timeout=10.0) as client:
             for offset_param in range(0, self.MAX_PRODUCTS_COUNT, self.DATA_SOURCE_URL_LIMIT_PARAM):
                 if offset_param == 0:
-                    url_ = f"{self._data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}"
+                    url_ = f"{self.__data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}"
                 else:
                     url_ = (
-                        f"{self._data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}&offset={offset_param}"
+                        f"{self.__data_source_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}&offset={offset_param}"
                     )
 
                 response = await client.get(url=url_)
@@ -83,18 +92,18 @@ class SasAmScrapperAdapter(ScrapperAdapter):
                     if not isinstance(href, str):
                         continue
 
-                    raw_product_url = f"{self._sas_am_main_page_url}{href}" if href.startswith("/") else href
+                    raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
 
                     yield DiscountedProduct(
                         discounted_product_uuid=uuid.uuid4(),
-                        name=self._clean_discounted_product_name(text=name),
+                        name=self.clean_discounted_product_name(text=name),
                         price_details=PriceDetails(
-                            real_price=Decimal(self._clean_discounted_product_price(old_span.text.strip())),
-                            discounted_price=Decimal(self._clean_discounted_product_price(new_span.text.strip())),
+                            real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
+                            discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
                         ),
                         url=raw_product_url,
-                        created_at=started_time,
-                        retailer_uuid=retailer.get_uuid(),
+                        created_at=start_date_of_collecting,
+                        retailer_uuid=self._retailer.get_uuid(),
                         category_uuid=None,
                     )
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(0.0)

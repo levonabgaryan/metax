@@ -10,10 +10,6 @@ from config_ import metax_configs
 
 from metax.frameworks_and_drivers.di.patterns_container import PatternsContainer
 from metax.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
-from metax.frameworks_and_drivers.di.scrappers_adapters_container import ScrappersAdaptersContainer
-from metax.frameworks_and_drivers.di.scrappers_adapters_selector_container import (
-    ScrappersAdaptersSelectorContainer,
-)
 from logger.logger import init_logger
 
 
@@ -50,14 +46,6 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
     patterns_container: providers.Container[PatternsContainer] = providers.Container(
         PatternsContainer, repositories_container=repositories_container
-    )
-    scrappers_adapters_container: providers.Container[ScrappersAdaptersContainer] = providers.Container(
-        ScrappersAdaptersContainer, config=config
-    )
-    scrappers_adapters_selector_container: providers.Container[ScrappersAdaptersSelectorContainer] = (
-        providers.Container(
-            ScrappersAdaptersSelectorContainer, scrappers_adapters_container=scrappers_adapters_container
-        )
     )
 
 

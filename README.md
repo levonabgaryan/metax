@@ -44,7 +44,7 @@ pytest tests/unit
 
 Run opensearch Docker container
 ```
-docker compose -f discount_service.docker-compose.yml up discount-service-opensearch-node
+docker compose -f metax.docker-compose.yml up discount-service-opensearch-node
 ```
 ```commandline
 pytest tests/integration
@@ -52,7 +52,7 @@ pytest tests/integration
 
 ## Django project location
 ```commandline
-cd discount_service/frameworks_and_drivers/django_framework
+cd metax/frameworks_and_drivers/django_framework
 ```
 Then use manage.py commands
 
@@ -82,11 +82,11 @@ add this `vm.max_map_count=262144` in conf file
 
 ### Migrations
 ```commandline
-cd discount_service/frameworks_and_drivers/django_framework
+cd metax/frameworks_and_drivers/django_framework
 ```
 #### SqlLite
 ```commandline
-python manage.py makemigrations discount_service
+python manage.py makemigrations metax
 ```
 ```commandline
 python manage.py migrate

@@ -1,16 +1,20 @@
+import asyncio
 from datetime import datetime, timezone
 from decimal import Decimal
-from unittest.mock import MagicMock
+from typing import AsyncIterator
 
 import pytest
 from celery.schedules import crontab
 
-from metax.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
+from metax.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails, DiscountedProduct
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from metax.frameworks_and_drivers.di import ServiceContainer
-from tests.utils import make_retailer_entity, __aiter_wrapper, make_discounted_product_entity
+from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
+    YerevanCityStrategy,
+)
+from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 
 def test_collect_products_task_schedule() -> None:
@@ -22,7 +26,7 @@ def test_collect_products_task_schedule() -> None:
 
     schedule_entry = celery_app.conf.beat_schedule[task_name]
 
-    assert schedule_entry["task"] == "tasks.collect_discounted_products_from_retailer"
+    assert schedule_entry["task"] == "CollectDiscountedProducts"
 
     schedule = schedule_entry["schedule"]
     assert isinstance(schedule, crontab)
@@ -34,6 +38,7 @@ def test_collect_products_task_schedule() -> None:
 @pytest.mark.django_db(transaction=True)
 async def test_collect_discounted_products_from_all_retailers(
     service_container_for_integration_tests: ServiceContainer,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
     started_time = datetime.now(tz=timezone.utc)
@@ -56,9 +61,6 @@ async def test_collect_discounted_products_from_all_retailers(
             price_details=PriceDetails(discounted_price=Decimal("350"), real_price=Decimal(450)),
         ),
     ]
-    yerevan_city_scrapper_adapter_mock = MagicMock()
-    yerevan_city_scrapper_adapter_mock.fetch.side_effect = lambda *args, **kwargs: __aiter_wrapper(mock_data)
-
     discounted_product_names = {mock_data[0].get_name(), mock_data[1].get_name()}
     discounted_products_real_prices = {mock_data[0].get_real_price(), mock_data[1].get_real_price()}
     discounted_products_discounted_prices = {
@@ -67,17 +69,22 @@ async def test_collect_discounted_products_from_all_retailers(
     }
     discounted_products_urls = {mock_data[0].get_url(), mock_data[1].get_url()}
 
+    async def fake_collect(
+        self: YerevanCityStrategy, start_date_of_collecting: datetime
+    ) -> AsyncIterator[DiscountedProduct]:
+        for p in mock_data:
+            yield p
+            await asyncio.sleep(0)
+
+    monkeypatch.setattr(YerevanCityStrategy, "collect", fake_collect)
+
     # when
-    with service_container_for_integration_tests.scrappers_adapters_container.container.yerevan_city_scrapper_adapter.override(
-        yerevan_city_scrapper_adapter_mock
-    ):
-        await collect_discounted_products_from_all_retailers(
-            unit_of_work=unit_of_work,
-            scrappers_adapters_selector_container=service_container_for_integration_tests.scrappers_adapters_selector_container.container,
-            category_classifier_service=await service_container_for_integration_tests.patterns_container.container.category_classifier_service.async_(),
-            started_time=started_time,
-            event_bus=event_bus,
-        )
+    await collect_discounted_products_from_all_retailers(
+        unit_of_work=unit_of_work,
+        category_classifier_service=await service_container_for_integration_tests.patterns_container.container.category_classifier_service.async_(),
+        start_date_of_collecting=started_time,
+        event_bus=event_bus,
+    )
 
     # then
     discounted_products = unit_of_work.discounted_product_repo.get_all()

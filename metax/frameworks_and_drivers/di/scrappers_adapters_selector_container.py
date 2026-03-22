@@ -1,23 +1,17 @@
 from __future__ import annotations
-from dependency_injector import providers, containers
 
 from constants import RetailersNames
+from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
+    DiscountedProductCollectorStrategy,
+)
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product.sas_am_strategy import SasAmStrategy
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
+    YerevanCityStrategy,
+)
 
-SCRAPPER_REGISTRY: dict[RetailersNames, str] = {
-    RetailersNames.YEREVAN_CITY: "yerevan_city_scrapper_adapter",
-    RetailersNames.SAS_AM: "sas_am_scrapper_adapter",
+RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_STRATEGY: dict[
+    RetailersNames, type[DiscountedProductCollectorStrategy]
+] = {
+    RetailersNames.YEREVAN_CITY: YerevanCityStrategy,
+    RetailersNames.SAS_AM: SasAmStrategy,
 }
-
-
-def get_scrapper_adapter_name(retailer_name: str) -> str:
-    retailer_name = RetailersNames(retailer_name)
-    return SCRAPPER_REGISTRY[retailer_name]
-
-
-class ScrappersAdaptersSelectorContainer(containers.DeclarativeContainer):
-    scrappers_adapters_container: providers.DependenciesContainer = providers.DependenciesContainer()
-
-    scrapper_adapter = providers.FactoryAggregate(
-        yerevan_city_scrapper_adapter=scrappers_adapters_container.yerevan_city_scrapper_adapter,
-        sas_am_scrapper_adapter=scrappers_adapters_container.sas_am_scrapper_adapter,
-    )
