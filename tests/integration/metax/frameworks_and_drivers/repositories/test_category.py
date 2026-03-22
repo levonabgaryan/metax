@@ -6,10 +6,10 @@ from metax.core.application.ports.repositories.entites_repositories.category imp
     CategoryFieldsToUpdate,
 )
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.category_entity.category import (
-    CategoryHelperWords,
+from metax.core.domain.entities.category.entity import (
     DataForCategoryUpdate,
 )
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
 

@@ -18,7 +18,7 @@ from metax.core.application.commands_handlers.category.delete_helper_words impor
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
-from metax.core.domain.entities.category_entity.category import Category
+from metax.core.domain.entities.category.entity import Category
 from metax.frameworks_and_drivers.di import get_service_container
 
 

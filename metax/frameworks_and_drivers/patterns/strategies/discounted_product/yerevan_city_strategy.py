@@ -9,11 +9,11 @@ import httpx
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
     DiscountedProductCollectorStrategy,
 )
-from metax.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
-    PriceDetails,
 )
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
 )

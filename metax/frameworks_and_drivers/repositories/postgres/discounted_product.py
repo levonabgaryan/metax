@@ -8,10 +8,10 @@ from metax.core.application.ports.repositories.entites_repositories.discounted_p
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
-from metax.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
-    PriceDetails,
 )
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from django_framework.metax.models import (
     DiscountedProductModel,
 )

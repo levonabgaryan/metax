@@ -5,12 +5,14 @@ from uuid import uuid4
 import pytest
 
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-from metax.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
-    PriceDetails,
 )
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
@@ -29,7 +31,7 @@ async def test_add_many_discounted_products(service_container_for_integration_te
     sas_supermarket_uuid = uuid4()
     retailer = Retailer(
         retailer_uuid=sas_supermarket_uuid,
-        name="SAS-SUPERMARKET",
+        name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
     )

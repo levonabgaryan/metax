@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from constants import RetailersNames
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
     DiscountedProductCollectorStrategy,
 )

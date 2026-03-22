@@ -5,8 +5,8 @@ from uuid import UUID
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-from metax.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-
+from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 
 logger = logging.getLogger(__name__)
 

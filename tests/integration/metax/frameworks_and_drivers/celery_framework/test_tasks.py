@@ -6,7 +6,8 @@ from typing import AsyncIterator
 import pytest
 from celery.schedules import crontab
 
-from metax.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails, DiscountedProduct
+from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
@@ -14,6 +15,7 @@ from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 
@@ -44,7 +46,7 @@ async def test_collect_discounted_products_from_all_retailers(
     started_time = datetime.now(tz=timezone.utc)
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
-    retailer = make_retailer_entity(name="yerevan-city")
+    retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
 
     mock_data = [

@@ -1,5 +1,5 @@
 from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.core.domain.entities.category_entity.category import Category
+from metax.core.domain.entities.category.entity import Category
 
 
 class CategoryClassifierService:

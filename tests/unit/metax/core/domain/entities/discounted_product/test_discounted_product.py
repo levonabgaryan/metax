@@ -1,9 +1,9 @@
 import pytest
 
-from metax.core.domain.entities.discounted_product_entity.discounted_product import PriceDetails
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from decimal import Decimal
 
-from metax.core.domain.entities.discounted_product_entity.errors.errors import (
+from metax.core.domain.entities.discounted_product.errors.errors import (
     NegativePriceError,
     DiscountExceedsRealPriceError,
 )

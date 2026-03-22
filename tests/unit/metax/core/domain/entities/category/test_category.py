@@ -2,8 +2,9 @@ from uuid import uuid4
 
 import pytest
 
-from metax.core.domain.entities.category_entity.category import Category, CategoryHelperWords
-from metax.core.domain.entities.category_entity.errors.errors import (
+from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+from metax.core.domain.entities.category.errors.errors import (
     DuplicateCategoryHelperWordsError,
     CategoryHelperWordsNotFoundForDeletionError,
 )

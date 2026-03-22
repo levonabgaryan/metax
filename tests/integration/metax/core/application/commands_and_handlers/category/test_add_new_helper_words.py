@@ -4,7 +4,7 @@ from metax.core.application.commands_handlers.category.add_new_helper_words impo
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
 )
-from metax.core.domain.entities.category_entity.category import CategoryHelperWords
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from tests.utils import make_category_entity
 

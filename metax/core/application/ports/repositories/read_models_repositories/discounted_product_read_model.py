@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import AsyncIterator
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category_entity.category import Category
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.retailer.entity import Retailer
 
 
 class IDiscountedProductReadModelRepository(ABC):

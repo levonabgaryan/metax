@@ -8,7 +8,8 @@ from metax.core.application.ports.repositories.entites_repositories.retailer imp
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
-from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
@@ -26,7 +27,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
-    retailer = make_retailer_entity(name="test_retailer")
+    retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
         retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=timezone.utc)
     )
@@ -42,7 +43,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         real_price=float(discounted_product.get_real_price()),
         discounted_price=float(discounted_product.get_discounted_price()),
         retailer_uuid=str(discounted_product.get_retailer_uuid()),
-        retailer_name=retailer.get_name(),
+        retailer_name=retailer.get_name().value,
         created_at=discounted_product.get_created_at().isoformat(),
     )
     await unit_of_work.discounted_product_read_model_repo.add_many([discounted_product_read_model_])
@@ -50,7 +51,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 
     async with unit_of_work as uow:
         found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
-        new_data = DataForRetailerUpdate(new_name="test_retailer_new_name")
+        new_data = DataForRetailerUpdate(new_name=RetailersNames.SAS_AM.value)
         found_retailer.update(new_data)
         fields_to_update = RetailerFieldsToUpdate(name=True)
         await uow.retailer_repo.update(updated_retailer=found_retailer, fields_to_update=fields_to_update)
@@ -69,4 +70,4 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         )
         await uow.commit()
 
-    assert updated_retailer["retailer_name"] == "test_retailer_new_name"
+    assert updated_retailer["retailer_name"] == RetailersNames.SAS_AM.value

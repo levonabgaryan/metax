@@ -44,7 +44,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
                 real_price=float(product.get_real_price()),
                 discounted_price=float(product.get_discounted_price()),
                 retailer_uuid=str(product.get_retailer_uuid()),
-                retailer_name=retailer.get_name(),
+                retailer_name=retailer.get_name().value,
                 created_at=product.get_created_at().isoformat(),
             )
         )

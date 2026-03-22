@@ -8,9 +8,9 @@ from metax.core.application.ports.repositories.read_models_repositories.discount
     IDiscountedProductReadModelRepository,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category_entity.category import Category
+from metax.core.domain.entities.category.entity import Category
 
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.retailer.entity import Retailer
 
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
@@ -56,7 +56,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             "script": {
                 "source": "ctx._source.retailer_name = params.new_name",
                 "lang": "painless",
-                "params": {"new_name": updated_retailer.get_name()},
+                "params": {"new_name": updated_retailer.get_name().value},
             },
         }
 

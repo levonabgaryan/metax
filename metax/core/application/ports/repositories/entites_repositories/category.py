@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 from metax.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.category_entity.category import Category
+from metax.core.domain.entities.category.entity import Category
 
 
 @dataclass(frozen=True)

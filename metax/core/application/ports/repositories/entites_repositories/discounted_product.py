@@ -5,7 +5,7 @@ from uuid import UUID
 
 from metax.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.discounted_product_entity.discounted_product import (
+from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
 

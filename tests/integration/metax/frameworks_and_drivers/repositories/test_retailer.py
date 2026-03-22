@@ -6,8 +6,9 @@ from metax.core.application.ports.repositories.errors.errors import EntityIsNotF
 from metax.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
-from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from tests.utils import make_retailer_entity
 
 
@@ -50,7 +51,7 @@ async def test_retailer_repo_update(
         await uow.commit()
 
     new_data = DataForRetailerUpdate(
-        new_name="new_name",
+        new_name=RetailersNames.SAS_AM.value,
         new_url="new_url",
         new_phone_number="new_phone_number",
     )
@@ -69,7 +70,7 @@ async def test_retailer_repo_update(
     # then
     retailer = await unit_of_work.retailer_repo.get_by_uuid(retailer.get_uuid())
 
-    assert retailer.get_name() == "new_name"
+    assert retailer.get_name() == RetailersNames.SAS_AM
     assert retailer.get_home_page_url() == "new_url"
     assert retailer.get_phone_number() == "new_phone_number"
 

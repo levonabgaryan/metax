@@ -9,7 +9,7 @@ from metax.core.application.commands_handlers.command import Command
 from metax.core.application.ports.repositories.entites_repositories.category import (
     CategoryFieldsToUpdate,
 )
-from metax.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 
 
 logger = logging.getLogger(__name__)

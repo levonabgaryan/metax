@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from typing import Callable, TypedDict
 from uuid import UUID
 
-from metax.core.domain.ddd_patterns import AggregateRootEntity, ValueObject
-from metax.core.domain.entities.category_entity.errors.errors import (
+from metax.core.domain.ddd_patterns import AggregateRootEntity
+from .errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
+from .value_objects import CategoryHelperWords
 
 
 class Category(AggregateRootEntity):
@@ -57,11 +57,6 @@ class Category(AggregateRootEntity):
             handler: Callable[[str], None] | None = dispatch_map.get(key)
             if handler is not None and value is not None and isinstance(value, str):
                 handler(value)
-
-
-@dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
-class CategoryHelperWords(ValueObject):
-    words: frozenset[str]
 
 
 class DataForCategoryUpdate(TypedDict):

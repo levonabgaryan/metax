@@ -18,7 +18,7 @@ from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
     CollectDiscountedProductsResponse,
 )
-from metax.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
 
 logger = logging.getLogger(__name__)
 

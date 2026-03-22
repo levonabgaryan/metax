@@ -8,10 +8,10 @@ from metax.core.application.ports.repositories.entites_repositories.category imp
     CategoryRepository,
     CategoryFieldsToUpdate,
 )
-from metax.core.domain.entities.category_entity.category import (
+from metax.core.domain.entities.category.entity import (
     Category,
-    CategoryHelperWords,
 )
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from django_framework.metax.models.category import CategoryModel
 from django_framework.metax.models.category_helper_words import (
     CategoryHelperWordsModel,

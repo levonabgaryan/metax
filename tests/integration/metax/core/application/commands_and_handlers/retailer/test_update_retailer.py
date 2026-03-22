@@ -5,6 +5,7 @@ from metax.core.application.commands_handlers.retailer import (
     UpdateRetailerCommandHandler,
 )
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from tests.utils import make_retailer_entity
 
 
@@ -21,7 +22,7 @@ async def test_update_retailer_command_handler(
 
     cmd = UpdateRetailerCommand(
         retailer_uuid=retailer.get_uuid(),
-        new_name="test_new_name",
+        new_name=RetailersNames.SAS_AM.value,
         new_url="test_new_url",
         new_phone_number="test_new_phone_number",
     )
@@ -39,6 +40,6 @@ async def test_update_retailer_command_handler(
         updated_retailer = await uow.retailer_repo.get_by_uuid(retailer.get_uuid())
         await uow.commit()
 
-    assert updated_retailer.get_name() == "test_new_name"
+    assert updated_retailer.get_name() == RetailersNames.SAS_AM
     assert updated_retailer.get_home_page_url() == "test_new_url"
     assert updated_retailer.get_phone_number() == "test_new_phone_number"

@@ -3,8 +3,9 @@ from datetime import datetime, timezone, timedelta
 
 import pytest
 
-from metax.core.domain.entities.category_entity.category import DataForCategoryUpdate
-from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.core.domain.entities.category.entity import DataForCategoryUpdate
+from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 
 from tests.utils import (
@@ -29,7 +30,7 @@ async def test_delete_older_than_and_return_deleted_count(
         make_discounted_product_read_model(
             created_at=creation_date,
             name=f"test_product_name{i}",
-            retailer_name=f"test_retailer{i}",
+            retailer_name=RetailersNames.YEREVAN_CITY.value,
             discounted_product_uuid=str(uuid.uuid4()),
         )
         for i in range(5)
@@ -93,7 +94,7 @@ async def test_update_retailer(service_container_for_integration_tests: ServiceC
         created_at=created_at,
         discounted_product_uuid=str(uuid.uuid4()),
         retailer_uuid=str(retailer.get_uuid()),
-        retailer_name=retailer.get_name(),
+        retailer_name=retailer.get_name().value,
     )
     repo = unit_of_work.discounted_product_read_model_repo
     await repo.add_many([discounted_product_read_model_])
@@ -101,7 +102,7 @@ async def test_update_retailer(service_container_for_integration_tests: ServiceC
 
     # when
     data_for_update = DataForRetailerUpdate(
-        new_name="retailer_new_name",
+        new_name=RetailersNames.SAS_AM.value,
         new_url="new_url",
         new_phone_number="new_phone_number",
     )
@@ -113,7 +114,7 @@ async def test_update_retailer(service_container_for_integration_tests: ServiceC
     updated_discounted_product_read_model = await repo.get_by_uuid(
         discounted_product_read_model_uuid=discounted_product_read_model_["discounted_product_uuid"]
     )
-    assert updated_discounted_product_read_model["retailer_name"] == "retailer_new_name"
+    assert updated_discounted_product_read_model["retailer_name"] == RetailersNames.SAS_AM.value
 
 
 @pytest.mark.asyncio

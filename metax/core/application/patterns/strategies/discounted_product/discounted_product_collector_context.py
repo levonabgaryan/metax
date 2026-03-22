@@ -5,7 +5,7 @@ from typing import AsyncIterator
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
     DiscountedProductCollectorStrategy,
 )
-from metax.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
+from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
 
 
 class DiscountedProductCollectorContext:

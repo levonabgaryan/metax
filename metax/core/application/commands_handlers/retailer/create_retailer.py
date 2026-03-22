@@ -5,7 +5,8 @@ import logging
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
         async with self._unit_of_work as uow:
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
-                name=command.name,
+                name=RetailersNames(command.name),
                 phone_number=command.phone_number,
                 home_page_url=command.url,
             )

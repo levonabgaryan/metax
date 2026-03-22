@@ -9,7 +9,7 @@ from metax.core.application.commands_handlers.command import Command
 from metax.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerFieldsToUpdate,
 )
-from metax.core.domain.entities.retailer_entity.retailer import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 
 logger = logging.getLogger(__name__)
 

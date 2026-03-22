@@ -5,7 +5,8 @@ from dataclasses import dataclass, field
 
 from metax.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 @dataclass
@@ -27,13 +28,14 @@ class RetailerRepository(ABC):
             )
         return retailer
 
-    async def get_by_name(self, retailer_name: str) -> Retailer:
+    async def get_by_name(self, retailer_name: RetailersNames | str) -> Retailer:
+        lookup = retailer_name.value if isinstance(retailer_name, RetailersNames) else retailer_name
         retailer = await self._get_by_name(retailer_name=retailer_name)
         if retailer is None:
             raise EntityIsNotFoundError(
                 entity_name="retailer",
                 searched_field_name="name",
-                searched_field_value=retailer_name,
+                searched_field_value=lookup,
                 error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
             )
         return retailer
@@ -53,7 +55,7 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_name(self, retailer_name: str) -> Retailer | None:
+    async def _get_by_name(self, retailer_name: RetailersNames | str) -> Retailer | None:
         pass
 
     @abstractmethod

@@ -5,7 +5,8 @@ from metax.core.application.ports.repositories.entites_repositories.retailer imp
     RetailerRepository,
     RetailerFieldsToUpdate,
 )
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from django_framework.metax.models import RetailerModel
 
 
@@ -14,7 +15,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _add(self, retailer: Retailer) -> None:
         await RetailerModel._default_manager.acreate(
             retailer_uuid=retailer.get_uuid(),
-            name=retailer.get_name(),
+            name=retailer.get_name().value,
             url=retailer.get_home_page_url(),
             phone_number=retailer.get_phone_number(),
         )
@@ -29,9 +30,10 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         return self.__map_to_entity(model=retailer_model)
 
     @override
-    async def _get_by_name(self, retailer_name: str) -> Retailer | None:
+    async def _get_by_name(self, retailer_name: RetailersNames | str) -> Retailer | None:
+        name_key = retailer_name.value if isinstance(retailer_name, RetailersNames) else retailer_name
         try:
-            retailer_model = await RetailerModel._default_manager.aget(name=retailer_name)
+            retailer_model = await RetailerModel._default_manager.aget(name=name_key)
         except RetailerModel.DoesNotExist:
             return None
 
@@ -42,7 +44,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         update_data = {}
 
         if fields_to_update.name:
-            update_data["name"] = updated_retailer.get_name()
+            update_data["name"] = updated_retailer.get_name().value
 
         if fields_to_update.url:
             update_data["url"] = updated_retailer.get_home_page_url()
@@ -67,7 +69,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     def __map_to_entity(model: RetailerModel) -> Retailer:
         return Retailer(
             retailer_uuid=model.retailer_uuid,
-            name=model.name,
+            name=RetailersNames(model.name),
             home_page_url=model.url,
             phone_number=model.phone_number,
         )

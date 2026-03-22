@@ -4,7 +4,6 @@ from datetime import datetime, timezone
 from dependency_injector.wiring import Provide, inject
 
 from config_ import metax_configs
-from constants import RetailersNames
 from metax.core.application.patterns.services.category_classifier_service import CategoryClassifierService
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_context import (
     DiscountedProductCollectorContext,
@@ -39,7 +38,7 @@ async def collect_discounted_products_from_all_retailers(
     tasks = []
     all_retailers = unit_of_work.retailer_repo.get_all()
     async for retailer in all_retailers:
-        retailer_key = RetailersNames(retailer.get_name())
+        retailer_key = retailer.get_name()
         strategy_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_STRATEGY[retailer_key]
 
         strategy: DiscountedProductCollectorStrategy

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import AsyncIterator
 
-from metax.core.domain.entities.discounted_product_entity.discounted_product import DiscountedProduct
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax.core.domain.entities.retailer.entity import Retailer
 
 
 class DiscountedProductCollectorStrategy(ABC):

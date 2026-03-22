@@ -6,12 +6,14 @@ from uuid import UUID, uuid4
 
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category_entity.category import CategoryHelperWords, Category
-from metax.core.domain.entities.discounted_product_entity.discounted_product import (
-    PriceDetails,
+from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.retailer_entity.retailer import Retailer
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 def make_category_entity(
@@ -26,14 +28,21 @@ def make_category_entity(
     )
 
 
+def _retailers_name(name: RetailersNames | str) -> RetailersNames:
+    return name if isinstance(name, RetailersNames) else RetailersNames(name)
+
+
 def make_retailer_entity(
     retailer_uuid: UUID | None = None,
-    name: str = "test_retailer_name",
+    name: RetailersNames = RetailersNames.YEREVAN_CITY,
     url: str = "test_retailer_url",
     phone_number: str = "test_retailer_phone_number",
 ) -> Retailer:
     return Retailer(
-        retailer_uuid=retailer_uuid or uuid4(), name=name, phone_number=phone_number, home_page_url=url
+        retailer_uuid=retailer_uuid or uuid4(),
+        name=_retailers_name(name),
+        phone_number=phone_number,
+        home_page_url=url,
     )
 
 

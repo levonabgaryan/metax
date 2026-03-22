@@ -5,7 +5,7 @@ from metax.core.application.ports.repositories.entites_repositories.category imp
     CategoryFieldsToUpdate,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category_entity.category import DataForCategoryUpdate
+from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
@@ -46,7 +46,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         category_uuid=str(discounted_product.get_category_uuid()),
         category_name=category.get_name(),
         retailer_uuid=str(discounted_product.get_retailer_uuid()),
-        retailer_name=retailer.get_name(),
+        retailer_name=retailer.get_name().value,
         created_at=discounted_product.get_created_at().isoformat(),
     )
     await unit_of_work.discounted_product_read_model_repo.add_many([discounted_product_read_model_])
