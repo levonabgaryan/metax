@@ -84,7 +84,7 @@ class CategoryAdminHandler:
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
         unit_of_work = await get_service_container().patterns_container.container.unit_of_work.async_()
-        event_bus = await get_service_container().patterns_container.container.event_bus.async_()
+        event_bus = get_service_container().patterns_container.container.event_bus()
 
         command = CreateCategoryCommand(
             category_uuid=uuid.uuid4(), name=category_name, helper_words=frozenset(helper_words)
@@ -95,7 +95,7 @@ class CategoryAdminHandler:
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
         unit_of_work = await get_service_container().patterns_container.container.unit_of_work.async_()
-        event_bus = await get_service_container().patterns_container.container.event_bus.async_()
+        event_bus = get_service_container().patterns_container.container.event_bus()
 
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_name(category_name)
@@ -110,7 +110,7 @@ class CategoryAdminHandler:
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
         unit_of_work = await get_service_container().patterns_container.container.unit_of_work.async_()
-        event_bus = await get_service_container().patterns_container.container.event_bus.async_()
+        event_bus = get_service_container().patterns_container.container.event_bus()
 
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_name(category_name)

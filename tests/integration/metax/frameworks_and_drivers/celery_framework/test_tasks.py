@@ -45,7 +45,7 @@ async def test_collect_discounted_products_from_all_retailers(
     # given
     started_time = datetime.now(tz=timezone.utc)
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
 

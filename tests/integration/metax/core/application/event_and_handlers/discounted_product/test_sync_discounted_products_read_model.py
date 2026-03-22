@@ -23,7 +23,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
     creation_data = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()
     discounted_products = [

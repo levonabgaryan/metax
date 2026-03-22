@@ -15,7 +15,7 @@ async def test_create_retailer_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
         name="yerevan-city",

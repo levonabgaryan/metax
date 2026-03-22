@@ -24,7 +24,7 @@ async def test_event_handler_shall_update_category_in_read_model(
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
     creation_date = datetime.now(tz=timezone.utc)
     category = make_category_entity(name="test_name")
     retailer = make_retailer_entity()

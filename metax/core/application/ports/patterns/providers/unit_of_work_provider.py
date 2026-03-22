@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 
 
-class IUnitOfWorkFactory(ABC):
+class IUnitOfWorkProvider(ABC):
     @abstractmethod
     async def create(self) -> AbstractUnitOfWork:
         pass

@@ -16,7 +16,7 @@ async def test_update_category_command_handler(
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = await service_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
     category = make_category_entity()
 
     async with unit_of_work as uow:
