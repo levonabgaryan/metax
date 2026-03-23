@@ -18,7 +18,7 @@ class Category(AggregateRootEntity):
         name: str,
         helper_words: CategoryHelperWords,
     ) -> None:
-        super().__init__(_uuid=category_uuid)
+        super().__init__(uuid=category_uuid)
         self.__name = name
         self.__helper_words = helper_words
 

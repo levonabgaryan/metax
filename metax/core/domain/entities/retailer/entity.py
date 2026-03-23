@@ -14,7 +14,7 @@ class Retailer(AggregateRootEntity):
         home_page_url: str,
         phone_number: str,
     ) -> None:
-        super().__init__(_uuid=retailer_uuid)
+        super().__init__(uuid=retailer_uuid)
         self.__name = name
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number

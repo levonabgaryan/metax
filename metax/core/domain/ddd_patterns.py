@@ -27,8 +27,8 @@ class Entity:
     identity and equality across the system.
     """
 
-    def __init__(self, _uuid: UUID) -> None:
-        self.__uuid: Final[UUID] = _uuid
+    def __init__(self, uuid: UUID) -> None:
+        self.__uuid: Final[UUID] = uuid
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -59,5 +59,5 @@ class AggregateRootEntity(Entity):
     This makes the design clearer.
     """
 
-    def __init__(self, _uuid: UUID) -> None:
-        super().__init__(_uuid)
+    def __init__(self, uuid: UUID) -> None:
+        super().__init__(uuid)
