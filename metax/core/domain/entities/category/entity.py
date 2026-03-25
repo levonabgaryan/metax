@@ -49,6 +49,9 @@ class Category(AggregateRootEntity):
     def get_helper_words(self) -> frozenset[str]:
         return self.__helper_words.words
 
+    def set_helper_words(self, helper_words: CategoryHelperWords) -> None:
+        self.__helper_words = helper_words
+
     def update(self, new_data: DataForCategoryUpdate) -> None:
         dispatch_map: dict[str, Callable[[str], None]] = {
             "new_name": self.set_name,
