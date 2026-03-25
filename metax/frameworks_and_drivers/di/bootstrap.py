@@ -49,8 +49,18 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
 
 
-def configured_service_container() -> ServiceContainer:
+def _build_service_container() -> ServiceContainer:
     init_logger()
     service_container_ = ServiceContainer()
     service_container_.config.from_pydantic(metax_configs)
     return service_container_
+
+
+_service_container_singleton: ServiceContainer | None = None
+
+
+def get_service_container() -> ServiceContainer:
+    global _service_container_singleton
+    if _service_container_singleton is None:
+        _service_container_singleton = _build_service_container()
+    return _service_container_singleton

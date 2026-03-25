@@ -116,9 +116,9 @@ async def run_django_uvicorn_server() -> None:
 
 def create_app() -> AppConfig:
     from django.apps import apps
-    from metax.frameworks_and_drivers.di.bootstrap import configured_service_container  # noqa: E402
+    from metax.frameworks_and_drivers.di import get_service_container  # noqa: E402
 
-    container = configured_service_container()
+    container = get_service_container()
     metax_app = apps.get_app_config("metax")
     metax_app.container = container  # type: ignore[attr-defined]
     return metax_app
