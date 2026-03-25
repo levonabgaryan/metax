@@ -116,9 +116,9 @@ async def run_django_uvicorn_server() -> None:
 
 def create_app() -> AppConfig:
     from django.apps import apps
-    from metax.frameworks_and_drivers.di import get_service_container  # noqa: E402
+    from metax.frameworks_and_drivers.di import get_metax_container  # noqa: E402
 
-    container = get_service_container()
+    container = get_metax_container()
     metax_app = apps.get_app_config("metax")
     metax_app.container = container  # type: ignore[attr-defined]
     return metax_app
@@ -135,10 +135,10 @@ async def run_metax_app() -> None:
     logger.info("[SYSTEM] | Application bootstrap started")
 
     django.setup()
-    from metax.frameworks_and_drivers.di import ServiceContainer  # noqa: E402
+    from metax.frameworks_and_drivers.di import MetaxContainer  # noqa: E402
 
     app = create_app()
-    container: ServiceContainer = app.container  # type: ignore[attr-defined]
+    container: MetaxContainer = app.container  # type: ignore[attr-defined]
     opensearch_client = await container.opensearch_async_client.async_()
 
     try:

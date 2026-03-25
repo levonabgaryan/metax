@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 
 
 class DiscountedProductViewSet(ViewSet):
@@ -15,7 +15,7 @@ class DiscountedProductViewSet(ViewSet):
     async def get_by_name_page(
         self,
         request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
     ) -> Response:
         # https://stackoverflow.com/questions/38284440/drf-pagination-without-queryset#:~:text=from%20typing%20import,safe%3DFalse)
         discounted_product_name = request.query_params.get("discounted_product_name")

@@ -7,7 +7,7 @@ from metax.core.application.event_handlers.discounted_product.events import (
 )
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
     make_retailer_entity,
@@ -19,7 +19,7 @@ from tests.integration.conftest import refresh_opensearch_index
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_save_in_empty_read_model(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()

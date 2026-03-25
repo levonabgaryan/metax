@@ -13,13 +13,13 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_add_many_discounted_products(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_add_many_discounted_products(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -96,7 +96,7 @@ async def test_add_many_discounted_products(service_container_for_integration_te
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_discounted_products_is_not_found_by_uuid(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -123,7 +123,7 @@ async def test_discounted_products_is_not_found_by_uuid(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()

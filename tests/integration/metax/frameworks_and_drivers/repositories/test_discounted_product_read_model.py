@@ -6,7 +6,7 @@ import pytest
 from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 
 from tests.utils import (
     make_discounted_product_read_model,
@@ -19,7 +19,7 @@ from metax.frameworks_and_drivers.opensearch.indices import discounted_product_r
 
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -53,7 +53,7 @@ async def test_delete_older_than_and_return_deleted_count(
 
 
 @pytest.mark.asyncio
-async def test_update_category(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_update_category(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -84,7 +84,7 @@ async def test_update_category(service_container_for_integration_tests: ServiceC
 
 
 @pytest.mark.asyncio
-async def test_update_retailer(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_update_retailer(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -118,7 +118,7 @@ async def test_update_retailer(service_container_for_integration_tests: ServiceC
 
 
 @pytest.mark.asyncio
-async def test_get_all(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_get_all(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -153,7 +153,7 @@ async def test_get_all(service_container_for_integration_tests: ServiceContainer
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name_page(query: str, service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_get_by_name_page(query: str, service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 

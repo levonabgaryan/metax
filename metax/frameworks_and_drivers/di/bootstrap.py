@@ -30,7 +30,7 @@ async def async_opensearch_client_resource(
         await client.close()
 
 
-class ServiceContainer(containers.DeclarativeContainer):
+class MetaxContainer(containers.DeclarativeContainer):
     config: providers.Configuration = providers.Configuration()
 
     opensearch_async_client: providers.Resource[AsyncOpenSearch] = providers.Resource(
@@ -49,18 +49,18 @@ class ServiceContainer(containers.DeclarativeContainer):
     )
 
 
-def _build_service_container() -> ServiceContainer:
+def _build_metax_container() -> MetaxContainer:
     init_logger()
-    service_container_ = ServiceContainer()
+    service_container_ = MetaxContainer()
     service_container_.config.from_pydantic(metax_configs)
     return service_container_
 
 
-_service_container_singleton: ServiceContainer | None = None
+_service_container_singleton: MetaxContainer | None = None
 
 
-def get_service_container() -> ServiceContainer:
+def get_metax_container() -> MetaxContainer:
     global _service_container_singleton
     if _service_container_singleton is None:
-        _service_container_singleton = _build_service_container()
+        _service_container_singleton = _build_metax_container()
     return _service_container_singleton

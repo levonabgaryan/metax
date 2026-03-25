@@ -6,7 +6,7 @@ from celery.schedules import crontab
 from celery.signals import after_setup_logger
 
 from config_ import metax_configs
-from metax.frameworks_and_drivers.di import get_service_container
+from metax.frameworks_and_drivers.di import get_metax_container
 from logger.logger import init_logger
 
 celery_app = Celery(
@@ -18,7 +18,7 @@ celery_app = Celery(
 celery_app.conf.timezone = "Asia/Yerevan"
 celery_app.conf.enable_utc = True
 
-service_container = get_service_container()
+service_container = get_metax_container()
 service_container.wire(
     modules=["metax.frameworks_and_drivers.celery_framework.tasks"],
 )

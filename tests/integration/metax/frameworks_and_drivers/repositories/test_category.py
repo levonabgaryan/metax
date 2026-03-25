@@ -7,13 +7,13 @@ from metax.core.domain.entities.category.entity import (
     DataForCategoryUpdate,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from tests.utils import make_category_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_add_and_get(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_category_repo_add_and_get(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     category = make_category_entity()
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -35,7 +35,7 @@ async def test_category_repo_add_and_get(service_container_for_integration_tests
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_update(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_category_repo_update(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -59,7 +59,7 @@ async def test_category_repo_update(service_container_for_integration_tests: Ser
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_uuid(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_category_is_not_found_by_uuid(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -78,7 +78,7 @@ async def test_category_is_not_found_by_uuid(service_container_for_integration_t
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_name(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_category_is_not_found_by_name(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
@@ -98,7 +98,7 @@ async def test_category_is_not_found_by_name(service_container_for_integration_t
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_update_helper_words_when_adding_news(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -127,7 +127,7 @@ async def test_category_update_helper_words_when_adding_news(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_update_helper_words_when_deleting(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
@@ -153,7 +153,7 @@ async def test_category_update_helper_words_when_deleting(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_by_helper_words_in_words(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_get_by_helper_words_in_words(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 

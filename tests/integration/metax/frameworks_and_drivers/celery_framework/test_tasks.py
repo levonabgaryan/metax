@@ -11,7 +11,7 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
@@ -39,7 +39,7 @@ def test_collect_products_task_schedule() -> None:
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_collect_discounted_products_from_all_retailers(
-    service_container_for_integration_tests: ServiceContainer,
+    service_container_for_integration_tests: MetaxContainer,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given

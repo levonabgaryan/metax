@@ -15,7 +15,7 @@ from metax.core.application.commands_handlers.category import (
 )
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from django_framework.metax.serializers.category import CreateCategorySerializer
 
 
@@ -25,8 +25,8 @@ class CategoryViewSet(ViewSet):
     async def create_new(
         self,
         request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
-        event_bus: EventBus = Provide[ServiceContainer.patterns_container.container.event_bus],
+        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
+        event_bus: EventBus = Provide[MetaxContainer.patterns_container.container.event_bus],
     ) -> Response:
         # api/category/create/
         serializer = CreateCategorySerializer(data=request.data)
@@ -49,7 +49,7 @@ class CategoryViewSet(ViewSet):
     async def get_by_uuid(
         self,
         request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
     ) -> Response:
         # api/categories/get/?category_uuid=<uuid_value>
         uuid_str = request.query_params.get("category_uuid")

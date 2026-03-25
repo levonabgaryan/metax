@@ -24,7 +24,7 @@ from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan
     YerevanCityStrategy,
 )
 
-from ..di import ServiceContainer
+from ..di import MetaxContainer
 from .celery_application import celery_app
 from ...core.domain.entities.retailer.value_objects import RetailersNames
 
@@ -76,11 +76,11 @@ async def collect_discounted_products_from_all_retailers(
 @celery_app.task(name="CollectDiscountedProducts")
 @inject
 async def celery_task_collect_discounted_products_from_all_retailers(
-    unit_of_work: AbstractUnitOfWork = Provide[ServiceContainer.patterns_container.container.unit_of_work],
+    unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
     category_classifier_service: CategoryClassifierService = Provide[
-        ServiceContainer.patterns_container.container.category_classifier_service
+        MetaxContainer.patterns_container.container.category_classifier_service
     ],
-    event_bus: EventBus = Provide[ServiceContainer.patterns_container.event_bus],
+    event_bus: EventBus = Provide[MetaxContainer.patterns_container.event_bus],
 ) -> None:
     started_time = datetime.now(tz=timezone.utc)
 

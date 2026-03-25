@@ -5,13 +5,13 @@ from metax.core.application.commands_handlers.category.add_new_helper_words impo
     AddNewHelperWordsCommandHandler,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
+from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 from tests.utils import make_category_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_add_new_helper_word_command(service_container_for_integration_tests: ServiceContainer) -> None:
+async def test_add_new_helper_word_command(service_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
