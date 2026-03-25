@@ -6,7 +6,6 @@ from django.db.models import QuerySet
 
 from metax.core.application.ports.repositories.entites_repositories.category import (
     CategoryRepository,
-    CategoryFieldsToUpdate,
 )
 from metax.core.domain.entities.category.entity import (
     Category,
@@ -52,17 +51,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await self.__map_to_entity(model=category_model)
 
     @override
-    async def _update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
-        update_data = {}
-
-        if fields_to_update.name:
-            update_data["name"] = updated_category.get_name()
-
-        if not update_data:
-            return
-
+    async def _update(self, updated_category: Category) -> None:
         await CategoryModel._default_manager.filter(category_uuid=updated_category.get_uuid()).aupdate(
-            **update_data
+            name=updated_category.get_name()
         )
 
     @override

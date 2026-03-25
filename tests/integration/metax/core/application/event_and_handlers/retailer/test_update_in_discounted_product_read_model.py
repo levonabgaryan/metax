@@ -3,9 +3,6 @@ from datetime import timezone, datetime
 import pytest
 
 
-from metax.core.application.ports.repositories.entites_repositories.retailer import (
-    RetailerFieldsToUpdate,
-)
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
@@ -53,8 +50,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
         new_data = DataForRetailerUpdate(new_name=RetailersNames.SAS_AM.value)
         found_retailer.update(new_data)
-        fields_to_update = RetailerFieldsToUpdate(name=True)
-        await uow.retailer_repo.update(updated_retailer=found_retailer, fields_to_update=fields_to_update)
+        await uow.retailer_repo.update(updated_retailer=found_retailer)
         await uow.commit()
 
     event = RetailerUpdated(found_retailer.get_uuid())

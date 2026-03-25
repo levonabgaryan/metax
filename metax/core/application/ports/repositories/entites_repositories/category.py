@@ -1,15 +1,9 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
-from dataclasses import dataclass, field
 
 from metax.core.application.ports.repositories.errors.error_codes import RepositoriesErrorCodes
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.entity import Category
-
-
-@dataclass(frozen=True)
-class CategoryFieldsToUpdate:
-    name: bool = field(default=False)
 
 
 class CategoryRepository(ABC):
@@ -38,8 +32,8 @@ class CategoryRepository(ABC):
     async def add(self, category: Category) -> None:
         await self._add(category)
 
-    async def update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
-        await self._update(updated_category=updated_category, fields_to_update=fields_to_update)
+    async def update(self, updated_category: Category) -> None:
+        await self._update(updated_category=updated_category)
 
     async def update_helper_words(self, updated_category: Category) -> None:
         await self._update_helper_words(updated_category=updated_category)
@@ -69,7 +63,7 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def _update(self, updated_category: Category, fields_to_update: CategoryFieldsToUpdate) -> None:
+    async def _update(self, updated_category: Category) -> None:
         pass
 
     @abstractmethod

@@ -3,7 +3,6 @@ from uuid import UUID
 
 from metax.core.application.ports.repositories.entites_repositories.retailer import (
     RetailerRepository,
-    RetailerFieldsToUpdate,
 )
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
@@ -40,23 +39,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         return self.__map_to_entity(model=retailer_model)
 
     @override
-    async def _update(self, updated_retailer: Retailer, fields_to_update: RetailerFieldsToUpdate) -> None:
-        update_data = {}
-
-        if fields_to_update.name:
-            update_data["name"] = updated_retailer.get_name().value
-
-        if fields_to_update.url:
-            update_data["url"] = updated_retailer.get_home_page_url()
-
-        if fields_to_update.phone_number:
-            update_data["phone_number"] = updated_retailer.get_phone_number()
-
-        if not update_data:
-            return
-
+    async def _update(self, updated_retailer: Retailer) -> None:
         await RetailerModel._default_manager.filter(retailer_uuid=updated_retailer.get_uuid()).aupdate(
-            **update_data
+            name=updated_retailer.get_name().value,
+            url=updated_retailer.get_home_page_url(),
+            phone_number=updated_retailer.get_phone_number(),
         )
 
     @override

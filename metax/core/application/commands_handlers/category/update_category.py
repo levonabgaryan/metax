@@ -6,10 +6,6 @@ import logging
 from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-from metax.core.application.ports.repositories.entites_repositories.category import (
-    CategoryFieldsToUpdate,
-)
-from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 
 
 logger = logging.getLogger(__name__)
@@ -19,14 +15,6 @@ logger = logging.getLogger(__name__)
 class UpdateCategoryCommand(Command):
     category_uuid: UUID
     new_name: str | None = field(default=None)
-
-    @property
-    def fields_to_update(self) -> CategoryFieldsToUpdate:
-        return CategoryFieldsToUpdate(name=self.new_name is not None)
-
-    @property
-    def new_data(self) -> DataForCategoryUpdate:
-        return DataForCategoryUpdate(new_name=self.new_name)
 
 
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
@@ -40,9 +28,10 @@ class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
         async with self._unit_of_work as uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
-            new_data = command.new_data
-            category.update(new_data)
-            await repo.update(updated_category=category, fields_to_update=command.fields_to_update)
+            if command.new_name is not None:
+                category.set_name(command.new_name)
+
+            await repo.update(updated_category=category)
             await uow.commit()
         logger.info(
             "[Command: %s] | Status: SUCCESS | Target UUID: [%s]",

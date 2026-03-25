@@ -29,7 +29,6 @@ async def test_update_category_command_handler(
     await cmd_handler.handle_command(cmd)
 
     # then
-    assert cmd.fields_to_update.name is True
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
         assert updated_category.get_name() == cmd.new_name

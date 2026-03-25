@@ -1,9 +1,6 @@
 from datetime import datetime, timezone
 import pytest
 
-from metax.core.application.ports.repositories.entites_repositories.category import (
-    CategoryFieldsToUpdate,
-)
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.core.application.event_handlers.category.events import CategoryUpdated
@@ -55,8 +52,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         found_category = await uow.category_repo.get_by_uuid(category.get_uuid())
         new_data = DataForCategoryUpdate(new_name="test_new_name")
         found_category.update(new_data)
-        fields_to_update = CategoryFieldsToUpdate(name=True)
-        await uow.category_repo.update(found_category, fields_to_update=fields_to_update)
+        await uow.category_repo.update(found_category)
         await uow.commit()
 
     event = CategoryUpdated(

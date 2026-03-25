@@ -2,9 +2,6 @@ from uuid import uuid4
 
 import pytest
 
-from metax.core.application.ports.repositories.entites_repositories.category import (
-    CategoryFieldsToUpdate,
-)
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.entity import (
     DataForCategoryUpdate,
@@ -49,11 +46,10 @@ async def test_category_repo_update(service_container_for_integration_tests: Ser
         await uow.commit()
 
     new_data = DataForCategoryUpdate(new_name="test_new_name")
-    fields_to_update = CategoryFieldsToUpdate(name=True)
     # when
     category.update(new_data)
     async with unit_of_work as uow:
-        await uow.category_repo.update(updated_category=category, fields_to_update=fields_to_update)
+        await uow.category_repo.update(updated_category=category)
         await uow.commit()
 
     # then

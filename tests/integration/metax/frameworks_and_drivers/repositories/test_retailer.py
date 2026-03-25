@@ -3,9 +3,6 @@ from uuid import uuid4
 import pytest
 
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
-from metax.core.application.ports.repositories.entites_repositories.retailer import (
-    RetailerFieldsToUpdate,
-)
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.frameworks_and_drivers.di.bootstrap import ServiceContainer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
@@ -55,16 +52,10 @@ async def test_retailer_repo_update(
         new_url="new_url",
         new_phone_number="new_phone_number",
     )
-    fields_to_update = RetailerFieldsToUpdate(
-        name=True,
-        url=True,
-        phone_number=True,
-    )
-
     # when
     retailer.update(new_data=new_data)
     async with unit_of_work as uow:
-        await uow.retailer_repo.update(updated_retailer=retailer, fields_to_update=fields_to_update)
+        await uow.retailer_repo.update(updated_retailer=retailer)
         await uow.commit()
 
     # then

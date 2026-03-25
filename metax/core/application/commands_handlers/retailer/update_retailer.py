@@ -1,15 +1,12 @@
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import override
 from uuid import UUID
 
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-from metax.core.application.ports.repositories.entites_repositories.retailer import (
-    RetailerFieldsToUpdate,
-)
-from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 logger = logging.getLogger(__name__)
 
@@ -17,25 +14,9 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class UpdateRetailerCommand(Command):
     retailer_uuid: UUID
-    new_name: str | None
-    new_url: str | None
-    new_phone_number: str | None
-
-    @property
-    def fields_to_update(self) -> RetailerFieldsToUpdate:
-        return RetailerFieldsToUpdate(
-            name=self.new_name is not None,
-            url=self.new_url is not None,
-            phone_number=self.new_phone_number is not None,
-        )
-
-    @property
-    def new_data(self) -> DataForRetailerUpdate:
-        return DataForRetailerUpdate(
-            new_name=self.new_name,
-            new_url=self.new_url,
-            new_phone_number=self.new_phone_number,
-        )
+    new_name: str | None = field(default=None)
+    new_url: str | None = field(default=None)
+    new_phone_number: str | None = field(default=None)
 
 
 class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
@@ -49,9 +30,14 @@ class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
         async with self._unit_of_work as uow:
             repo = uow.retailer_repo
             retailer = await repo.get_by_uuid(command.retailer_uuid)
-            new_data = command.new_data
-            retailer.update(new_data)
-            await repo.update(updated_retailer=retailer, fields_to_update=command.fields_to_update)
+            if command.new_name is not None:
+                retailer.set_name(RetailersNames(command.new_name))
+            if command.new_url is not None:
+                retailer.set_home_page_url(command.new_url)
+            if command.new_phone_number is not None:
+                retailer.set_phone_number(command.new_phone_number)
+
+            await repo.update(updated_retailer=retailer)
             await uow.commit()
         logger.info(
             "[Command: %s] | Status: SUCCESS | Target UUID: [%s]",
