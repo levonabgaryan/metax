@@ -1,6 +1,6 @@
 # Metax
 
-## Local launch
+## Local Setup
 
 ### Setting up environment
 
@@ -35,6 +35,16 @@ pre-commit install
 
 Create .env using env_tmpl
 
+## Local Run
+Run opensearch, postgres docker containers
+```
+docker compose -f metax.docker-compose.yml up metax-postgres-db metax-opensearch-db
+```
+Run metax
+```commandline
+python run_metax.py
+```
+
 ## Tests run
 **unit**
 ```commandline
@@ -42,9 +52,9 @@ pytest tests/unit
 ```
 **integration**
 
-Run opensearch Docker container
+Run opensearch, postgres docker containers
 ```
-docker compose -f metax.docker-compose.yml up discount-service-opensearch-node
+docker compose -f metax.docker-compose.yml up metax-postgres-db metax-opensearch-db
 ```
 ```commandline
 pytest tests/integration
@@ -56,7 +66,7 @@ cd metax/frameworks_and_drivers/django_framework
 ```
 Then use manage.py commands
 
-Mark `discounted_service/frameworks_and_drivers/django_framework` path as Sources root
+Mark `metax/frameworks_and_drivers/django_framework` path as Sources root
 
 ### Opensearch configuration
 
