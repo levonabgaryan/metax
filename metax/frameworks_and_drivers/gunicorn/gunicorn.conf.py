@@ -7,3 +7,4 @@ reload = metax_configs.gunicorn_reload  # https://gunicorn.org/reference/setting
 workers = metax_configs.gunicorn_workers_count  # https://gunicorn.org/reference/settings/#workers
 max_requests = 1000  # https://gunicorn.org/reference/settings/#max_requests
 worker_class = "uvicorn.workers.UvicornWorker"  # https://gunicorn.org/reference/settings/#worker_class
+asgi_loop = "uvloop"  # https://gunicorn.org/reference/settings/?query=gunicorn+--c#asgi_loop

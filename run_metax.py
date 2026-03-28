@@ -15,7 +15,7 @@ from metax_django_application import create_metax_django_app
 logger = logging.getLogger(__name__)
 
 
-async def run_metax_app() -> None:
+def run_metax_app() -> None:
     init_logger()
     app = create_metax_django_app()
     logger.info("SYSTEM | Application bootstrap started")
@@ -23,28 +23,30 @@ async def run_metax_app() -> None:
 
     container: MetaxContainer = app.container  # type: ignore[attr-defined]
 
-    try:
+    async def startup() -> None:
         await init_resources(container)
         opensearch_client = await container.opensearch_async_client.async_()
         await run_entrypoint(opensearch_client)
+
+    try:
+        asyncio.run(startup())
         if isinstance(metax_configs, DevConfigs):
             run_django_uvicorn_server()
         else:
-            await run_django_gunicorn_server()
-
-    except asyncio.CancelledError, KeyboardInterrupt:
+            asyncio.run(run_django_gunicorn_server())
+    except KeyboardInterrupt:
         logger.warning("SHUTDOWN | Stop signal received. Cleaning up...")
     except Exception as e:
         logger.critical("RUNTIME | Unhandled Exception during startup: %s", e, exc_info=True)
         sys.exit(1)
     finally:
         logger.info("SHUTDOWN | Releasing resources...")
-        await shutdown_resources(container)
-        logger.info("SHUTDOWN | Metax Shut downed!")
+        asyncio.run(shutdown_resources(container))
+        logger.info("SHUTDOWN | Metax shut down!")
 
 
 if __name__ == "__main__":
     try:
-        asyncio.run(run_metax_app())
+        run_metax_app()
     except KeyboardInterrupt:
         pass
