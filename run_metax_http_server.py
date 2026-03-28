@@ -15,7 +15,7 @@ from metax_django_application import create_metax_django_app
 logger = logging.getLogger(__name__)
 
 
-def run_metax_app() -> None:
+def run_metax_http_server() -> None:
     init_logger()
     app = create_metax_django_app()
     logger.info("SYSTEM | Application bootstrap started")
@@ -47,6 +47,6 @@ def run_metax_app() -> None:
 
 if __name__ == "__main__":
     try:
-        run_metax_app()
+        run_metax_http_server()
     except KeyboardInterrupt:
         pass

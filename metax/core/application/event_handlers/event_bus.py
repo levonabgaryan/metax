@@ -51,7 +51,7 @@ class EventBus:
         if not handlers:
             raise NotImplementedError(f"No handler for event type {type(event).__name__!r}")
         # Handlers for the same event type run concurrently; each should use its own UoW and not rely on peer order.
-        await asyncio.gather(*(handler(event) for handler in handlers))
+        await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 
     async def _handle_category_updated(self, event: Event) -> None:
         event = _expect_event(event, CategoryUpdated)

@@ -80,12 +80,12 @@ services:
     networks:
       - metax-net
 
-  merax-celery:
+  metax-celery:
     build:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
     container_name: metax-celery
-    command: celery_framework -A metax.frameworks_and_drivers.celery_framework.celery_application worker -B -l info
+    entrypoint: ["python", "run_celery.py"]
     networks:
       - metax-net
     depends_on:
