@@ -3,7 +3,6 @@ name = "metax"
 version = "0.1.0"
 requires-python = "==3.14.2"
 dependencies = [
-    "adrf==0.1.12",
     "pytest-celery==1.3.0",
     "dependency-injector==4.49.0",
     "django-stubs[compatible-mypy]==6.0.1",
@@ -29,6 +28,7 @@ dependencies = [
     "beautifulsoup4==4.14.3",
     "whitenoise==6.12.0",
     "uvloop==0.22.1",
+    "django-modern-rest[msgspec]>=0.3.0",
 ]
 
 [tool.mypy]

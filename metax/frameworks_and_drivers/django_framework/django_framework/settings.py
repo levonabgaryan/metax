@@ -41,8 +41,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_framework.metax",
-    "rest_framework",
-    "adrf",
+    "dmr",
     "django.contrib.postgres",
 ]
 

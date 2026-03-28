@@ -15,21 +15,13 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path
-from adrf import routers
+from django.urls import path, URLResolver, URLPattern
 
 from django_framework.metax.admin.site import admin_site
-from django_framework.metax.views.health import HealthCheckView
-from django_framework.metax.views.category import CategoryViewSet
-from django_framework.metax.views.discounted_product import DiscountedProductViewSet
+from django_framework.metax.views.health.urls import health_check_url_patterns
 
-router = routers.DefaultRouter()
-router.register(r"category", CategoryViewSet, basename="category")
-router.register(r"discounted-product", DiscountedProductViewSet, basename="discounted-product")
-
-urlpatterns = [
+urlpatterns: list[URLResolver | URLPattern] = [
     path("admin/", admin_site.urls),
-    path("healthcheck/", HealthCheckView.as_view()),
 ]
 
-urlpatterns += router.urls
+urlpatterns.extend(health_check_url_patterns)
