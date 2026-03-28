@@ -32,16 +32,16 @@ async def run_django_gunicorn_server() -> None:
 
     process = await asyncio.create_subprocess_exec(sys.executable, *command, cwd=metax_configs.django_dir, env=env)
 
-    logger.info("[STARTUP] | Task: Web Server | Status: RUNNING | Address: http://%s:%s", host, port)
+    logger.info("STARTUP | Task: Web Server | Status: RUNNING | Address: http://%s:%s", host, port)
 
     try:
         await process.wait()
     except asyncio.CancelledError:
-        logger.info("[SHUTDOWN] | Task: Web Server | Status: Terminating (SIGTERM)...")
+        logger.info("SHUTDOWN | Task: Web Server | Status: Terminating (SIGTERM)...")
         process.terminate()
         await process.wait()
-        logger.info("[SHUTDOWN] | Task: Web Server | Status: Clean Shutdown")
+        logger.info("SHUTDOWN | Task: Web Server | Status: Clean Shutdown")
 
     if process.returncode != 0 and process.returncode != -15:
-        logger.error("[RUNTIME] | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
+        logger.error("RUNTIME | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
         raise RuntimeError(f"Gunicorn failed with exit code {process.returncode}")

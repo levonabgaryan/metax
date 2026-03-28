@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 async def _run_postgres_db_migrations() -> None:
     manage_py = Path(metax_configs.django_dir) / "manage.py"
-    logger.info("[STARTUP] | Task: Postgres Migrations | Status: Started")
+    logger.info("STARTUP | Task: Postgres Migrations | Status: Started")
 
     for command in ["makemigrations", "migrate"]:
         process = await asyncio.create_subprocess_exec(
@@ -21,26 +21,26 @@ async def _run_postgres_db_migrations() -> None:
         )
         await process.wait()
         if process.returncode != 0:
-            logger.error("[STARTUP] | Task: Postgres Migrations | Status: FAILED | Command: %s", command)
+            logger.error("STARTUP | Task: Postgres Migrations | Status: FAILED | Command: %s", command)
             raise RuntimeError(f"Django {command} failed with exit code {process.returncode}")
 
-    logger.info("[STARTUP] | Task: Postgres Migrations | Status: SUCCESS")
+    logger.info("STARTUP | Task: Postgres Migrations | Status: SUCCESS")
 
 
 async def _run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
     from metax.frameworks_and_drivers.opensearch.migration import migrate_indices
 
-    logger.info("[STARTUP] | Task: OpenSearch Migrations | Status: Started")
+    logger.info("STARTUP | Task: OpenSearch Migrations | Status: Started")
     try:
         await migrate_indices(client=client)
-        logger.info("[STARTUP] | Task: OpenSearch Migrations | Status: SUCCESS")
+        logger.info("STARTUP | Task: OpenSearch Migrations | Status: SUCCESS")
     except Exception as e:
-        logger.error("[STARTUP] | Task: OpenSearch Migrations | Status: FAILED | Error: %s", e)
+        logger.error("STARTUP | Task: OpenSearch Migrations | Status: FAILED | Error: %s", e)
         raise
 
 
 async def run_entrypoint(client: AsyncOpenSearch) -> None:
-    logger.info("[STARTUP] | Task: Entrypoint | Status: Started")
+    logger.info("STARTUP | Task: Entrypoint | Status: Started")
     await _run_opensearch_db_migrations(client=client)
     await _run_postgres_db_migrations()
-    logger.info("[STARTUP] | Task: Entrypoint | Status: SUCCESS")
+    logger.info("STARTUP | Task: Entrypoint | Status: SUCCESS")

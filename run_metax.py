@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 async def run_metax_app() -> None:
     init_logger()
     app = create_metax_django_app()
-    logger.info("[SYSTEM] | Application bootstrap started")
+    logger.info("SYSTEM | Application bootstrap started")
     from metax.frameworks_and_drivers.di.metax_container import MetaxContainer, init_resources, shutdown_resources  # noqa: E402
 
     container: MetaxContainer = app.container  # type: ignore[attr-defined]
@@ -28,14 +28,14 @@ async def run_metax_app() -> None:
         await run_django_gunicorn_server()
 
     except asyncio.CancelledError, KeyboardInterrupt:
-        logger.warning("[SHUTDOWN] | Stop signal received. Cleaning up...")
+        logger.warning("SHUTDOWN | Stop signal received. Cleaning up...")
     except Exception as e:
-        logger.critical("[RUNTIME] | Unhandled Exception during startup: %s", e, exc_info=True)
+        logger.critical("RUNTIME | Unhandled Exception during startup: %s", e, exc_info=True)
         sys.exit(1)
     finally:
-        logger.info("[SHUTDOWN] | Releasing resources...")
+        logger.info("SHUTDOWN | Releasing resources...")
         await shutdown_resources(container)
-        logger.info("[SHUTDOWN] | Metax Shut downed!")
+        logger.info("SHUTDOWN | Metax Shut downed!")
 
 
 if __name__ == "__main__":
