@@ -32,7 +32,7 @@ async def run_django_gunicorn_server() -> None:
 
     process = await asyncio.create_subprocess_exec(sys.executable, *command, cwd=metax_configs.django_dir, env=env)
 
-    logger.info("STARTUP | Task: Web Server | Status: RUNNING | Address: http://%s:%s", host, port)
+    logger.info("STARTUP | Task: Web Server (gunicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
 
     try:
         await process.wait()

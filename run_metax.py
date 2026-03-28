@@ -4,8 +4,10 @@ import asyncio
 import logging
 import sys
 
+from config_ import DevConfigs, metax_configs
 from entrypoint import run_entrypoint
 from metax.frameworks_and_drivers.gunicorn.run_gunicorn_server import run_django_gunicorn_server
+from metax.frameworks_and_drivers.uvicorn.run_uvicorn_server import run_django_uvicorn_server
 from metax_logger.logger import init_logger
 
 from metax_django_application import create_metax_django_app
@@ -25,7 +27,10 @@ async def run_metax_app() -> None:
         await init_resources(container)
         opensearch_client = await container.opensearch_async_client.async_()
         await run_entrypoint(opensearch_client)
-        await run_django_gunicorn_server()
+        if isinstance(metax_configs, DevConfigs):
+            run_django_uvicorn_server()
+        else:
+            await run_django_gunicorn_server()
 
     except asyncio.CancelledError, KeyboardInterrupt:
         logger.warning("SHUTDOWN | Stop signal received. Cleaning up...")

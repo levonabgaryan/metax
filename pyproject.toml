@@ -44,8 +44,6 @@ exclude = [
     'metax/frameworks_and_drivers/django_framework/django_framework/metax/serializers/.*',
 ]
 
-
-
 # Warns if function parameters and return value is not annotated
 disallow_untyped_defs = true
 
