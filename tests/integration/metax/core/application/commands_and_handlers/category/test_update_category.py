@@ -4,7 +4,7 @@ from metax.core.application.commands_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 
 from tests.utils import make_category_entity
 
@@ -12,11 +12,11 @@ from tests.utils import make_category_entity
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_update_category_command_handler(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     category = make_category_entity()
 
     async with unit_of_work as uow:

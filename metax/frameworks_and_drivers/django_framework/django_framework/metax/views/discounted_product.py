@@ -1,23 +1,19 @@
 from adrf.requests import AsyncRequest
 from adrf.viewsets import ViewSet
-from dependency_injector.wiring import inject, Provide
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
 class DiscountedProductViewSet(ViewSet):
     @action(methods=["get"], detail=False, url_path="get-by-name")
-    @inject
-    async def get_by_name_page(
-        self,
-        request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
-    ) -> Response:
+    async def get_by_name_page(self, request: AsyncRequest) -> Response:
         # https://stackoverflow.com/questions/38284440/drf-pagination-without-queryset#:~:text=from%20typing%20import,safe%3DFalse)
+        container = get_metax_container()
+        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+
         discounted_product_name = request.query_params.get("discounted_product_name")
         scroll_id = request.query_params.get("scroll_id")
         size = int(request.query_params.get("size", 50))

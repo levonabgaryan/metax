@@ -6,7 +6,7 @@ import pytest
 from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 
 from tests.utils import (
     make_discounted_product_read_model,
@@ -19,10 +19,10 @@ from metax.frameworks_and_drivers.opensearch.indices import discounted_product_r
 
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     creation_date = datetime.now(tz=timezone.utc)
 
@@ -39,13 +39,13 @@ async def test_delete_older_than_and_return_deleted_count(
     repo = unit_of_work.discounted_product_read_model_repo
     await repo.add_many(discounted_products_read_models)
 
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
     deleted_count = await repo.delete_older_than_and_return_deleted_count(
         date_limit=creation_date + timedelta(days=1)
     )
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
     assert deleted_count == 5
@@ -53,9 +53,9 @@ async def test_delete_older_than_and_return_deleted_count(
 
 
 @pytest.mark.asyncio
-async def test_update_category(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_update_category(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     category = make_category_entity()
@@ -68,13 +68,13 @@ async def test_update_category(service_container_for_integration_tests: MetaxCon
 
     repo = unit_of_work.discounted_product_read_model_repo
     await repo.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
     data_for_update = DataForCategoryUpdate(new_name="category_new_name")
     category.update(new_data=data_for_update)
     await repo.update_category(updated_category=category)
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(
@@ -84,9 +84,9 @@ async def test_update_category(service_container_for_integration_tests: MetaxCon
 
 
 @pytest.mark.asyncio
-async def test_update_retailer(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_update_retailer(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     retailer = make_retailer_entity()
     created_at = datetime.now(tz=timezone.utc)
@@ -98,7 +98,7 @@ async def test_update_retailer(service_container_for_integration_tests: MetaxCon
     )
     repo = unit_of_work.discounted_product_read_model_repo
     await repo.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
     data_for_update = DataForRetailerUpdate(
@@ -108,7 +108,7 @@ async def test_update_retailer(service_container_for_integration_tests: MetaxCon
     )
     retailer.update(new_data=data_for_update)
     await repo.update_retailer(updated_retailer=retailer)
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(
@@ -118,9 +118,9 @@ async def test_update_retailer(service_container_for_integration_tests: MetaxCon
 
 
 @pytest.mark.asyncio
-async def test_get_all(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_get_all(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_models = [
@@ -132,7 +132,7 @@ async def test_get_all(service_container_for_integration_tests: MetaxContainer) 
     ]
     repo = unit_of_work.discounted_product_read_model_repo
     await repo.add_many(discounted_product_read_models)
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
     got_discounted_product_read_models = repo.get_all()
@@ -153,9 +153,9 @@ async def test_get_all(service_container_for_integration_tests: MetaxContainer) 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name_page(query: str, service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_get_by_name_page(query: str, metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(
@@ -173,7 +173,7 @@ async def test_get_by_name_page(query: str, service_container_for_integration_te
     ]
     discounted_product_read_models.append(discounted_product_read_model_)
     await repo.add_many(discounted_product_read_models)
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
     found_products, scroll_id = await repo.get_by_name_page(name=query, size=1)

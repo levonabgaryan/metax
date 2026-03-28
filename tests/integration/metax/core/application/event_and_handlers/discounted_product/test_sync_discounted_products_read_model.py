@@ -7,7 +7,7 @@ from metax.core.application.event_handlers.discounted_product.events import (
 )
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.utils import (
     make_retailer_entity,
@@ -19,11 +19,11 @@ from tests.integration.conftest import refresh_opensearch_index
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_save_in_empty_read_model(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     creation_data = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()
     discounted_products = [
@@ -51,7 +51,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
 
     await unit_of_work.discounted_product_read_model_repo.add_many(discounted_product_read_models_)
 
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
     event = OldDiscountedProductsDeleted(
         new_discounted_products_creation_date=creation_data,
     )
@@ -60,7 +60,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     await event_bus.handle(event)
 
     # then
-    await refresh_opensearch_index(index_or_alias_name=discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
     assert await uow.discounted_product_read_model_repo.get_all_count() == 2
     read_model: DiscountedProductReadModel
     async for read_model in uow.discounted_product_read_model_repo.get_all():

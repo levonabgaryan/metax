@@ -19,7 +19,7 @@ from metax.core.application.commands_handlers.category.delete_helper_words impor
     DeleteHelperWordsCommandHandler,
 )
 from metax.core.domain.entities.category.entity import Category
-from metax.frameworks_and_drivers.di import get_metax_container
+from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
 class CategoryAdminHandler:

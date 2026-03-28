@@ -1,33 +1,14 @@
 from __future__ import annotations
-from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from config_ import metax_configs
 
-
-from metax.frameworks_and_drivers.di.patterns_container import PatternsContainer
-from metax.frameworks_and_drivers.di.repositories_container import RepositoriesContainer
+from .patterns_container import PatternsContainer
+from .repositories_container import RepositoriesContainer
 from logger.logger import init_logger
-
-
-@asynccontextmanager
-async def async_opensearch_client_resource(
-    host: str, port: int, user: str, password: str, verify_certs: bool
-) -> AsyncIterator[AsyncOpenSearch]:
-    # https://python-dependency-injector.ets-labs.org/providers/resource.html#:~:text=Asynchronous%20Context%20Manager%20initializer%3A
-    client = AsyncOpenSearch(
-        hosts=[{"host": host, "port": port}],
-        http_auth=(user, password),
-        use_ssl=True,
-        verify_certs=verify_certs,
-    )
-    try:
-        yield client
-    finally:
-        await client.close()
+from .resources import async_opensearch_client_resource
 
 
 class MetaxContainer(containers.DeclarativeContainer):
@@ -50,7 +31,6 @@ class MetaxContainer(containers.DeclarativeContainer):
 
 
 def _build_metax_container() -> MetaxContainer:
-    init_logger()
     service_container_ = MetaxContainer()
     service_container_.config.from_pydantic(metax_configs)
     return service_container_
@@ -62,5 +42,18 @@ _service_container_singleton: MetaxContainer | None = None
 def get_metax_container() -> MetaxContainer:
     global _service_container_singleton
     if _service_container_singleton is None:
+        init_logger()
         _service_container_singleton = _build_metax_container()
     return _service_container_singleton
+
+
+async def init_resources(container: MetaxContainer) -> None:
+    init_task = container.init_resources()
+    if init_task:
+        await init_task
+
+
+async def shutdown_resources(container: MetaxContainer) -> None:
+    shutdown_task = container.shutdown_resources()
+    if shutdown_task:
+        await shutdown_task

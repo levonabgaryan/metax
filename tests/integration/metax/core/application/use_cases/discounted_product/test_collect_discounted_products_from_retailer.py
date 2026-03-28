@@ -6,7 +6,7 @@
 # from metax.core.application.use_cases.discounted_product.dtos import (
 #     CollectDiscountedProductsFromRetailerRequest,
 # )
-# from metax.frameworks_and_drivers.di import ServiceContainer
+# from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
 # from tests.utils import make_retailer_entity, __aiter_wrapper
 #
 #
@@ -31,10 +31,10 @@
 #     started_date = datetime.now(tz=timezone.utc)
 #     request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
 #
-#     with get_current_container_for_tests().patterns_container.container.discounted_product_factory.override(
+#     with metax_container_for_integration_tests.patterns_container.container.discounted_product_factory.override(
 #         mocked_factory_class
 #     ):
-#         use_case = await get_current_container_for_tests().use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
+#         use_case = await metax_container_for_integration_tests.use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
 #         request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
 #         response = await use_case.execute(request)
 #

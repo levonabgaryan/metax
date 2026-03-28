@@ -4,16 +4,16 @@ import pytest
 
 from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from tests.utils import make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_repo_add_and_get(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_retailer_repo_add_and_get(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     retailer = make_retailer_entity()
 
@@ -36,10 +36,10 @@ async def test_retailer_repo_add_and_get(service_container_for_integration_tests
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_retailer_repo_update(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     retailer = make_retailer_entity()
 
@@ -68,9 +68,9 @@ async def test_retailer_repo_update(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_uuid(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_retailer_is_not_found_by_uuid(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     random_uuid = uuid4()
     # expect
@@ -86,9 +86,9 @@ async def test_retailer_is_not_found_by_uuid(service_container_for_integration_t
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_name(service_container_for_integration_tests: MetaxContainer) -> None:
+async def test_retailer_is_not_found_by_name(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     test_name = "test_name"
 

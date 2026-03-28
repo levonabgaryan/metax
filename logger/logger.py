@@ -31,6 +31,8 @@ def init_logger() -> None:
 
     This setup ensures that logging operations do not block the main application thread,
     which is critical for high-performance and asynchronous applications.
+
+    Note: Do not forgit call this method in application run methods.
     """
     root_logger = logging.getLogger()
 

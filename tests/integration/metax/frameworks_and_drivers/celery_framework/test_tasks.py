@@ -11,7 +11,7 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
@@ -39,13 +39,13 @@ def test_collect_products_task_schedule() -> None:
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_collect_discounted_products_from_all_retailers(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
     started_time = datetime.now(tz=timezone.utc)
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
 
@@ -83,7 +83,7 @@ async def test_collect_discounted_products_from_all_retailers(
     # when
     await collect_discounted_products_from_all_retailers(
         unit_of_work=unit_of_work,
-        category_classifier_service=await service_container_for_integration_tests.patterns_container.container.category_classifier_service.async_(),
+        category_classifier_service=await metax_container_for_integration_tests.patterns_container.container.category_classifier_service.async_(),
         start_date_of_collecting=started_time,
         event_bus=event_bus,
     )

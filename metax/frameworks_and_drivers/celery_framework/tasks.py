@@ -3,8 +3,6 @@ from __future__ import annotations
 import asyncio
 from datetime import datetime, timezone
 
-from dependency_injector.wiring import Provide, inject
-
 from config_ import metax_configs
 from metax.core.application.patterns.services.category_classifier_service import CategoryClassifierService
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_context import (
@@ -24,7 +22,7 @@ from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan
     YerevanCityStrategy,
 )
 
-from ..di import MetaxContainer
+from ..di.metax_container import get_metax_container
 from .celery_application import celery_app
 from ...core.domain.entities.retailer.value_objects import RetailersNames
 
@@ -74,14 +72,12 @@ async def collect_discounted_products_from_all_retailers(
 
 
 @celery_app.task(name="CollectDiscountedProducts")
-@inject
-async def celery_task_collect_discounted_products_from_all_retailers(
-    unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
-    category_classifier_service: CategoryClassifierService = Provide[
-        MetaxContainer.patterns_container.container.category_classifier_service
-    ],
-    event_bus: EventBus = Provide[MetaxContainer.patterns_container.event_bus],
-) -> None:
+async def celery_task_collect_discounted_products_from_all_retailers() -> None:
+    container = get_metax_container()
+    unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+    category_classifier_service = await container.patterns_container.container.category_classifier_service.async_()
+    event_bus = container.patterns_container.container.event_bus()
+
     started_time = datetime.now(tz=timezone.utc)
 
     await collect_discounted_products_from_all_retailers(

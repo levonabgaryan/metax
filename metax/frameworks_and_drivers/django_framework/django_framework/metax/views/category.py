@@ -3,7 +3,6 @@ from uuid import UUID
 
 from adrf.viewsets import ViewSet
 from adrf.requests import AsyncRequest
-from dependency_injector.wiring import inject, Provide
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -13,22 +12,18 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
-from metax.core.application.event_handlers.event_bus import EventBus
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 from django_framework.metax.serializers.category import CreateCategorySerializer
 
 
 class CategoryViewSet(ViewSet):
     @action(detail=False, methods=["post"], url_path="create")
-    @inject
-    async def create_new(
-        self,
-        request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
-        event_bus: EventBus = Provide[MetaxContainer.patterns_container.container.event_bus],
-    ) -> Response:
+    async def create_new(self, request: AsyncRequest) -> Response:
         # api/category/create/
+        container = get_metax_container()
+        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+        event_bus = container.patterns_container.container.event_bus()
+
         serializer = CreateCategorySerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -39,19 +34,17 @@ class CategoryViewSet(ViewSet):
             name=serializer.validated_data["category_name"],
             helper_words=frozenset(serializer.validated_data["helper_words"]),
         )
-        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, mediator=event_bus)
+        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
         await command_handler.handle_command(cmd)
 
         return Response({"message": f"Category is created with {category_uuid} uuid"}, status=201)
 
     @action(detail=False, methods=["get"], url_path="get")
-    @inject
-    async def get_by_uuid(
-        self,
-        request: AsyncRequest,
-        unit_of_work: AbstractUnitOfWork = Provide[MetaxContainer.patterns_container.container.unit_of_work],
-    ) -> Response:
+    async def get_by_uuid(self, request: AsyncRequest) -> Response:
         # api/categories/get/?category_uuid=<uuid_value>
+        container = get_metax_container()
+        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+
         uuid_str = request.query_params.get("category_uuid")
 
         if not uuid_str:

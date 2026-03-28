@@ -5,17 +5,17 @@ from metax.core.application.commands_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )
-from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_create_retailer_command_handler(
-    service_container_for_integration_tests: MetaxContainer,
+    metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await service_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = service_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
         name="yerevan-city",
