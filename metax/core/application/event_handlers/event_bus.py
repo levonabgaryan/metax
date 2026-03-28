@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import asyncio
 import logging
-from functools import singledispatchmethod
+from collections.abc import Awaitable, Callable
+from typing import TypeVar
 
 from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.core.application.event_handlers.discounted_product.events import (
@@ -22,18 +24,37 @@ from metax.core.application.read_models.discounted_product import DiscountedProd
 
 logger = logging.getLogger(__name__)
 
+_E = TypeVar("_E", bound=Event)
+
+
+def _expect_event(event: Event, typ: type[_E]) -> _E:
+    if isinstance(event, typ):
+        return event
+    raise TypeError(f"expected {typ.__name__}, got {type(event).__name__}")
+
+
+EventHandler = Callable[[Event], Awaitable[None]]
+
 
 class EventBus:
     def __init__(self, unit_of_work_provider: IUnitOfWorkProvider) -> None:
         self.__unit_of_work_provider = unit_of_work_provider
+        self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
+            CategoryUpdated: (self._handle_category_updated,),
+            RetailerUpdated: (self._handle_retailer_updated,),
+            NewDiscountedProductsFromRetailerCollected: (self._handle_new_discounted_products_collected,),
+            OldDiscountedProductsDeleted: (self._handle_old_discounted_products_deleted,),
+        }
 
-    @singledispatchmethod
     async def handle(self, event: Event) -> None:
-        raise NotImplementedError("No handler for this event type")
+        handlers = self.__handlers.get(type(event))
+        if not handlers:
+            raise NotImplementedError(f"No handler for event type {type(event).__name__!r}")
+        # Handlers for the same event type run concurrently; each should use its own UoW and not rely on peer order.
+        await asyncio.gather(*(handler(event) for handler in handlers))
 
-    # Events handlers
-    @handle.register
-    async def _(self, event: CategoryUpdated) -> None:
+    async def _handle_category_updated(self, event: Event) -> None:
+        event = _expect_event(event, CategoryUpdated)
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
             event.__class__.__name__,
@@ -50,8 +71,8 @@ class EventBus:
             event.category_uuid,
         )
 
-    @handle.register
-    async def _(self, event: RetailerUpdated) -> None:
+    async def _handle_retailer_updated(self, event: Event) -> None:
+        event = _expect_event(event, RetailerUpdated)
         logger.info(
             "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
             event.__class__.__name__,
@@ -68,8 +89,8 @@ class EventBus:
             event.retailer_uuid,
         )
 
-    @handle.register
-    async def _(self, event: NewDiscountedProductsFromRetailerCollected) -> None:
+    async def _handle_new_discounted_products_collected(self, event: Event) -> None:
+        event = _expect_event(event, NewDiscountedProductsFromRetailerCollected)
         logger.info(
             "[Event: %s] | Handler: Delete old discount products from repo | Status: STARTED",
             event.__class__.__name__,
@@ -88,8 +109,8 @@ class EventBus:
             OldDiscountedProductsDeleted(new_discounted_products_creation_date=event.new_products_created_date)
         )
 
-    @handle.register
-    async def _(self, event: OldDiscountedProductsDeleted) -> None:
+    async def _handle_old_discounted_products_deleted(self, event: Event) -> None:
+        event = _expect_event(event, OldDiscountedProductsDeleted)
         logger.info(
             "[Event: %s] | Handler: Sync discount products from repo to read model | Status: STARTED",
             event.__class__.__name__,

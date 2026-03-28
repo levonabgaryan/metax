@@ -17,6 +17,3 @@ def run_django_uvicorn_server() -> None:
     logger.info("STARTUP | Task: Web Server (uvicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
 
     uvicorn.run(_DJANGO_ASGI_APP, host=host, port=port, reload=True, reload_dirs=[project_root_], loop="uvloop")
-
-
-#
