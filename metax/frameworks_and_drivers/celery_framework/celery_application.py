@@ -6,7 +6,7 @@ from celery.schedules import crontab
 from celery.signals import after_setup_logger
 
 from config_ import metax_configs
-from logger.logger import init_logger
+from metax_logger.logger import init_logger
 
 celery_app = Celery(
     main="metax",
@@ -14,22 +14,23 @@ celery_app = Celery(
     broker=metax_configs.celery_broker_url,
 )
 
-celery_app.conf.timezone = "Asia/Yerevan"
-celery_app.conf.enable_utc = True
-
-celery_app.conf.beat_schedule = {
-    "run-daily-task-at-0100": {
-        "task": "CollectDiscountedProducts",
-        "schedule": crontab(hour=1, minute=0),
-        "options": {"queue": "default"},
+celery_app.conf.update(
+    timezone="Asia/Yerevan",
+    enable_utc=True,
+    beat_schedule={
+        "run-daily-task-at-0100": {
+            "task": "CollectDiscountedProducts",
+            "schedule": crontab(hour=1, minute=0),
+            "options": {"queue": "default"},
+        },
     },
-}
+)
 
 
 @after_setup_logger.connect
 def setup_celery_logger(logger: logging.Logger, *args: Any, **kwargs: Any) -> None:
     """
     This signal ensures that when Celery starts its worker,
-    it initializes project's custom non-blocking logger.
+    it initializes project's custom non-blocking metax_logger.
     """
     init_logger()

@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 from pathlib import Path
@@ -24,6 +25,9 @@ class BaseConfigs(BaseSettings):
     django_host: Annotated[str, Field(alias="DJANGO_SERVER_HOST")]
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
     django_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY")]
+
+    gunicorn_reload: bool
+    gunicorn_workers_count: int
 
     redis_host: Annotated[str, Field(alias="REDIS_SERVER_HOST")]
     redis_port: Annotated[int, Field(alias="REDIS_PORT")]
@@ -81,6 +85,9 @@ class DevConfigs(BaseConfigs):
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
 
+    gunicorn_reload: bool = True
+    gunicorn_workers_count: int = 1
+
     redis_host: Annotated[str, Field(default="localhost")]
     redis_port: Annotated[int, Field(default=6379)]
     redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
@@ -116,6 +123,9 @@ class TestConfigs(BaseConfigs):
         str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
     ]
 
+    gunicorn_reload: bool = False
+    gunicorn_workers_count: int = 1
+
     redis_host: Annotated[str, Field(default="localhost")]
     redis_port: Annotated[int, Field(default=6379)]
     redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
@@ -137,11 +147,13 @@ class TestConfigs(BaseConfigs):
 
 class ProdConfigs(BaseConfigs):
     debug: bool = False
+    gunicorn_reload: bool = False
+    gunicorn_workers_count: int = (multiprocessing.cpu_count() * 2) + 1
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=False)
 
 
-def get_configs() -> BaseConfigs:
+def configuration_factory() -> BaseConfigs:
     from dotenv import load_dotenv
 
     load_dotenv()
@@ -161,4 +173,4 @@ def get_configs() -> BaseConfigs:
             raise RuntimeError(f"Invalid ENV: {env_name}")
 
 
-metax_configs = get_configs()
+metax_configs = configuration_factory()

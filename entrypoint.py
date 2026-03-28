@@ -11,7 +11,7 @@ from opensearchpy import AsyncOpenSearch
 logger = logging.getLogger(__name__)
 
 
-async def run_postgres_db_migrations() -> None:
+async def _run_postgres_db_migrations() -> None:
     manage_py = Path(metax_configs.django_dir) / "manage.py"
     logger.info("[STARTUP] | Task: Postgres Migrations | Status: Started")
 
@@ -27,7 +27,7 @@ async def run_postgres_db_migrations() -> None:
     logger.info("[STARTUP] | Task: Postgres Migrations | Status: SUCCESS")
 
 
-async def run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
+async def _run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
     from metax.frameworks_and_drivers.opensearch.migration import migrate_indices
 
     logger.info("[STARTUP] | Task: OpenSearch Migrations | Status: Started")
@@ -41,6 +41,6 @@ async def run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
 
 async def run_entrypoint(client: AsyncOpenSearch) -> None:
     logger.info("[STARTUP] | Task: Entrypoint | Status: Started")
-    await run_opensearch_db_migrations(client=client)
-    await run_postgres_db_migrations()
+    await _run_opensearch_db_migrations(client=client)
+    await _run_postgres_db_migrations()
     logger.info("[STARTUP] | Task: Entrypoint | Status: SUCCESS")

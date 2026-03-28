@@ -7,7 +7,7 @@ from config_ import metax_configs
 
 from .patterns_container import PatternsContainer
 from .repositories_container import RepositoriesContainer
-from logger.logger import init_logger
+from metax_logger.logger import init_logger
 from .resources import async_opensearch_client_resource
 
 
