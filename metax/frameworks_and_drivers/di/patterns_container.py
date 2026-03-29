@@ -2,15 +2,15 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.core.application.patterns.services.category_classifier_service import (
+from metax.core.application.ddd_patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
-from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
-from metax.frameworks_and_drivers.patterns.providers.django_unit_of_work_provider import (
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
+from metax.frameworks_and_drivers.backend_patterns.providers.django_unit_of_work_provider import (
     DjangoUnitOfWorkProvider,
 )
-from metax.frameworks_and_drivers.patterns.unit_of_work.unit_of_work import UnitOfWork
+from metax.frameworks_and_drivers.backend_patterns.unit_of_work.unit_of_work import UnitOfWork
 
 
 class PatternsContainer(containers.DeclarativeContainer):

@@ -12,12 +12,12 @@ from metax.core.application.event_handlers.discounted_product.events import (
 )
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.event_handlers.event import Event
-from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
-from metax.core.application.ports.repositories.entites_repositories.discounted_product import (
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
-from metax.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
+from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (
     IDiscountedProductReadModelRepository,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel

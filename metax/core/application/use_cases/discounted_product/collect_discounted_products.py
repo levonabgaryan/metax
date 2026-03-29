@@ -5,13 +5,13 @@ from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.core.application.patterns.services.category_classifier_service import (
+from metax.core.application.ddd_patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
-from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_context import (
-    DiscountedProductCollectorContext,
+from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
+    DiscountedProductCollectorServiceCreator,
 )
-from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.use_cases.base_use_case import UseCase
 
 from metax.core.application.use_cases.discounted_product.dtos import (
@@ -28,7 +28,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         self,
         unit_of_work_provider: IUnitOfWorkProvider,
         event_bus: EventBus,
-        discounted_product_collector_context: DiscountedProductCollectorContext,
+        discounted_product_collector_context: DiscountedProductCollectorServiceCreator,
         category_classifier_service: CategoryClassifierService,
         batch_size_for_saving_discounted_products: int = 500,
     ) -> None:

@@ -11,10 +11,11 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.yerevan_city_strategy import (
-    YerevanCityStrategy,
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city_strategy import (
+    YerevanCityCollectorService,
 )
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
+
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from tests.utils import make_retailer_entity, make_discounted_product_entity
 
@@ -44,7 +45,7 @@ async def test_collect_discounted_products_from_all_retailers(
 ) -> None:
     # given
     started_time = datetime.now(tz=timezone.utc)
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
@@ -72,13 +73,13 @@ async def test_collect_discounted_products_from_all_retailers(
     discounted_products_urls = {mock_data[0].get_url(), mock_data[1].get_url()}
 
     async def fake_collect(
-        self: YerevanCityStrategy, start_date_of_collecting: datetime
+        self: YerevanCityCollectorService, start_date_of_collecting: datetime
     ) -> AsyncIterator[DiscountedProduct]:
         for p in mock_data:
             yield p
             await asyncio.sleep(0)
 
-    monkeypatch.setattr(YerevanCityStrategy, "collect", fake_collect)
+    monkeypatch.setattr(YerevanCityCollectorService, "collect", fake_collect)
 
     # when
     await collect_discounted_products_from_all_retailers(

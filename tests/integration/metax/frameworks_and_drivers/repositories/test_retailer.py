@@ -2,7 +2,7 @@ from uuid import uuid4
 
 import pytest
 
-from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames

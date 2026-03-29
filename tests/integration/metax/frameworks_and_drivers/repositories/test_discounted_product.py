@@ -4,7 +4,7 @@ from uuid import uuid4
 
 import pytest
 
-from metax.core.application.ports.repositories.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.discounted_product.entity import (
@@ -99,7 +99,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid4()
     # expect
@@ -114,10 +114,6 @@ async def test_discounted_products_is_not_found_by_uuid(
     )
     assert err.value.error_code == "DISCOUNTED_PRODUCT_IS_NOT_FOUND"
     assert err.value.details == {"searched_field_name": "uuid", "searched_field_value": f"{random_uuid}"}
-
-
-# get_all
-# get_all_by_date
 
 
 @pytest.mark.django_db(transaction=True)

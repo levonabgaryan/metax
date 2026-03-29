@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 
 from metax.core.application.commands_handlers.command import Command
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 
 
 class CommandHandler[GenericCommand: Command](ABC):

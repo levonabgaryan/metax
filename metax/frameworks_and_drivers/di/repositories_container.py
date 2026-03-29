@@ -1,24 +1,24 @@
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
-from metax.core.application.ports.repositories.entites_repositories.category import CategoryRepository
-from metax.core.application.ports.repositories.entites_repositories.discounted_product import (
+from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import CategoryRepository
+from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,
 )
-from metax.core.application.ports.repositories.entites_repositories.retailer import RetailerRepository
-from metax.core.application.ports.repositories.read_models_repositories.discounted_product_read_model import (
+from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import RetailerRepository
+from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (
     IDiscountedProductReadModelRepository,
 )
-from metax.frameworks_and_drivers.repositories.opensearch.discounted_product_read_model import (
+from metax.frameworks_and_drivers.ddd_patterns.repositories.opensearch.discounted_product_read_model import (
     OpenSearchDiscountedProductReadModelRepository,
 )
-from metax.frameworks_and_drivers.repositories.postgres.category import (
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.category import (
     DjangoPostgresqlCategoryRepository,
 )
-from metax.frameworks_and_drivers.repositories.postgres.discounted_product import (
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.discounted_product import (
     DjangoPostgresqlDiscountedProductRepository,
 )
-from metax.frameworks_and_drivers.repositories.postgres.retailer import (
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.retailer import (
     DjangoPostgresqlRetailerRepository,
 )
 

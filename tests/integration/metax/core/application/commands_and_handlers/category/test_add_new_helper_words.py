@@ -14,7 +14,7 @@ from tests.utils import make_category_entity
 async def test_add_new_helper_word_command(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work_provider = (
-        await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_()
+        metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
