@@ -349,15 +349,15 @@ wheels = [
 
 [[package]]
 name = "django-modern-rest"
-version = "0.3.0"
+version = "0.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d8/3c/b715607fff6ea404eee4c1f92babf014140369c80c25201e446660b24e82/django_modern_rest-0.3.0.tar.gz", hash = "sha256:dce7acabc89c7cfe88cb7dd8a93ce8a331e3c91dd12d64aa0ab5da0ee79bde70", size = 731204, upload-time = "2026-03-17T18:32:54.713Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/44/f7/3cd27da157cefbd7fe882f703d7cf260a271c3443c67312c57eeedb35bf3/django_modern_rest-0.4.0.tar.gz", hash = "sha256:1f8c3edeb63102988a02a80796c3b8bba479e4d3e8c74395d7e43ed495142eba", size = 2765326, upload-time = "2026-03-29T18:52:44.295Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/41/78/d4abed0fe78b02eb4be5d471ec61b68ce0b542e2d001d9683f592b85e412/django_modern_rest-0.3.0-py3-none-any.whl", hash = "sha256:9d093ed9fdeec4b89430577aaf3ce318178e6f424468860de60ef30c97643139", size = 785286, upload-time = "2026-03-17T18:32:56.205Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/b8/c6a1ebe4ba62ce7ddd42a5a22484ee4ae8705daef8712e550428eb711b93/django_modern_rest-0.4.0-py3-none-any.whl", hash = "sha256:451f8755c8601ed94e52a0ec83428c580d9eafab336b053164802172e239d69d", size = 2846099, upload-time = "2026-03-29T18:52:45.913Z" },
 ]
 
 [package.optional-dependencies]
@@ -712,7 +712,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.14.3" },
     { name = "celery-types", specifier = "==0.26.0" },
     { name = "dependency-injector", specifier = "==4.49.0" },
-    { name = "django-modern-rest", extras = ["msgspec"], specifier = "==0.3.0" },
+    { name = "django-modern-rest", extras = ["msgspec"], specifier = "==0.4.0" },
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = "==6.0.1" },
     { name = "gunicorn", extras = ["fast"], specifier = "==25.3.0" },
     { name = "httpx", specifier = "==0.28.1" },

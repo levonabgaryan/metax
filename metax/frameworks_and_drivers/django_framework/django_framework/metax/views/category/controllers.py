@@ -13,12 +13,12 @@ from metax.core.application.commands_handlers.category import (
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CreateCategoryController(Controller[MsgspecSerializer], Body[CreateCategoryRequestBodyModel]):
+class CreateCategoryController(Controller[MsgspecSerializer]):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category"],
     )
-    async def post(self) -> CreateCategoryResponseBodyModel:
+    async def post(self, parsed_body: Body[CreateCategoryRequestBodyModel]) -> CreateCategoryResponseBodyModel:
         container = get_metax_container()
         unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
         event_bus = container.patterns_container.container.event_bus()
@@ -27,8 +27,8 @@ class CreateCategoryController(Controller[MsgspecSerializer], Body[CreateCategor
 
         cmd = CreateCategoryCommand(
             category_uuid=category_uuid,
-            name=self.parsed_body.category_name,
-            helper_words=frozenset(self.parsed_body.helper_words),
+            name=parsed_body.category_name,
+            helper_words=frozenset(parsed_body.helper_words),
         )
         command_handler = CreateCategoryCommandHandler(
             unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
