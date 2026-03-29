@@ -21,6 +21,7 @@ from metax.frameworks_and_drivers.patterns.strategies.discounted_product.sas_am_
 from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
+from .errors import NoRetailersError
 
 from ..di.metax_container import get_metax_container
 from .celery_application import celery_app
@@ -68,6 +69,8 @@ async def collect_discounted_products_from_all_retailers(
             event_bus=event_bus,
         )
         tasks.append(use_case.handle_use_case(request=use_case_request))
+    if not tasks:
+        raise NoRetailersError
     await asyncio.gather(*tasks)
 
 

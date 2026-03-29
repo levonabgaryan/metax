@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
@@ -17,6 +18,8 @@ from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsCleanerMixin):
@@ -39,7 +42,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
                 )
                 response.raise_for_status()
             except Exception as e:
-                print(e.args[0])
+                logger.error(e)
                 return
 
         data = response.json()

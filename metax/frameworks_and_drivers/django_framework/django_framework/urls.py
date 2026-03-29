@@ -21,25 +21,30 @@ from dmr.openapi.views import OpenAPIJsonView, SwaggerView, RedocView
 from dmr.routing import Router, path
 from django_framework.metax.admin.site import admin_site
 from django_framework.metax.views.category.controllers import CreateCategoryController
+from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
 from django_framework.metax.views.health.controllers import HealthCheckView
+from django_framework.metax.views.retailer.controllers import CreateRetailerController
 
 api_router = Router(
     prefix="api/",
     urls=[
-        path("health-check/", HealthCheckView.as_view(), name="health-check"),
-        path("category/create/", CreateCategoryController.as_view(), name="category-create"),
+        path("health-check/", HealthCheckView.as_view()),
+        path("category/create/", CreateCategoryController.as_view()),
+        path("retailer/create/", CreateRetailerController.as_view()),
+        path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )
 api_schema = build_schema(api_router)
 
 urlpatterns = [
     path("admin/", admin_site.urls),
-    path(api_router.prefix, include((api_router.urls, "api"), namespace="api")),
+    path(api_router.prefix, include((api_router.urls, "api"))),
     path(
         "docs/openapi.json/",
         OpenAPIJsonView.as_view(api_schema),
         name="api_openapi",
     ),
-    path("docs/swagger/", SwaggerView.as_view(api_schema), name="api_swagger"),
-    path("docs/redoc/", RedocView.as_view(api_schema), name="api_redoc"),
+    path("docs/swagger/", SwaggerView.as_view(api_schema)),
+    path("docs/redoc/", RedocView.as_view(api_schema)),
+    path("docs/openapi.json/", OpenAPIJsonView.as_view(api_schema), name="openapi"),
 ]

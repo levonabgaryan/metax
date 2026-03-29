@@ -96,12 +96,6 @@ class DevConfigs(BaseConfigs):
     fluent_bit_host: Annotated[str, Field(default="mock")]
     fluent_bit_port: Annotated[int, Field(default=0)]
 
-    yerevan_city_products_details_url: Annotated[str, Field(default="mock")]
-    yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
-
-    sas_am_main_page_url: Annotated[str, Field(default="mock")]
-    sas_am_data_source_url: Annotated[str, Field(default="mock")]
-
 
 class TestConfigs(BaseConfigs):
     debug: bool = True
