@@ -42,7 +42,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         self, request: CollectDiscountedProductsRequest
     ) -> CollectDiscountedProductsResponse:
         logger.info(
-            "[Use Case: %s] | Status: STARTED",
+            "Use Case: %s | Status: STARTED",
             self.__class__.__name__,
         )
         total_count = 0
@@ -71,7 +71,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         await self._event_bus.handle(event)
 
         logger.info(
-            "[Use Case: %s] | Status: SUCCESS",
+            "Use Case: %s | Status: SUCCESS",
             self.__class__.__name__,
         )
         return CollectDiscountedProductsResponse(added_count=total_count)

@@ -4,6 +4,7 @@ from typing import Any, Optional, override
 class MetaxError(Exception):
     def __init__(
         self,
+        *,
         error_code: str,
         message: str = "An error occurred",
         details: Optional[dict[str, Any]] = None,

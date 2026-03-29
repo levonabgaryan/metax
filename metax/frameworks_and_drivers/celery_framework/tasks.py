@@ -38,7 +38,7 @@ async def collect_discounted_products_from_all_retailers(
     async with uow:
         retailers = [r async for r in uow.retailer_repo.get_all()]
     if not retailers:
-        raise NoRetailersError
+        raise NoRetailersError()
 
     tasks = []
     for retailer in retailers:

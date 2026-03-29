@@ -38,7 +38,6 @@ class BaseConfigs(BaseSettings):
 
     yerevan_city_data_source_url: Annotated[str, Field(alias="YEREVAN_CITY_DATA_SOURCE_URL")]
     yerevan_city_products_details_url: Annotated[str, Field(alias="YEREVAN_CITY_PRODUCTS_DETAILS_URL")]
-    yerevan_city_discount_page_url: Annotated[str, Field(alias="YEREVAN_CITY_DISCOUNT_PAGE_URL")]
 
     sas_am_main_page_url: Annotated[str, Field(alias="SAS_AM_MAIN_PAGE_URL")]
     sas_am_data_source_url: Annotated[str, Field(alias="SAS_AM_DATA_SOURCE_URL")]
@@ -128,11 +127,6 @@ class TestConfigs(BaseConfigs):
     fluent_bit_host: Annotated[str, Field(default="mock")]
     fluent_bit_port: Annotated[int, Field(default=0)]
 
-    yerevan_city_products_details_url: Annotated[str, Field(default="mock")]
-    yerevan_city_discount_page_url: Annotated[str, Field(default="mock")]
-
-    sas_am_main_page_url: Annotated[str, Field(default="mock")]
-    sas_am_data_source_url: Annotated[str, Field(default="mock")]
     model_config = SettingsConfigDict(
         env_file=None,
         extra="ignore",
