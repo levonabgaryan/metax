@@ -17,7 +17,7 @@ class CreateCategoryController(
     Body[CreateCategoryRequestBodyModel],
     Controller[MsgspecSerializer],
 ):
-    @modify(status_code=HTTPStatus.CREATED)
+    @modify(status_code=HTTPStatus.CREATED, tags=["Category"])
     async def post(self) -> CreateCategoryResponseBodyModel:
         container = get_metax_container()
         unit_of_work = await container.patterns_container.container.unit_of_work.async_()

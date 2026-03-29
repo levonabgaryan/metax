@@ -10,6 +10,6 @@ class HealthCheckResponseBody(msgspec.Struct):
 
 
 class HealthCheckView(Controller[MsgspecSerializer]):
-    @modify(status_code=HTTPStatus.OK)
+    @modify(status_code=HTTPStatus.OK, tags=["Health"])
     async def get(self) -> HealthCheckResponseBody:
         return HealthCheckResponseBody()
