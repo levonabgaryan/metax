@@ -12,7 +12,7 @@ from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
 from metax.core.domain.entities.retailer.value_objects import RetailersNames

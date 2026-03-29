@@ -3,7 +3,7 @@
 #
 # import pytest
 #
-# from metax.core.application.use_cases.discounted_product.dtos import (
+# from metax.core.application.use_cases.discounted_product_collectors.dtos import (
 #     CollectDiscountedProductsFromRetailerRequest,
 # )
 # from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
@@ -34,7 +34,7 @@
 #     with metax_container_for_integration_tests.patterns_container.container.discounted_product_factory.override(
 #         mocked_factory_class
 #     ):
-#         use_case = await metax_container_for_integration_tests.use_cases_container.container.discounted_product.container.collect_discounted_products_from_retailer.async_()
+#         use_case = await metax_container_for_integration_tests.use_cases_container.container.discounted_product_collectors.container.collect_discounted_products_from_retailer.async_()
 #         request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
 #         response = await use_case.execute(request)
 #

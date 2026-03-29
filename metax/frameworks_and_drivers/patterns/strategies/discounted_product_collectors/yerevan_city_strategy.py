@@ -18,6 +18,9 @@ from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
 )
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.errors import (
+    InvalidUrlForScrapping,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +44,11 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
                     url=self.__yerevan_city_data_source_url, json=self.__get_scrapper_payload()
                 )
                 response.raise_for_status()
-            except Exception as e:
+            except httpx.InvalidURL as e:
                 logger.error(e)
-                raise e
+                raise InvalidUrlForScrapping(invalid_url=self.__yerevan_city_data_source_url)
+            except Exception as err:
+                logger.error("Request to Yerevan city failed", err, exc_info=True)
 
         data = response.json()
         raw_products: list[dict[str, Any]] = data.get("data", {}).get("list", [])

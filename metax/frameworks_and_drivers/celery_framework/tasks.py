@@ -17,8 +17,10 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.frameworks_and_drivers.patterns.strategies.discounted_product.sas_am_strategy import SasAmStrategy
-from metax.frameworks_and_drivers.patterns.strategies.discounted_product.yerevan_city_strategy import (
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.sas_am_strategy import (
+    SasAmStrategy,
+)
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.yerevan_city_strategy import (
     YerevanCityStrategy,
 )
 from .errors import NoRetailersError

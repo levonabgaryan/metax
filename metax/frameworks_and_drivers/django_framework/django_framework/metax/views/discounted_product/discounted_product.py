@@ -3,7 +3,7 @@
 # from rest_framework.decorators import action
 # from rest_framework.response import Response
 #
-# from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+# from metax.core.application.read_models.discounted_product_collectors import DiscountedProductReadModel
 # from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 #
 #

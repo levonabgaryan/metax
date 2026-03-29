@@ -19,6 +19,9 @@ from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
 )
+from metax.frameworks_and_drivers.patterns.strategies.discounted_product_collectors.errors import (
+    InvalidUrlForScrapping,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +54,11 @@ class SasAmStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsC
                 response = await client.get(url=url_)
                 try:
                     response.raise_for_status()
-                except httpx.HTTPStatusError as e:
-                    logger.error("SAS AM catalog request failed: %s", e)
-                    raise
+                except httpx.InvalidURL as err:
+                    logger.error(err)
+                    InvalidUrlForScrapping(invalid_url=url_)
+                except Exception as err:
+                    logger.error("Request to SAS AM Failed: %s", err, exc_info=True)
 
                 soup = BeautifulSoup(response.text, "lxml")
 
