@@ -99,7 +99,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     random_uuid = uuid4()
     # expect

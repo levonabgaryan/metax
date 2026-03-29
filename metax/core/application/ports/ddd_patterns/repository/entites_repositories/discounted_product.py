@@ -21,7 +21,7 @@ class DiscountedProductRepository(ABC):
         discounted_product = await self._get_by_uuid(discounted_product_uuid)
         if discounted_product is None:
             raise EntityIsNotFoundError(
-                entity_name="discounted_product_collector_services",
+                entity_name="discounted_product",
                 searched_field_name="uuid",
                 searched_field_value=str(discounted_product_uuid),
                 error_code=RepositoriesErrorCodes.DISCOUNTED_PRODUCT_IS_NOT_FOUND,

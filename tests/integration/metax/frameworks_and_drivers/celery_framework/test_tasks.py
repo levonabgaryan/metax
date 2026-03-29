@@ -45,7 +45,7 @@ async def test_collect_discounted_products_from_all_retailers(
 ) -> None:
     # given
     started_time = datetime.now(tz=timezone.utc)
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     await unit_of_work.retailer_repo.add(retailer)
@@ -83,7 +83,7 @@ async def test_collect_discounted_products_from_all_retailers(
 
     # when
     await collect_discounted_products_from_all_retailers(
-        unit_of_work_provider=await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_(),
+        unit_of_work_provider=metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider(),
         category_classifier_service=metax_container_for_integration_tests.patterns_container.container.category_classifier_service(),
         start_date_of_collecting=started_time,
         event_bus=event_bus,
