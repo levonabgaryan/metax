@@ -1,53 +1,35 @@
-# import uuid
-# from uuid import UUID
-#
-# import msgspec
-# from dmr.plugins.msgspec import MsgspecSerializer
-# from dmr import Body, Controller, NewHeader, modify,
-#
-#
-# from metax.core.application.commands_handlers.category import (
-#     CreateCategoryCommand,
-#     CreateCategoryCommandHandler,
-# )
-# from metax.frameworks_and_drivers.di.metax_container import get_metax_container
-# from django_framework.metax.serializers.category import CreateCategorySerializer
-#
-#
-# class CategoryViewSet(Controller[MsgspecSerializer]):
-#     async def post(self, request: AsyncRequest) -> Response:
-#         # api/category/create/
-#         container = get_metax_container()
-#         unit_of_work = await container.patterns_container.container.unit_of_work.async_()
-#         event_bus = container.patterns_container.container.event_bus()
-#
-#         serializer = CreateCategorySerializer(data=request.data)
-#         if not serializer.is_valid():
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
-#         category_uuid = uuid.uuid4()
-#         cmd = CreateCategoryCommand(
-#             category_uuid=category_uuid,
-#             name=serializer.validated_data["category_name"],
-#             helper_words=frozenset(serializer.validated_data["helper_words"]),
-#         )
-#         command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
-#         await command_handler.handle_command(cmd)
-#
-#         return Response({"message": f"Category is created with {category_uuid} uuid"}, status=201)
-#
-#     @action(detail=False, methods=["get"], url_path="get")
-#     async def get_by_uuid(self, request: AsyncRequest) -> Response:
-#         # api/categories/get/?category_uuid=<uuid_value>
-#         container = get_metax_container()
-#         unit_of_work = await container.patterns_container.container.unit_of_work.async_()
-#
-#         uuid_str = request.query_params.get("category_uuid")
-#
-#         if not uuid_str:
-#             return Response({"error": "category_uuid is required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         repo = unit_of_work.category_repo
-#         category = await repo.get_by_uuid(UUID(uuid_str))
-#
-#         return Response({"message": f"Category is found with {category.get_uuid()}"}, status=200)
+import uuid
+from http import HTTPStatus
+
+from dmr.plugins.msgspec import MsgspecSerializer
+from dmr import Body, Controller, modify
+
+from django_framework.metax.views.category.request_body_models import CreateCategoryRequestBodyModel
+from django_framework.metax.views.category.response_body_models import CreateCategoryResponseBodyModel
+from metax.core.application.commands_handlers.category import (
+    CreateCategoryCommand,
+    CreateCategoryCommandHandler,
+)
+from metax.frameworks_and_drivers.di.metax_container import get_metax_container
+
+
+class CreateCategoryController(
+    Body[CreateCategoryRequestBodyModel],
+    Controller[MsgspecSerializer],
+):
+    @modify(status_code=HTTPStatus.CREATED)
+    async def post(self) -> CreateCategoryResponseBodyModel:
+        container = get_metax_container()
+        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+        event_bus = container.patterns_container.container.event_bus()
+
+        category_uuid = uuid.uuid4()
+        cmd = CreateCategoryCommand(
+            category_uuid=category_uuid,
+            name=self.parsed_body.category_name,
+            helper_words=frozenset(self.parsed_body.helper_words),
+        )
+        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        await command_handler.handle_command(cmd)
+
+        return CreateCategoryResponseBodyModel(category_uuid=category_uuid)

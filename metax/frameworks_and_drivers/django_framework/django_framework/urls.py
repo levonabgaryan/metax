@@ -15,13 +15,31 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.urls import path, URLResolver, URLPattern
-
+from django.urls import include
+from dmr.openapi import build_schema
+from dmr.openapi.views import OpenAPIJsonView, SwaggerView, RedocView
+from dmr.routing import Router, path
 from django_framework.metax.admin.site import admin_site
-from django_framework.metax.views.health.urls import health_check_url_patterns
+from django_framework.metax.views.category.controllers import CreateCategoryController
+from django_framework.metax.views.health.controllers import HealthCheckView
 
-urlpatterns: list[URLResolver | URLPattern] = [
+api_router = Router(
+    prefix="api/",
+    urls=[
+        path("health-check/", HealthCheckView.as_view(), name="health-check"),
+        path("category/create/", CreateCategoryController.as_view(), name="category-create"),
+    ],
+)
+api_schema = build_schema(api_router)
+
+urlpatterns = [
     path("admin/", admin_site.urls),
+    path(api_router.prefix, include((api_router.urls, "api"), namespace="api")),
+    path(
+        "docs/openapi.json/",
+        OpenAPIJsonView.as_view(api_schema),
+        name="api_openapi",
+    ),
+    path("docs/swagger/", SwaggerView.as_view(api_schema), name="api_swagger"),
+    path("docs/redoc/", RedocView.as_view(api_schema), name="api_redoc"),
 ]
-
-urlpatterns.extend(health_check_url_patterns)

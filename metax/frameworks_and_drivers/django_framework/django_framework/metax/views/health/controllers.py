@@ -1,7 +1,8 @@
 import msgspec
-from dmr import Controller
+from http import HTTPStatus
+
+from dmr import Controller, modify
 from dmr.plugins.msgspec import MsgspecSerializer
-from dmr.routing import Router, path
 
 
 class HealthCheckResponseBody(msgspec.Struct):
@@ -9,16 +10,6 @@ class HealthCheckResponseBody(msgspec.Struct):
 
 
 class HealthCheckView(Controller[MsgspecSerializer]):
+    @modify(status_code=HTTPStatus.OK)
     async def get(self) -> HealthCheckResponseBody:
         return HealthCheckResponseBody()
-
-
-router = Router(
-    "health/",
-    [
-        path(
-            route="check/",
-            view=HealthCheckView.as_view(),
-        )
-    ],
-)
