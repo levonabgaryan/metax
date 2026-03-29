@@ -712,7 +712,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = "==4.14.3" },
     { name = "celery-types", specifier = "==0.26.0" },
     { name = "dependency-injector", specifier = "==4.49.0" },
-    { name = "django-modern-rest", extras = ["msgspec"], specifier = ">=0.3.0" },
+    { name = "django-modern-rest", extras = ["msgspec"], specifier = "==0.3.0" },
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = "==6.0.1" },
     { name = "gunicorn", extras = ["fast"], specifier = "==25.3.0" },
     { name = "httpx", specifier = "==0.28.1" },

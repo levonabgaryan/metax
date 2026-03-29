@@ -28,7 +28,8 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
             command.__class__.__name__,
             command.retailer_uuid,
         )
-        async with self._unit_of_work as uow:
+        uow = await self._unit_of_work_provider.create()
+        async with uow:
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
                 name=RetailersNames(command.name),

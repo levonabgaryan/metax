@@ -27,7 +27,7 @@ class PatternsContainer(containers.DeclarativeContainer):
         di_unit_of_work_provider=unit_of_work.provider,
     )
     category_classifier_service: providers.Factory[CategoryClassifierService] = providers.Factory(
-        CategoryClassifierService, unit_of_work=unit_of_work
+        CategoryClassifierService, unit_of_work_provider=unit_of_work_provider
     )
     event_bus: providers.ThreadSafeSingleton[EventBus] = providers.ThreadSafeSingleton(
         EventBus,

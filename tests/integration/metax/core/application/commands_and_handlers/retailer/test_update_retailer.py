@@ -15,8 +15,11 @@ async def test_update_retailer_command_handler(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work_provider = (
+        await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_()
+    )
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
 
     retailer = make_retailer_entity()
 
@@ -32,11 +35,12 @@ async def test_update_retailer_command_handler(
         await uow.commit()
 
     # when
-    cmd_handler = UpdateRetailerCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+    cmd_handler = UpdateRetailerCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then
-    async with unit_of_work as uow:
+    uow = await unit_of_work_provider.create()
+    async with uow:
         updated_retailer = await uow.retailer_repo.get_by_uuid(retailer.get_uuid())
         await uow.commit()
 

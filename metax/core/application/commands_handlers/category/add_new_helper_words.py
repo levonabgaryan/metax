@@ -24,7 +24,8 @@ class AddNewHelperWordsCommandHandler(CommandHandler[AddNewHelperWordsCommand]):
             command.__class__.__name__,
             command.category_uuid,
         )
-        async with self._unit_of_work as uow:
+        uow = await self._unit_of_work_provider.create()
+        async with uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(command.category_uuid)
             category.add_new_helper_words(command.new_helper_words)

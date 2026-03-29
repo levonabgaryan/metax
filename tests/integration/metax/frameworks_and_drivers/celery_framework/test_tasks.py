@@ -82,8 +82,8 @@ async def test_collect_discounted_products_from_all_retailers(
 
     # when
     await collect_discounted_products_from_all_retailers(
-        unit_of_work=unit_of_work,
-        category_classifier_service=await metax_container_for_integration_tests.patterns_container.container.category_classifier_service.async_(),
+        unit_of_work_provider=await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_(),
+        category_classifier_service=metax_container_for_integration_tests.patterns_container.container.category_classifier_service(),
         start_date_of_collecting=started_time,
         event_bus=event_bus,
     )

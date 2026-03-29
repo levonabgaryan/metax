@@ -11,7 +11,7 @@ from metax.core.application.patterns.services.category_classifier_service import
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_context import (
     DiscountedProductCollectorContext,
 )
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
+from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.use_cases.base_use_case import UseCase
 
 from metax.core.application.use_cases.discounted_product.dtos import (
@@ -26,13 +26,13 @@ logger = logging.getLogger(__name__)
 class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
     def __init__(
         self,
-        unit_of_work: AbstractUnitOfWork,
+        unit_of_work_provider: IUnitOfWorkProvider,
         event_bus: EventBus,
         discounted_product_collector_context: DiscountedProductCollectorContext,
         category_classifier_service: CategoryClassifierService,
         batch_size_for_saving_discounted_products: int = 500,
     ) -> None:
-        super().__init__(unit_of_work=unit_of_work, event_bus=event_bus)
+        super().__init__(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         self.__discounted_product_collector_context = discounted_product_collector_context
         self.__batch_size_for_saving_discounted_products = batch_size_for_saving_discounted_products
         self.__category_classifier_service = category_classifier_service
@@ -77,6 +77,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         return CollectDiscountedProductsResponse(added_count=total_count)
 
     async def __save_batch(self, batch: list[DiscountedProduct]) -> None:
-        async with self._unit_of_work as uow:
+        uow = await self._unit_of_work_provider.create()
+        async with uow:
             await uow.discounted_product_repo.add_many(batch)
             await uow.commit()

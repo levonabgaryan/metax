@@ -27,7 +27,8 @@ class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
             command.__class__.__name__,
             command.retailer_uuid,
         )
-        async with self._unit_of_work as uow:
+        uow = await self._unit_of_work_provider.create()
+        async with uow:
             repo = uow.retailer_repo
             retailer = await repo.get_by_uuid(command.retailer_uuid)
             if command.new_name is not None:

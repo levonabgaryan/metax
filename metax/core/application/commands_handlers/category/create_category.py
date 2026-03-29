@@ -21,7 +21,8 @@ class CreateCategoryCommand(Command):
 class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
     @override
     async def handle_command(self, command: CreateCategoryCommand) -> None:
-        async with self._unit_of_work as uow:
+        uow = await self._unit_of_work_provider.create()
+        async with uow:
             logger.info(
                 "[Command: %s] | Status: STARTED | Target UUID: [%s]",
                 command.__class__.__name__,

@@ -15,8 +15,11 @@ async def test_update_category_command_handler(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work_provider = (
+        await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_()
+    )
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
     category = make_category_entity()
 
     async with unit_of_work as uow:
@@ -25,11 +28,12 @@ async def test_update_category_command_handler(
 
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
-    cmd_handler = UpdateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+    cmd_handler = UpdateCategoryCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then
-    async with unit_of_work as uow:
+    uow = await unit_of_work_provider.create()
+    async with uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
         assert updated_category.get_name() == cmd.new_name
         await uow.commit()

@@ -83,49 +83,62 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
-        unit_of_work = await get_metax_container().patterns_container.container.unit_of_work.async_()
-        event_bus = get_metax_container().patterns_container.container.event_bus()
+        container = get_metax_container().patterns_container.container
+        unit_of_work_provider = await container.unit_of_work_provider.async_()
+        event_bus = container.event_bus()
 
         command = CreateCategoryCommand(
             category_uuid=uuid.uuid4(), name=category_name, helper_words=frozenset(helper_words)
         )
-        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        command_handler = CreateCategoryCommandHandler(
+            unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
+        )
         await command_handler.handle_command(command)
 
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
-        unit_of_work = await get_metax_container().patterns_container.container.unit_of_work.async_()
-        event_bus = get_metax_container().patterns_container.container.event_bus()
+        container = get_metax_container().patterns_container.container
+        unit_of_work_provider = await container.unit_of_work_provider.async_()
+        event_bus = container.event_bus()
 
-        async with unit_of_work as uow:
+        uow = await unit_of_work_provider.create()
+        async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
         command = AddNewHelperWordsCommand(
             category_uuid=category.get_uuid(),
             new_helper_words=frozenset(new_helper_words),
         )
-        command_handler = AddNewHelperWordsCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        command_handler = AddNewHelperWordsCommandHandler(
+            unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
+        )
         await command_handler.handle_command(command)
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
-        unit_of_work = await get_metax_container().patterns_container.container.unit_of_work.async_()
-        event_bus = get_metax_container().patterns_container.container.event_bus()
+        container = get_metax_container().patterns_container.container
+        unit_of_work_provider = await container.unit_of_work_provider.async_()
+        event_bus = container.event_bus()
 
-        async with unit_of_work as uow:
+        uow = await unit_of_work_provider.create()
+        async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
         command = DeleteHelperWordsCommand(
             category_uuid=category.get_uuid(),
             words_to_delete=frozenset(words_to_delete),
         )
-        command_handler = DeleteHelperWordsCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        command_handler = DeleteHelperWordsCommandHandler(
+            unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
+        )
         await command_handler.handle_command(command)
 
     @staticmethod
     async def __get__all_categories() -> list[Category]:
-        unit_of_work = await get_metax_container().patterns_container.container.unit_of_work.async_()
-        async with unit_of_work as uow:
+        container = get_metax_container().patterns_container.container
+        unit_of_work_provider = await container.unit_of_work_provider.async_()
+        uow = await unit_of_work_provider.create()
+        async with uow:
             all_categories = await uow.category_repo.get_all()
         return all_categories
 

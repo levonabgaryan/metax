@@ -11,7 +11,7 @@ from metax.core.application.patterns.strategies.discounted_product.discounted_pr
 from metax.core.application.patterns.strategies.discounted_product.discounted_product_collector_strategy import (
     DiscountedProductCollectorStrategy,
 )
-from metax.core.application.ports.patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
+from metax.core.application.ports.patterns.providers.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.use_cases.discounted_product.collect_discounted_products import (
     CollectDiscountedProducts,
 )
@@ -29,14 +29,19 @@ from ...core.domain.entities.retailer.value_objects import RetailersNames
 
 
 async def collect_discounted_products_from_all_retailers(
-    unit_of_work: AbstractUnitOfWork,
+    unit_of_work_provider: IUnitOfWorkProvider,
     event_bus: EventBus,
     category_classifier_service: CategoryClassifierService,
     start_date_of_collecting: datetime,
 ) -> None:
+    uow = await unit_of_work_provider.create()
+    async with uow:
+        retailers = [r async for r in uow.retailer_repo.get_all()]
+    if not retailers:
+        raise NoRetailersError
+
     tasks = []
-    all_retailers = unit_of_work.retailer_repo.get_all()
-    async for retailer in all_retailers:
+    for retailer in retailers:
         retailer_key = retailer.get_name()
         strategy_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_STRATEGY[retailer_key]
 
@@ -63,28 +68,26 @@ async def collect_discounted_products_from_all_retailers(
         )
         use_case_request = CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
         use_case = CollectDiscountedProducts(
-            unit_of_work=unit_of_work,
+            unit_of_work_provider=unit_of_work_provider,
             discounted_product_collector_context=discounted_product_collector_context,
             category_classifier_service=category_classifier_service,
             event_bus=event_bus,
         )
         tasks.append(use_case.handle_use_case(request=use_case_request))
-    if not tasks:
-        raise NoRetailersError
-    await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
 
 @celery_app.task(name="CollectDiscountedProducts")
 async def celery_task_collect_discounted_products_from_all_retailers() -> None:
     container = get_metax_container()
-    unit_of_work = await container.patterns_container.container.unit_of_work.async_()
-    category_classifier_service = await container.patterns_container.container.category_classifier_service.async_()
+    unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
+    category_classifier_service = container.patterns_container.container.category_classifier_service()
     event_bus = container.patterns_container.container.event_bus()
 
     started_time = datetime.now(tz=timezone.utc)
 
     await collect_discounted_products_from_all_retailers(
-        unit_of_work=unit_of_work,
+        unit_of_work_provider=unit_of_work_provider,
         category_classifier_service=category_classifier_service,
         start_date_of_collecting=started_time,
         event_bus=event_bus,

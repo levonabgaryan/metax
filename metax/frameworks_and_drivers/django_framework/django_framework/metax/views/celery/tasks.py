@@ -23,16 +23,14 @@ class CollectDiscountedProductsFromRetailersController(Controller[MsgspecSeriali
     )
     async def post(self) -> None:
         container = get_metax_container()
-        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+        unit_of_work_provider = container.patterns_container.container.unit_of_work_provider()
         event_bus = container.patterns_container.container.event_bus()
-        category_classifier_service = (
-            await container.patterns_container.container.category_classifier_service.async_()
-        )
+        category_classifier_service = container.patterns_container.container.category_classifier_service()
         now = datetime.now(tz=timezone.utc)
         await collect_discounted_products_from_all_retailers(
             start_date_of_collecting=now,
             event_bus=event_bus,
-            unit_of_work=unit_of_work,
+            unit_of_work_provider=unit_of_work_provider,
             category_classifier_service=category_classifier_service,
         )
 

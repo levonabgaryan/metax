@@ -14,7 +14,9 @@ async def test_create_retailer_command_handler(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work_provider = (
+        await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_()
+    )
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
@@ -24,11 +26,13 @@ async def test_create_retailer_command_handler(
     )
 
     # when
-    cmd_handler = CreateRetailerCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+    cmd_handler = CreateRetailerCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await cmd_handler.handle_command(cmd)
 
     # then
-    retailer = await unit_of_work.retailer_repo.get_by_uuid(cmd.retailer_uuid)
+    uow = await unit_of_work_provider.create()
+    async with uow:
+        retailer = await uow.retailer_repo.get_by_uuid(cmd.retailer_uuid)
 
     assert retailer.get_name().value == "yerevan-city"
     assert retailer.get_home_page_url() == "https://example.com"

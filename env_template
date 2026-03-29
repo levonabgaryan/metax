@@ -31,5 +31,6 @@ YEREVAN_CITY_DATA_SOURCE_URL=
 YEREVAN_CITY_API_URL=
 YEREVAN_CITY_DISCOUNT_PAGE_URL=
 
-SAS_AM_DATA_SOURCE_URL
-SAS_AM_MAIN_PAGE_URL
+# Discount listing (e.g. https://www.sas.am/catalog/discount). Legacy /am/catalog/... URLs return 404.
+SAS_AM_DATA_SOURCE_URL=
+SAS_AM_MAIN_PAGE_URL=

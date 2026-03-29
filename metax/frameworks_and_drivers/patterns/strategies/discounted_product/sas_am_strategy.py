@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import uuid
 from datetime import datetime
 from decimal import Decimal
@@ -18,6 +19,8 @@ from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class SasAmStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsCleanerMixin):
@@ -46,6 +49,12 @@ class SasAmStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsC
                     )
 
                 response = await client.get(url=url_)
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as e:
+                    logger.error("SAS AM catalog request failed: %s", e)
+                    raise
+
                 soup = BeautifulSoup(response.text, "lxml")
 
                 items_block_divs = soup.find("div", class_="catalog__grid grid")
@@ -93,7 +102,6 @@ class SasAmStrategy(DiscountedProductCollectorStrategy, DiscountedProductFieldsC
                         continue
 
                     raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
-
                     yield DiscountedProduct(
                         discounted_product_uuid=uuid.uuid4(),
                         name=self.clean_discounted_product_name(text=name),

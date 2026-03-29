@@ -10,26 +10,26 @@ from metax.core.application.commands_handlers.retailer import CreateRetailerComm
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CreateRetailerController(Controller[MsgspecSerializer]):
+class CreateRetailerController(Controller[MsgspecSerializer], Body[CreateRetailerRequestBodyModel]):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Retailer"],
     )
-    async def post(self, parsed_body: Body[CreateRetailerRequestBodyModel]) -> CreateRetailerResponseBodyModel:
+    async def post(self) -> CreateRetailerResponseBodyModel:
         container = get_metax_container()
-        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+        unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
         event_bus = container.patterns_container.container.event_bus()
 
         retailer_uuid = uuid.uuid4()
         cmd = CreateRetailerCommand(
             retailer_uuid=retailer_uuid,
-            name=parsed_body.parsed_body.name,
-            url=parsed_body.parsed_body.url,
-            phone_number=parsed_body.parsed_body.phone_number,
+            name=self.parsed_body.name,
+            url=self.parsed_body.url,
+            phone_number=self.parsed_body.phone_number,
         )
 
         command_handler = CreateRetailerCommandHandler(
-            unit_of_work=unit_of_work,
+            unit_of_work_provider=unit_of_work_provider,
             event_bus=event_bus,
         )
         await command_handler.handle_command(cmd)

@@ -13,26 +13,26 @@ from metax.core.application.commands_handlers.category import (
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CreateCategoryController(
-    Controller[MsgspecSerializer],
-):
+class CreateCategoryController(Controller[MsgspecSerializer], Body[CreateCategoryRequestBodyModel]):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category"],
     )
-    async def post(self, parsed_body: Body[CreateCategoryRequestBodyModel]) -> CreateCategoryResponseBodyModel:
+    async def post(self) -> CreateCategoryResponseBodyModel:
         container = get_metax_container()
-        unit_of_work = await container.patterns_container.container.unit_of_work.async_()
+        unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
         event_bus = container.patterns_container.container.event_bus()
 
         category_uuid = uuid.uuid4()
 
         cmd = CreateCategoryCommand(
             category_uuid=category_uuid,
-            name=parsed_body.parsed_body.category_name,
-            helper_words=frozenset(parsed_body.parsed_body.helper_words),
+            name=self.parsed_body.category_name,
+            helper_words=frozenset(self.parsed_body.helper_words),
         )
-        command_handler = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+        command_handler = CreateCategoryCommandHandler(
+            unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
+        )
         await command_handler.handle_command(cmd)
 
         return CreateCategoryResponseBodyModel(category_uuid=category_uuid)

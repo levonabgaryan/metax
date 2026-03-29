@@ -15,7 +15,9 @@ async def test_create_category_command_handler(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work_provider = (
+        await metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider.async_()
+    )
     event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
     category_uuid = uuid4()
     cmd = CreateCategoryCommand(
@@ -25,11 +27,13 @@ async def test_create_category_command_handler(
     )
 
     # when
-    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work=unit_of_work, event_bus=event_bus)
+    cmd_handler_ = CreateCategoryCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await cmd_handler_.handle_command(cmd)
 
     # then
-    category = await unit_of_work.category_repo.get_by_uuid(category_uuid)
+    uow = await unit_of_work_provider.create()
+    async with uow:
+        category = await uow.category_repo.get_by_uuid(category_uuid)
     assert category.get_uuid() == category_uuid
     assert category.get_name() == cmd.name
     assert category.get_helper_words() == {"B", "A"}

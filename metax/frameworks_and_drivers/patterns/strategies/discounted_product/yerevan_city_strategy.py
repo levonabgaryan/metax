@@ -35,7 +35,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
 
     @override
     async def collect(self, start_date_of_collecting: datetime) -> AsyncIterator[DiscountedProduct]:
-        async with httpx.AsyncClient(timeout=25) as client:
+        async with httpx.AsyncClient(timeout=httpx.Timeout(120.0)) as client:
             try:
                 response = await client.post(
                     url=self.__yerevan_city_data_source_url, json=self.__get_scrapper_payload()
@@ -43,7 +43,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
                 response.raise_for_status()
             except Exception as e:
                 logger.error(e)
-                return
+                raise e
 
         data = response.json()
         raw_products: list[dict[str, Any]] = data.get("data", {}).get("list", [])
@@ -54,7 +54,7 @@ class YerevanCityStrategy(DiscountedProductCollectorStrategy, DiscountedProductF
                 name=self.clean_discounted_product_name(text=raw_product["name"]),
                 price_details=PriceDetails(
                     real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),
-                    discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discounted_price"])),
+                    discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discountedPrice"])),
                 ),
                 url=f"{self.__yerevan_city_products_details_url}/{raw_product['id']}",
                 created_at=start_date_of_collecting,
