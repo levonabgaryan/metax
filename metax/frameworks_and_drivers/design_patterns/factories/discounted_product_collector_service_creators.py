@@ -5,10 +5,10 @@ from metax.core.application.ports.design_patterns.factory.discounted_product_col
     DiscountedProductCollectorServiceCreator,
 )
 from metax.core.domain.entities.retailer.entity import Retailer
-from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.sas_am_strategy import (
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.sas_am import (
     SasAmCollectorService,
 )
-from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city_strategy import (
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
 

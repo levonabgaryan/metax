@@ -11,7 +11,7 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
-from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city_strategy import (
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
