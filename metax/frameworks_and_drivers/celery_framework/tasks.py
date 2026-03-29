@@ -69,7 +69,7 @@ async def collect_discounted_products_from_all_retailers(
         use_case_request = CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
         use_case = CollectDiscountedProducts(
             unit_of_work_provider=unit_of_work_provider,
-            discounted_product_collector_context=collector_service_creator,
+            discounted_product_collector_service_creator=collector_service_creator,
             category_classifier_service=category_classifier_service,
             event_bus=event_bus,
         )

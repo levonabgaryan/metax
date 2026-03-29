@@ -28,12 +28,12 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         self,
         unit_of_work_provider: IUnitOfWorkProvider,
         event_bus: EventBus,
-        discounted_product_collector_context: DiscountedProductCollectorServiceCreator,
+        discounted_product_collector_service_creator: DiscountedProductCollectorServiceCreator,
         category_classifier_service: CategoryClassifierService,
         batch_size_for_saving_discounted_products: int = 500,
     ) -> None:
         super().__init__(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        self.__discounted_product_collector_context = discounted_product_collector_context
+        self.__discounted_product_collector_service_creator = discounted_product_collector_service_creator
         self.__batch_size_for_saving_discounted_products = batch_size_for_saving_discounted_products
         self.__category_classifier_service = category_classifier_service
 
@@ -48,7 +48,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         total_count = 0
         batch = []
 
-        async for discounted_product in self.__discounted_product_collector_context.do_collect():
+        async for discounted_product in self.__discounted_product_collector_service_creator.do_collect():
             category = await self.__category_classifier_service.classify_category(
                 discounted_product_name=discounted_product.get_name()
             )
