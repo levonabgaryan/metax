@@ -109,7 +109,7 @@ async def test_discounted_products_is_not_found_by_uuid(
 
     # then
     assert (
-        err.value.message
+        err.value.title
         == f"There is no discounted_product entity found by field 'uuid' with value '{random_uuid}'."
     )
     assert err.value.error_code == "DISCOUNTED_PRODUCT_IS_NOT_FOUND"

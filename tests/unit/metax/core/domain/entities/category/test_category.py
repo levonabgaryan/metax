@@ -24,7 +24,7 @@ def test_add_new_helper_words() -> None:
 
     # except
     assert err.value.error_code == "DUPLICATE_HELPER_WORDS"
-    assert err.value.message == f"Cannot add duplicate helper words: {expected_words}."
+    assert err.value.title == f"Cannot add duplicate helper words: {expected_words}."
 
 
 def test_delete_helper_words() -> None:
@@ -41,6 +41,6 @@ def test_delete_helper_words() -> None:
     # then
     assert err.value.error_code == "WORDS_NOT_FOUND_FOR_DELETION"
     assert (
-        err.value.message
+        err.value.title
         == f"None of the requested words for deletion ({expected_words}) were found in the existing list."
     )

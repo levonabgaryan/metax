@@ -71,7 +71,7 @@ async def test_category_is_not_found_by_uuid(metax_container_for_integration_tes
             await uow.category_repo.get_by_uuid(random_uuid)
 
     # then
-    assert err.value.message == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
+    assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
     assert err.value.error_code == "CATEGORY_IS_NOT_FOUND"
     assert err.value.details == {"searched_field_name": "uuid", "searched_field_value": f"{random_uuid}"}
 
@@ -90,7 +90,7 @@ async def test_category_is_not_found_by_name(metax_container_for_integration_tes
             await uow.category_repo.get_by_name(test_name)
 
     # then
-    assert err.value.message == f"There is no category entity found by field 'name' with value '{test_name}'."
+    assert err.value.title == f"There is no category entity found by field 'name' with value '{test_name}'."
     assert err.value.error_code == "CATEGORY_IS_NOT_FOUND"
     assert err.value.details == {"searched_field_name": "name", "searched_field_value": f"{test_name}"}
 
