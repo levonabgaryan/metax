@@ -20,7 +20,7 @@ class DiscountedProduct(AggregateRootEntity):
         url: str,
         created_at: datetime,
     ) -> None:
-        super().__init__(uuid=discounted_product_uuid)
+        super().__init__(uuid_=discounted_product_uuid)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details
