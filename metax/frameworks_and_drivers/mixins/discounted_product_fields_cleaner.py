@@ -1,4 +1,5 @@
 import re
+from typing import overload
 
 
 class DiscountedProductFieldsCleanerMixin:
@@ -21,6 +22,18 @@ class DiscountedProductFieldsCleanerMixin:
         # remove extra spaces
         text = re.sub(r"\s+", " ", text).strip()
         return text
+
+    @overload
+    @staticmethod
+    def clean_discounted_product_price(price_: str) -> str: ...
+
+    @overload
+    @staticmethod
+    def clean_discounted_product_price(price_: int) -> str: ...
+
+    @overload
+    @staticmethod
+    def clean_discounted_product_price(price_: float) -> str: ...
 
     @staticmethod
     def clean_discounted_product_price(price_: str | int | float) -> str:
