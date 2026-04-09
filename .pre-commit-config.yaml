@@ -30,4 +30,4 @@ repos:
     rev: 0.2.0
     hooks:
       - id: dotenv-linter
-        args: [ "--template", "env_template", "--env", ".env" ]
+        entry: ./.venv/bin/dotenv-linter --template env_template --env env
