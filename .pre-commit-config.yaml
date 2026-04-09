@@ -26,8 +26,9 @@ repos:
         language: system
         pass_filenames: false
 
-  - repo: https://github.com/wemake-services/dotenv-linter
-    rev: 0.2.0
+  - repo: local
     hooks:
-      - id: dotenv-linter
-        entry: ./.venv/bin/dotenv-linter --template env_template --env env
+      - id: dotenv-check
+        name: dotenv-check
+        entry: ./.venv/bin/python env_structure_validator.py
+        language: system

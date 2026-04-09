@@ -1,11 +1,11 @@
-import msgspec
+from pydantic import BaseModel
 from http import HTTPStatus
 
 from dmr import Controller, modify
 from dmr.plugins.msgspec import MsgspecSerializer
 
 
-class HealthCheckResponseBody(msgspec.Struct):
+class HealthCheckResponseBody(BaseModel):
     message: str = "Metax is working"
 
 

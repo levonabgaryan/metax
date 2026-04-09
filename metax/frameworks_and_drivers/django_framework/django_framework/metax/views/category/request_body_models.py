@@ -1,6 +1,6 @@
-import msgspec
+from pydantic import BaseModel
 
 
-class CreateCategoryRequestBodyModel(msgspec.Struct):
+class CreateCategoryRequestBodyModel(BaseModel):
     category_name: str
     helper_words: list[str]

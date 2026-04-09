@@ -1,7 +1,7 @@
-import msgspec
+from pydantic import BaseModel
 
 
-class CreateRetailerRequestBodyModel(msgspec.Struct):
+class CreateRetailerRequestBodyModel(BaseModel):
     name: str
     url: str
     phone_number: str

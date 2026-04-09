@@ -1,7 +1,7 @@
 from uuid import UUID
 
-import msgspec
+from pydantic import BaseModel
 
 
-class CreateRetailerResponseBodyModel(msgspec.Struct):
+class CreateRetailerResponseBodyModel(BaseModel):
     retailer_uuid: UUID

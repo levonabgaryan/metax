@@ -1,7 +1,7 @@
 from uuid import UUID
 
-import msgspec
+from pydantic import BaseModel
 
 
-class CreateCategoryResponseBodyModel(msgspec.Struct):
+class CreateCategoryResponseBodyModel(BaseModel):
     category_uuid: UUID
