@@ -34,72 +34,34 @@ dependencies = [
 [tool.mypy]
 strict = true
 show_error_codes = true
+plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 mypy_path = ".:metax/frameworks_and_drivers/django_framework"
+enable_error_code = ["explicit-override"]
+
 explicit_package_bases = true
 namespace_packages = true
 allow_redefinition = false
-
-plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
-
-# Warns if function parameters and return value is not annotated
 disallow_untyped_defs = true
-
-# Warns if module components have not type hints
 disallow_any_unimported = true
-
-# Doesn't warn if function body is not annotated
 check_untyped_defs = true
-
-# Warns if function parameter by default is None, but it was not annotated
-# def greet(name: str = None):  # Error!
-#    print(f"Hello, {name}")
 no_implicit_optional = true
-
-# Warns if function return Any
 warn_return_any = true
-
-# Warns if there are unused `type: ignore`
 warn_unused_ignores = true
-
-# Warns if some package or library has not stubs
 ignore_missing_imports = false
-
-# Warns about redundant 'cast' calls
 warn_redundant_casts = true
-
-# Warns if code is unreachable.
 warn_unreachable = true
-
-# Warns if decorator function parameter is not annotated
 disallow_untyped_decorators = true
-
-# Warns if code is checking two different types equality (using == operator, but for None doesn't warn)
 strict_equality = true
-
-# Include None for strict_equality
 strict_equality_for_none = true
-
-# Warns if function's return is missed
 warn_no_return = true
-
-enable_error_code = ["explicit-override"]
-
-# See https://mypy.readthedocs.io/en/stable/config_file.html#confval-strict_equality:~:text=for%20more%20info.-,implicit_reexport,-%C2%B6
 implicit_reexport = false
 no_implicit_reexport = true
 disallow_any_generics = true
-
-#disallow_subclassing_any = true
-#disallow_untyped_calls = true
-#warn_unused_configs = true
-#local_partial_types = true
-#disallow_any_decorated = true
-#extra_checks = true
-
-
-[[tool.mypy.overrides]]
-module = "django.db.backends.postgresql.psycopg_any"
-ignore_missing_imports = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+warn_unused_configs = true
+local_partial_types = true
+extra_checks = true
 
 [tool.django-stubs]
 django_settings_module = "django_framework.settings"
