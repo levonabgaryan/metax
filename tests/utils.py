@@ -18,8 +18,11 @@ from metax.core.domain.entities.retailer.value_objects import RetailersNames
 def make_category_entity(
     category_uuid: UUID | None = None,
     name: str = "test_category_name",
-    helper_words: CategoryHelperWords = CategoryHelperWords(words=frozenset(["test_word1", " test_word2"])),
+    helper_words: CategoryHelperWords | None = None,
 ) -> Category:
+    if helper_words is None:
+        helper_words = CategoryHelperWords(words=frozenset(["test_word1", " test_word2"]))
+
     return Category(
         name=name,
         category_uuid=category_uuid or uuid4(),
@@ -96,7 +99,7 @@ async def mock_create_many_discounted_products_from_retailer(
 ) -> AsyncIterator[list[DiscountedProduct]]:
     # Mock function for IDiscountedProductFactory.create_many_from_retailer
     discounted_products = []
-    for i in range(discounted_product_counts):
+    for _ in range(discounted_product_counts):
         discounted_product = make_discounted_product_entity(
             retailer_uuid=retailer_uuid, created_at=datetime.now(tz=timezone.utc)
         )

@@ -160,7 +160,8 @@ def configuration_factory() -> BaseConfigs:
         case "prod":
             return ProdConfigs()
         case _:
-            raise RuntimeError(f"Invalid ENV: {env_name}")
+            msg = f"Invalid ENV: {env_name}"
+            raise RuntimeError(msg)
 
 
 metax_configs = configuration_factory()

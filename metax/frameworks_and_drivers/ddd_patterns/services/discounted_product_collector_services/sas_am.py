@@ -17,7 +17,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
-    InvalidUrlForScrapping,
+    InvalidUrlForScrappingError,
 )
 from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner import (
     DiscountedProductFieldsCleanerMixin,
@@ -56,7 +56,7 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                     response.raise_for_status()
                 except httpx.InvalidURL as err:
                     logger.error(err)
-                    InvalidUrlForScrapping(invalid_url=url_)
+                    InvalidUrlForScrappingError(invalid_url=url_)
                 except Exception as err:
                     logger.error("Request to SAS AM Failed: %s", err, exc_info=True)
 

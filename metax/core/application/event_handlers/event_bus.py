@@ -30,7 +30,8 @@ _E = TypeVar("_E", bound=Event)
 def _expect_event(event: Event, typ: type[_E]) -> _E:
     if isinstance(event, typ):
         return event
-    raise TypeError(f"expected {typ.__name__}, got {type(event).__name__}")
+    msg = f"expected {typ.__name__}, got {type(event).__name__}"
+    raise TypeError(msg)
 
 
 EventHandler = Callable[[Event], Awaitable[None]]
@@ -49,7 +50,8 @@ class EventBus:
     async def handle(self, event: Event) -> None:
         handlers = self.__handlers.get(type(event))
         if not handlers:
-            raise NotImplementedError(f"No handler for event type {type(event).__name__!r}")
+            msg = f"No handler for event type {type(event).__name__!r}"
+            raise NotImplementedError(msg)
         # Handlers for the same event type run concurrently; each should use its own UoW and not rely on peer order.
         await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 

@@ -44,4 +44,5 @@ async def run_django_gunicorn_server() -> None:
 
     if process.returncode != 0 and process.returncode != -15:
         logger.error("RUNTIME | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
-        raise RuntimeError(f"Gunicorn failed with exit code {process.returncode}")
+        msg = f"Gunicorn failed with exit code {process.returncode}"
+        raise RuntimeError(msg)

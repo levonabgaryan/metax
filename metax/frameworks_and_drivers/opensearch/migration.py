@@ -15,9 +15,8 @@ async def opensearch_migrate_index(
     index_body: dict[str, Any],
 ) -> None:
     # Checks if there has been created index using alias-name
-    if await client.indices.exists(index=alias_name):
-        if not await client.indices.exists_alias(name=alias_name):
-            await client.indices.delete(index=alias_name)
+    if await client.indices.exists(index=alias_name) and not await client.indices.exists_alias(name=alias_name):
+        await client.indices.delete(index=alias_name)
 
     if not await client.indices.exists(index=new_index_name):
         old_index_name = None

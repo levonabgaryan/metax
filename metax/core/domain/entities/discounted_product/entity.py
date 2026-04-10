@@ -33,7 +33,8 @@ class DiscountedProduct(AggregateRootEntity):
 
     def get_category_uuid(self) -> UUID:
         if self.__category_uuid is None:
-            raise AttributeError(f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned.")
+            msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
+            raise AttributeError(msg)
         return self.__category_uuid
 
     def get_retailer_uuid(self) -> UUID:

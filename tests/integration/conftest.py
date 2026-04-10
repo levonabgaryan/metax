@@ -1,3 +1,4 @@
+import contextlib
 from typing import AsyncIterator
 
 import pytest
@@ -43,7 +44,7 @@ async def clear_os_each_test(metax_container_for_integration_tests: MetaxContain
     client: AsyncOpenSearch = await metax_container_for_integration_tests.opensearch_async_client.async_()
 
     async def cleanup() -> None:
-        try:
+        with contextlib.suppress(Exception):
             await client.delete_by_query(
                 index="*,-.*",
                 body={"query": {"match_all": {}}},
@@ -51,8 +52,6 @@ async def clear_os_each_test(metax_container_for_integration_tests: MetaxContain
                 ignore_unavailable=True,
                 wait_for_completion=True,
             )
-        except Exception:
-            pass
 
     await cleanup()
     yield

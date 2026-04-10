@@ -72,7 +72,8 @@ async def test_collect_discounted_products_from_all_retailers(
     discounted_products_urls = {mock_data[0].get_url(), mock_data[1].get_url()}
 
     async def fake_collect(
-        self: YerevanCityCollectorService, start_date_of_collecting: datetime
+        self: YerevanCityCollectorService,
+        start_date_of_collecting: datetime,  # noqa: ARG001
     ) -> AsyncIterator[DiscountedProduct]:
         for p in mock_data:
             yield p

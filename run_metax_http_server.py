@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import sys
 
@@ -49,7 +50,5 @@ def run_metax_http_server() -> None:
 
 
 if __name__ == "__main__":
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         run_metax_http_server()
-    except KeyboardInterrupt:
-        pass
