@@ -21,7 +21,7 @@ from tests.utils import make_discounted_product_entity, make_retailer_entity
 @pytest.mark.asyncio
 async def test_add_many_discounted_products(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     created_data = datetime.now(tz=timezone.utc)
     category_uuid = uuid4()
@@ -99,7 +99,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid4()
     # expect
@@ -122,7 +122,7 @@ async def test_delete_older_than_and_return_deleted_count(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     creation_date = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()

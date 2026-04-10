@@ -78,9 +78,10 @@ async def collect_discounted_products_from_all_retailers(
 @celery_app.task(name="CollectDiscountedProducts")
 async def celery_task_collect_discounted_products_from_all_retailers() -> None:
     container = get_metax_container()
-    unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
-    category_classifier_service = container.patterns_container.container.category_classifier_service()
-    event_bus = container.patterns_container.container.event_bus()
+    patterns = container.patterns_container.container
+    unit_of_work_provider = patterns.unit_of_work_provider()
+    category_classifier_service = patterns.category_classifier_service()
+    event_bus = await patterns.event_bus.async_()
 
     started_time = datetime.now(tz=timezone.utc)
 

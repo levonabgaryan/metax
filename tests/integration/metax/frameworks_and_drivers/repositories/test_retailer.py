@@ -13,7 +13,7 @@ from tests.utils import make_retailer_entity
 @pytest.mark.asyncio
 async def test_retailer_repo_add_and_get(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     retailer = make_retailer_entity()
 
@@ -39,7 +39,7 @@ async def test_retailer_repo_update(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     retailer = make_retailer_entity()
 
@@ -70,7 +70,7 @@ async def test_retailer_repo_update(
 @pytest.mark.asyncio
 async def test_retailer_is_not_found_by_uuid(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid4()
     # expect
@@ -88,7 +88,7 @@ async def test_retailer_is_not_found_by_uuid(metax_container_for_integration_tes
 @pytest.mark.asyncio
 async def test_retailer_is_not_found_by_name(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     test_name = "test_name"
 

@@ -21,7 +21,6 @@ class PatternsContainer(containers.DeclarativeContainer):
         discounted_product_repo=repositories_container.discounted_product_repository,
         retailer_repo=repositories_container.retailer_repository,
         category_repo=repositories_container.category_repository,
-        discounted_product_read_model_repo=repositories_container.discounted_product_read_model_repository,
     )
     unit_of_work_provider: providers.Factory[IUnitOfWorkProvider] = providers.Factory(
         DjangoUnitOfWorkProvider,
@@ -33,4 +32,5 @@ class PatternsContainer(containers.DeclarativeContainer):
     event_bus: providers.ThreadSafeSingleton[EventBus] = providers.ThreadSafeSingleton(
         EventBus,
         unit_of_work_provider=unit_of_work_provider,
+        discounted_product_read_model_repo=repositories_container.discounted_product_read_model_repository,
     )

@@ -17,8 +17,9 @@ class CreateRetailerController(Controller[PydanticSerializer]):
     )
     async def post(self, parsed_body: Body[CreateRetailerRequestBodyModel]) -> CreateRetailerResponseBodyModel:
         container = get_metax_container()
-        unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
-        event_bus = container.patterns_container.container.event_bus()
+        patterns = container.patterns_container.container
+        unit_of_work_provider = patterns.unit_of_work_provider()
+        event_bus = await patterns.event_bus.async_()
 
         retailer_uuid = uuid.uuid4()
         cmd = CreateRetailerCommand(

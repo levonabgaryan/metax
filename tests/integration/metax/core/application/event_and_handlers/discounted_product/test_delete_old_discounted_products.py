@@ -16,8 +16,8 @@ async def test_event_handler_shall_delete_old_data(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     old_discounted_product_created_date = datetime.now(timezone.utc)
     old_discounted_product = make_discounted_product_entity(

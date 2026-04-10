@@ -21,8 +21,10 @@ async def test_event_handler_shall_save_in_empty_read_model(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    repos = metax_container_for_integration_tests.repositories_container.container
+    discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
+    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     creation_data = datetime.now(tz=timezone.utc)
     retailer = make_retailer_entity()
     discounted_products = [
@@ -48,7 +50,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
             )
         )
 
-    await unit_of_work.discounted_product_read_model_repo.add_many(discounted_product_read_models_)
+    await discounted_product_read_model_repository.add_many(discounted_product_read_models_)
 
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
     event = OldDiscountedProductsDeleted(
@@ -60,9 +62,9 @@ async def test_event_handler_shall_save_in_empty_read_model(
 
     # then
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
-    assert await uow.discounted_product_read_model_repo.get_all_count() == 2
+    assert await discounted_product_read_model_repository.get_all_count() == 2
     read_model: DiscountedProductReadModel
-    async for read_model in uow.discounted_product_read_model_repo.get_all():
+    async for read_model in discounted_product_read_model_repository.get_all():
         assert read_model["discounted_product_uuid"] in {
             str(product.get_uuid()) for product in discounted_products
         }

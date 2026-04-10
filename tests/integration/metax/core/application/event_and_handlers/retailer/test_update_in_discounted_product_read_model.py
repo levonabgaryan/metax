@@ -21,8 +21,10 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    repos = metax_container_for_integration_tests.repositories_container.container
+    discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
+    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
         retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=timezone.utc)
@@ -42,7 +44,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         retailer_name=retailer.get_name().value,
         created_at=discounted_product.get_created_at().isoformat(),
     )
-    await unit_of_work.discounted_product_read_model_repo.add_many([discounted_product_read_model_])
+    await discounted_product_read_model_repository.add_many([discounted_product_read_model_])
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     async with unit_of_work as uow:
@@ -59,10 +61,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
-    async with unit_of_work as uow:
-        updated_retailer = await unit_of_work.discounted_product_read_model_repo.get_by_uuid(
-            str(discounted_product.get_uuid())
-        )
-        await uow.commit()
+    product_uuid = str(discounted_product.get_uuid())
+    updated_retailer = await discounted_product_read_model_repository.get_by_uuid(product_uuid)
 
     assert updated_retailer["retailer_name"] == RetailersNames.SAS_AM.value

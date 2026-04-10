@@ -84,8 +84,8 @@ class CategoryAdminHandler:
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
         container = get_metax_container().patterns_container.container
-        unit_of_work_provider = await container.unit_of_work_provider.async_()
-        event_bus = container.event_bus()
+        unit_of_work_provider = container.unit_of_work_provider()
+        event_bus = await container.event_bus.async_()
 
         command = CreateCategoryCommand(
             category_uuid=uuid.uuid4(), name=category_name, helper_words=frozenset(helper_words)
@@ -98,8 +98,8 @@ class CategoryAdminHandler:
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
         container = get_metax_container().patterns_container.container
-        unit_of_work_provider = await container.unit_of_work_provider.async_()
-        event_bus = container.event_bus()
+        unit_of_work_provider = container.unit_of_work_provider()
+        event_bus = await container.event_bus.async_()
 
         uow = await unit_of_work_provider.create()
         async with uow:
@@ -117,8 +117,8 @@ class CategoryAdminHandler:
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
         container = get_metax_container().patterns_container.container
-        unit_of_work_provider = await container.unit_of_work_provider.async_()
-        event_bus = container.event_bus()
+        unit_of_work_provider = container.unit_of_work_provider()
+        event_bus = await container.event_bus.async_()
 
         uow = await unit_of_work_provider.create()
         async with uow:
@@ -136,7 +136,7 @@ class CategoryAdminHandler:
     @staticmethod
     async def __get__all_categories() -> list[Category]:
         container = get_metax_container().patterns_container.container
-        unit_of_work_provider = await container.unit_of_work_provider.async_()
+        unit_of_work_provider = container.unit_of_work_provider()
         uow = await unit_of_work_provider.create()
         async with uow:
             all_categories = await uow.category_repo.get_all()

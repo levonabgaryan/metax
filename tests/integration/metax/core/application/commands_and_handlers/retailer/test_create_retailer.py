@@ -18,7 +18,7 @@ async def test_create_retailer_command_handler(
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
-    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid4(),
         name="yerevan-city",

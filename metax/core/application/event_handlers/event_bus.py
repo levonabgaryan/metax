@@ -38,8 +38,13 @@ EventHandler = Callable[[Event], Awaitable[None]]
 
 
 class EventBus:
-    def __init__(self, unit_of_work_provider: IUnitOfWorkProvider) -> None:
+    def __init__(
+        self,
+        unit_of_work_provider: IUnitOfWorkProvider,
+        discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
+    ) -> None:
         self.__unit_of_work_provider = unit_of_work_provider
+        self.__discounted_product_read_model_repo = discounted_product_read_model_repo
         self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
             CategoryUpdated: (self._handle_category_updated,),
             RetailerUpdated: (self._handle_retailer_updated,),
@@ -66,7 +71,7 @@ class EventBus:
         uow = await self.__unit_of_work_provider.create()
         async with uow:
             updated_category = await uow.category_repo.get_by_uuid(event.category_uuid)
-            await uow.discounted_product_read_model_repo.update_category(updated_category)
+            await self.__discounted_product_read_model_repo.update_category(updated_category)
             await uow.commit()
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: SUCCESS | Target UUID: [%s]",
@@ -84,7 +89,7 @@ class EventBus:
         uow = await self.__unit_of_work_provider.create()
         async with uow:
             updated_retailer = await uow.retailer_repo.get_by_uuid(event.retailer_uuid)
-            await uow.discounted_product_read_model_repo.update_retailer(updated_retailer)
+            await self.__discounted_product_read_model_repo.update_retailer(updated_retailer)
             await uow.commit()
         logger.info(
             "[Event: %s] | Handler: Update retailer in read model | Status: SUCCESS | Target UUID: [%s]",
@@ -125,7 +130,7 @@ class EventBus:
         uow = await self.__unit_of_work_provider.create()
         async with uow:
             repo: DiscountedProductRepository = uow.discounted_product_repo
-            read_model_repo: IDiscountedProductReadModelRepository = uow.discounted_product_read_model_repo
+            read_model_repo: IDiscountedProductReadModelRepository = self.__discounted_product_read_model_repo
 
             discounted_product: DiscountedProductWithDetails
             async for discounted_product in repo.get_all_by_date(date_=date_limit):

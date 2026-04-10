@@ -16,7 +16,7 @@ from tests.utils import make_category_entity
 async def test_category_repo_add_and_get(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
     category = make_category_entity()
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     # when
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -37,7 +37,7 @@ async def test_category_repo_add_and_get(metax_container_for_integration_tests: 
 @pytest.mark.asyncio
 async def test_category_repo_update(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     category = make_category_entity()
 
@@ -61,7 +61,7 @@ async def test_category_repo_update(metax_container_for_integration_tests: Metax
 @pytest.mark.asyncio
 async def test_category_is_not_found_by_uuid(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid4()
 
@@ -80,7 +80,7 @@ async def test_category_is_not_found_by_uuid(metax_container_for_integration_tes
 @pytest.mark.asyncio
 async def test_category_is_not_found_by_name(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     test_name = "test_name"
 
@@ -101,7 +101,7 @@ async def test_category_update_helper_words_when_adding_news(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
@@ -130,7 +130,7 @@ async def test_category_update_helper_words_when_deleting(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
@@ -155,7 +155,7 @@ async def test_category_update_helper_words_when_deleting(
 @pytest.mark.asyncio
 async def test_get_by_helper_words_in_words(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords(words=frozenset(["գինի", "օղի", "vodka"]))
     category = make_category_entity(helper_words=helper_words, name="ալկոհոլ")

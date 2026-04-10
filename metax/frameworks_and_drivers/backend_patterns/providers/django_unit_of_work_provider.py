@@ -14,4 +14,4 @@ class DjangoUnitOfWorkProvider(IUnitOfWorkProvider):
 
     @override
     async def create(self) -> AbstractUnitOfWork:
-        return await self.__di_unit_of_work_provider.async_()
+        return self.__di_unit_of_work_provider()

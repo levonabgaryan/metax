@@ -44,10 +44,12 @@ async def test_collect_discounted_products_from_all_retailers(
 ) -> None:
     # given
     started_time = datetime.now(tz=timezone.utc)
-    unit_of_work = await metax_container_for_integration_tests.patterns_container.container.unit_of_work.async_()
-    event_bus = metax_container_for_integration_tests.patterns_container.container.event_bus()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
-    await unit_of_work.retailer_repo.add(retailer)
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.commit()
 
     mock_data = [
         make_discounted_product_entity(

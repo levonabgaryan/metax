@@ -7,9 +7,6 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
 )
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import RetailerRepository
-from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
-    IDiscountedProductReadModelRepository,
-)
 
 
 class AbstractUnitOfWork(ABC):
@@ -18,12 +15,10 @@ class AbstractUnitOfWork(ABC):
         discounted_product_repo: DiscountedProductRepository,
         category_repo: CategoryRepository,
         retailer_repo: RetailerRepository,
-        discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
     ) -> None:
         self.discounted_product_repo = discounted_product_repo
         self.category_repo = category_repo
         self.retailer_repo = retailer_repo
-        self.discounted_product_read_model_repo = discounted_product_read_model_repo
 
     async def __aenter__(self) -> Self:
         return self
