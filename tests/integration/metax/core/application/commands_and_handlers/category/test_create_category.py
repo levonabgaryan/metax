@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid7
 
 import pytest
 
@@ -19,7 +19,7 @@ async def test_create_category_command_handler(
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
-    category_uuid = uuid4()
+    category_uuid = uuid7()
     cmd = CreateCategoryCommand(
         category_uuid=category_uuid,
         name="Test Category",

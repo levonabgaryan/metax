@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, AsyncIterator, Iterable, Iterator
-from uuid import UUID, uuid4
+from uuid import UUID, uuid7
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.category.entity import Category
@@ -25,7 +25,7 @@ def make_category_entity(
 
     return Category(
         name=name,
-        category_uuid=category_uuid or uuid4(),
+        category_uuid=category_uuid or uuid7(),
         helper_words=helper_words,
     )
 
@@ -37,7 +37,7 @@ def make_retailer_entity(
     phone_number: str = "test_retailer_phone_number",
 ) -> Retailer:
     return Retailer(
-        retailer_uuid=retailer_uuid or uuid4(),
+        retailer_uuid=retailer_uuid or uuid7(),
         name=name,
         phone_number=phone_number,
         home_page_url=url,
@@ -61,7 +61,7 @@ def make_discounted_product_entity(
         name=name,
         retailer_uuid=retailer_uuid,
         category_uuid=category_uuid,
-        discounted_product_uuid=discounted_product_uuid or uuid4(),
+        discounted_product_uuid=discounted_product_uuid or uuid7(),
         price_details=price_details,
         url=url,
         created_at=created_at,
@@ -76,7 +76,7 @@ def make_discounted_product_read_model(
     discounted_price: float = 500,
     category_uuid: str | None = None,
     category_name: str | None = None,
-    retailer_uuid: str = str(uuid4()),
+    retailer_uuid: str = str(uuid7()),
     retailer_name: str = "test_retailer_name",
     url: str | None = None,
 ) -> DiscountedProductReadModel:

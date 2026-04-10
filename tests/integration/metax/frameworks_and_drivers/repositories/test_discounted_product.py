@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
-from uuid import uuid4
+from uuid import uuid7
 
 import pytest
 
@@ -24,11 +24,11 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     created_data = datetime.now(tz=timezone.utc)
-    category_uuid = uuid4()
+    category_uuid = uuid7()
     helper_words = CategoryHelperWords(words=frozenset(["օղի", "գինի"]))
     category = Category(category_uuid=category_uuid, name="Ալկոհոլ", helper_words=helper_words)
 
-    sas_supermarket_uuid = uuid4()
+    sas_supermarket_uuid = uuid7()
     retailer = Retailer(
         retailer_uuid=sas_supermarket_uuid,
         name=RetailersNames.SAS_AM,
@@ -36,7 +36,7 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         home_page_url="test_url",
     )
 
-    discounted_product_1_uuid = uuid4()
+    discounted_product_1_uuid = uuid7()
     absolut_vodka = DiscountedProduct(
         name="«Absolut» 0.7լ",
         category_uuid=category.get_uuid(),
@@ -47,7 +47,7 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         created_at=created_data,
     )
 
-    discounted_product_2_uuid = uuid4()
+    discounted_product_2_uuid = uuid7()
     karas_whine = DiscountedProduct(
         name="Փրփրուն գինի «Կարաս» 0.75լ",
         category_uuid=category.get_uuid(),
@@ -101,7 +101,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    random_uuid = uuid4()
+    random_uuid = uuid7()
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError) as err:

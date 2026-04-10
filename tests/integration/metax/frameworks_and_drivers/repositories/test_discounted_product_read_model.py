@@ -30,7 +30,7 @@ async def test_delete_older_than_and_return_deleted_count(
             created_at=creation_date,
             name=f"test_product_name{i}",
             retailer_name=RetailersNames.YEREVAN_CITY.value,
-            discounted_product_uuid=str(uuid.uuid4()),
+            discounted_product_uuid=str(uuid.uuid7()),
         )
         for i in range(5)
     ]
@@ -61,7 +61,7 @@ async def test_update_category(
     category = make_category_entity()
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
-        discounted_product_uuid=str(uuid.uuid4()),
+        discounted_product_uuid=str(uuid.uuid7()),
         category_name=category.get_name(),
         category_uuid=str(category.get_uuid()),
     )
@@ -93,7 +93,7 @@ async def test_update_retailer(
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
-        discounted_product_uuid=str(uuid.uuid4()),
+        discounted_product_uuid=str(uuid.uuid7()),
         retailer_uuid=str(retailer.get_uuid()),
         retailer_name=retailer.get_name().value,
     )
@@ -128,7 +128,7 @@ async def test_get_all(
     discounted_product_read_models = [
         make_discounted_product_read_model(
             created_at=created_at,
-            discounted_product_uuid=str(uuid.uuid4()),
+            discounted_product_uuid=str(uuid.uuid7()),
         )
         for _ in range(5)
     ]
@@ -164,13 +164,13 @@ async def test_get_by_name_page(
     created_at = datetime.now(tz=timezone.utc)
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
-        discounted_product_uuid=str(uuid.uuid4()),
+        discounted_product_uuid=str(uuid.uuid7()),
         name="Փրփրուն գինի «Blue Nun Gold Edition» 0.75լ",
     )
     discounted_product_read_models = [
         make_discounted_product_read_model(
             created_at=created_at,
-            discounted_product_uuid=str(uuid.uuid4()),
+            discounted_product_uuid=str(uuid.uuid7()),
         )
         for _ in range(15)
     ]

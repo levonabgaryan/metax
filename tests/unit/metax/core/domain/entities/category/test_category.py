@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid7
 
 import pytest
 
@@ -13,7 +13,7 @@ from metax.core.domain.entities.category.value_objects import CategoryHelperWord
 def test_add_new_helper_words() -> None:
     # given
     helper_words = CategoryHelperWords(words=frozenset(("a", "b", "c")))
-    category = Category(category_uuid=uuid4(), name="test_name", helper_words=helper_words)
+    category = Category(category_uuid=uuid7(), name="test_name", helper_words=helper_words)
     new_words = frozenset(("a", "c"))
 
     expected_words = ", ".join(sorted(new_words))
@@ -30,7 +30,7 @@ def test_add_new_helper_words() -> None:
 def test_delete_helper_words() -> None:
     # given
     helper_words = CategoryHelperWords(words=frozenset(("a", "b", "c")))
-    category = Category(category_uuid=uuid4(), name="test_name", helper_words=helper_words)
+    category = Category(category_uuid=uuid7(), name="test_name", helper_words=helper_words)
     words_to_delete = frozenset(("d", "e"))
     expected_words = ", ".join(sorted(words_to_delete))
 

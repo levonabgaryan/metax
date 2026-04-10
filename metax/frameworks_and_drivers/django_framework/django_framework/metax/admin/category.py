@@ -88,7 +88,7 @@ class CategoryAdminHandler:
         event_bus = await container.event_bus.async_()
 
         command = CreateCategoryCommand(
-            category_uuid=uuid.uuid4(), name=category_name, helper_words=frozenset(helper_words)
+            category_uuid=uuid.uuid7(), name=category_name, helper_words=frozenset(helper_words)
         )
         command_handler = CreateCategoryCommandHandler(
             unit_of_work_provider=unit_of_work_provider, event_bus=event_bus

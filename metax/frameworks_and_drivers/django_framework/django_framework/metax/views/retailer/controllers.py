@@ -21,7 +21,7 @@ class CreateRetailerController(Controller[PydanticSerializer]):
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()
 
-        retailer_uuid = uuid.uuid4()
+        retailer_uuid = uuid.uuid7()
         cmd = CreateRetailerCommand(
             retailer_uuid=retailer_uuid,
             name=parsed_body.name,

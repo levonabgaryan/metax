@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid7
 
 import pytest
 
@@ -63,7 +63,7 @@ async def test_category_is_not_found_by_uuid(metax_container_for_integration_tes
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    random_uuid = uuid4()
+    random_uuid = uuid7()
 
     # expect
     async with unit_of_work as uow:

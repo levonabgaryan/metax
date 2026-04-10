@@ -48,7 +48,7 @@ class CategoryController(Controller[PydanticSerializer]):
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()
 
-        category_uuid = uuid.uuid4()
+        category_uuid = uuid.uuid7()
 
         resource_data = parsed_body.resource
         cmd = CreateCategoryCommand(

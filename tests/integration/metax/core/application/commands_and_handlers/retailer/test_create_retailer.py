@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid7
 
 import pytest
 
@@ -20,7 +20,7 @@ async def test_create_retailer_command_handler(
     )
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     cmd = CreateRetailerCommand(
-        retailer_uuid=uuid4(),
+        retailer_uuid=uuid7(),
         name="yerevan-city",
         url="https://example.com",
         phone_number="test_phone_number",

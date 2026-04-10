@@ -1,4 +1,4 @@
-from uuid import uuid4
+from uuid import uuid7
 
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate, Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
@@ -7,7 +7,7 @@ from metax.core.domain.entities.retailer.value_objects import RetailersNames
 def test_retailer_update() -> None:
     # given
     retailer = Retailer(
-        retailer_uuid=uuid4(),
+        retailer_uuid=uuid7(),
         name=RetailersNames.YEREVAN_CITY,
         home_page_url="test_url",
         phone_number="test_number",

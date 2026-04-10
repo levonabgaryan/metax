@@ -108,7 +108,7 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
 
                     raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
                     yield DiscountedProduct(
-                        discounted_product_uuid=uuid.uuid4(),
+                        discounted_product_uuid=uuid.uuid7(),
                         name=self.clean_discounted_product_name(text=name),
                         price_details=PriceDetails(
                             real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
