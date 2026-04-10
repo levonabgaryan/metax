@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncIterator, Any, override
+from typing import Any, AsyncIterator, override
 
 from opensearchpy import AsyncOpenSearch
 
@@ -9,9 +9,7 @@ from metax.core.application.ports.ddd_patterns.repository.read_models_repositori
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.category.entity import Category
-
 from metax.core.domain.entities.retailer.entity import Retailer
-
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 

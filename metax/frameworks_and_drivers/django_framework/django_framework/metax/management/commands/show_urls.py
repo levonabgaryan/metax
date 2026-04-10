@@ -1,7 +1,7 @@
-from typing import Union, Any, override
+from typing import Any, Union, override
 
 from django.core.management.base import BaseCommand
-from django.urls import get_resolver, URLPattern, URLResolver
+from django.urls import URLPattern, URLResolver, get_resolver
 
 
 class Command(BaseCommand):

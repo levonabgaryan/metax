@@ -1,11 +1,13 @@
 import uuid
 from http import HTTPStatus
+from typing import Self, override
+from uuid import UUID
 
-from dmr.plugins.msgspec import MsgspecSerializer
 from dmr import Body, Controller, modify
+from dmr.plugins.pydantic import PydanticSerializer
+from pydanja import DANJAResource
+from pydantic import BaseModel, Field
 
-from django_framework.metax.views.category.request_body_models import CreateCategoryRequestBodyModel
-from django_framework.metax.views.category.response_body_models import CreateCategoryResponseBodyModel
 from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
@@ -13,26 +15,56 @@ from metax.core.application.commands_handlers.category import (
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CreateCategoryController(Controller[MsgspecSerializer]):
+class CategoryResource(BaseModel):
+    category_name: str
+    helper_words: list[str]
+    category_uuid: UUID | None = Field(default=None, json_schema_extra={"resource_id": True})
+
+
+class CategoryDANJAResource(DANJAResource[CategoryResource]):
+    @override
+    @classmethod
+    def from_basemodel(
+        cls,
+        resource: CategoryResource,
+        resource_name: str | None = None,
+        resource_id: str | None = None,
+    ) -> Self:
+        created = super().from_basemodel(resource, resource_name, resource_id)
+        if not isinstance(created, cls):
+            msg = f"expected {cls.__name__}, got {type(created).__name__}"
+            raise TypeError(msg)
+        return created
+
+
+class CategoryController(Controller[PydanticSerializer]):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category"],
     )
-    async def post(self, parsed_body: Body[CreateCategoryRequestBodyModel]) -> CreateCategoryResponseBodyModel:
+    async def post(self, parsed_body: Body[CategoryDANJAResource]) -> CategoryDANJAResource:
         container = get_metax_container()
         unit_of_work_provider = await container.patterns_container.container.unit_of_work_provider.async_()
         event_bus = container.patterns_container.container.event_bus()
 
         category_uuid = uuid.uuid4()
 
+        resource_data = parsed_body.resource
         cmd = CreateCategoryCommand(
             category_uuid=category_uuid,
-            name=parsed_body.category_name,
-            helper_words=frozenset(parsed_body.helper_words),
+            name=resource_data.category_name,
+            helper_words=frozenset(resource_data.helper_words),
         )
         command_handler = CreateCategoryCommandHandler(
             unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
         )
         await command_handler.handle_command(cmd)
 
-        return CreateCategoryResponseBodyModel(category_uuid=category_uuid)
+        created = CategoryDANJAResource.from_basemodel(
+            resource=CategoryResource(
+                category_name=cmd.name,
+                helper_words=list(cmd.helper_words),
+                category_uuid=category_uuid,
+            ),
+        )
+        return created

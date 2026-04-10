@@ -4,6 +4,7 @@ from typing import Callable, TypedDict
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
+
 from .errors.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,

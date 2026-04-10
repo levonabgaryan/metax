@@ -1,14 +1,13 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
-
 
 from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-from tests.utils import make_retailer_entity, make_discounted_product_entity
+from tests.utils import make_discounted_product_entity, make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)

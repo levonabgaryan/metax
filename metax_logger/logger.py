@@ -2,7 +2,7 @@ import atexit
 import logging
 import queue
 import sys
-from logging.handlers import QueueListener, QueueHandler
+from logging.handlers import QueueHandler, QueueListener
 
 from config_ import metax_configs
 
@@ -40,7 +40,7 @@ def init_logger() -> None:
     # If handlers already exist but aren't our QueueHandler, we clear them
     # to ensure our custom formatting and non-blocking logic take precedence.
     if any(isinstance(h, QueueHandler) for h in root_logger.handlers):
-        return None
+        return
 
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
@@ -72,4 +72,4 @@ def init_logger() -> None:
     listener.start()
     atexit.register(listener.stop)
 
-    return None
+    return

@@ -3,6 +3,9 @@ from typing import AsyncIterator, override
 from uuid import UUID
 
 from django.db.models import QuerySet
+from django_framework.metax.models import (
+    DiscountedProductModel,
+)
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,
@@ -12,9 +15,6 @@ from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
-from django_framework.metax.models import (
-    DiscountedProductModel,
-)
 
 
 class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):

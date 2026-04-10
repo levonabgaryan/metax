@@ -1,6 +1,6 @@
 from .category import CategoryModel
-from .discounted_product import DiscountedProductModel
 from .category_helper_words import CategoryHelperWordsModel
+from .discounted_product import DiscountedProductModel
 from .retailer import RetailerModel
 
 __all__ = (

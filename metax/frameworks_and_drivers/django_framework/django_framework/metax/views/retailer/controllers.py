@@ -1,16 +1,16 @@
 import uuid
 from http import HTTPStatus
 
-from dmr import Controller, Body, modify
-from dmr.plugins.msgspec import MsgspecSerializer
-
 from django_framework.metax.views.retailer.request_body_models import CreateRetailerRequestBodyModel
 from django_framework.metax.views.retailer.response_body_models import CreateRetailerResponseBodyModel
+from dmr import Body, Controller, modify
+from dmr.plugins.pydantic import PydanticSerializer
+
 from metax.core.application.commands_handlers.retailer import CreateRetailerCommand, CreateRetailerCommandHandler
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CreateRetailerController(Controller[MsgspecSerializer]):
+class CreateRetailerController(Controller[PydanticSerializer]):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Retailer"],

@@ -3,17 +3,17 @@ from http import HTTPStatus
 from typing import override
 
 from django.http import HttpResponse
-from dmr import Controller, modify, ResponseSpec
+from dmr import Controller, ResponseSpec, modify
 from dmr.endpoint import Endpoint
 from dmr.errors import ErrorModel
-from dmr.plugins.msgspec import MsgspecSerializer
+from dmr.plugins.pydantic import PydanticSerializer
 
 from metax.frameworks_and_drivers.celery_framework.errors import NoRetailersError
 from metax.frameworks_and_drivers.celery_framework.tasks import collect_discounted_products_from_all_retailers
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
-class CollectDiscountedProductsFromRetailersController(Controller[MsgspecSerializer]):
+class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerializer]):
     @modify(
         tags=["Celery-tasks"],
         status_code=HTTPStatus.NO_CONTENT,
@@ -36,7 +36,7 @@ class CollectDiscountedProductsFromRetailersController(Controller[MsgspecSeriali
 
     @override
     async def handle_async_error(
-        self, endpoint: Endpoint, controller: Controller[MsgspecSerializer], exc: Exception
+        self, endpoint: Endpoint, controller: Controller[PydanticSerializer], exc: Exception
     ) -> HttpResponse:
         if isinstance(exc, NoRetailersError):
             raw_data = self.format_error(error=exc.error_code)

@@ -1,12 +1,13 @@
 from typing import AsyncIterator, override
 from uuid import UUID
 
+from django_framework.metax.models import RetailerModel
+
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import (
     RetailerRepository,
 )
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from django_framework.metax.models import RetailerModel
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):

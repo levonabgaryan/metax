@@ -29,6 +29,8 @@ SECRET_KEY = metax_configs.django_secret_key
 
 
 ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
+if metax_configs.django_host == "0.0.0.0":
+    ALLOWED_HOSTS.append("0.0.0.0")
 
 
 # Application definition

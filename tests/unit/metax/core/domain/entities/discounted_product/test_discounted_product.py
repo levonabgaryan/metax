@@ -1,12 +1,12 @@
-import pytest
-
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from decimal import Decimal
 
+import pytest
+
 from metax.core.domain.entities.discounted_product.errors.errors import (
-    NegativePriceError,
     DiscountExceedsRealPriceError,
+    NegativePriceError,
 )
+from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 
 
 def test_negative_price() -> None:

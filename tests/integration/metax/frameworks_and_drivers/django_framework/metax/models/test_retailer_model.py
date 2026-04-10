@@ -2,7 +2,6 @@ from uuid import uuid4
 
 import pytest
 from django.core.exceptions import ValidationError
-
 from django_framework.metax.models import RetailerModel
 
 

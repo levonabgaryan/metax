@@ -39,7 +39,7 @@ class DiscountedProductFieldsCleanerMixin:
     def clean_discounted_product_price(price_: str | int | float) -> str:
         if isinstance(price_, (int, float)):
             return str(price_)
-        elif isinstance(price_, str):
+        if isinstance(price_, str):
             clean_text = re.sub(r"[^0-9.]|(\.(?!\d))", "", price_)
             if not clean_text or clean_text == ".":
                 return "0"

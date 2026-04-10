@@ -2,9 +2,8 @@ from __future__ import annotations
 
 from typing import override
 
-from django_stubs_ext.db.models import TypedModelMeta
-
 from django.db import models
+from django_stubs_ext.db.models import TypedModelMeta
 
 from .base_model import BaseDbModel
 

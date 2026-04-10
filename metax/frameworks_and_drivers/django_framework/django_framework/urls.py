@@ -16,21 +16,21 @@ Including another URLconf
 """
 
 from django.urls import include
-from dmr.openapi import build_schema
-from dmr.openapi.views import OpenAPIJsonView, SwaggerView, RedocView
-from dmr.routing import Router, path
 from django_framework.metax.admin.site import admin_site
-from django_framework.metax.views.category.controllers import CreateCategoryController
+from django_framework.metax.views.category.controllers import CategoryController
 from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
 from django_framework.metax.views.health.controllers import HealthCheckView
 from django_framework.metax.views.retailer.controllers import CreateRetailerController
+from dmr.openapi import build_schema
+from dmr.openapi.views import OpenAPIJsonView, RedocView, SwaggerView
+from dmr.routing import Router, path
 
 api_router = Router(
     prefix="api/",
     urls=[
         path("health-check/", HealthCheckView.as_view()),
-        path("category/create/", CreateCategoryController.as_view()),
-        path("retailer/create/", CreateRetailerController.as_view()),
+        path("category/", CategoryController.as_view()),
+        path("retailer/", CreateRetailerController.as_view()),
         path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )

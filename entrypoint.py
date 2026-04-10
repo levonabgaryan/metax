@@ -5,8 +5,9 @@ import logging
 import sys
 from pathlib import Path
 
-from config_ import metax_configs
 from opensearchpy import AsyncOpenSearch
+
+from config_ import metax_configs
 
 logger = logging.getLogger(__name__)
 

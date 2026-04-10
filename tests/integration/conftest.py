@@ -23,7 +23,7 @@ async def metax_container_for_integration_tests() -> AsyncIterator[MetaxContaine
 async def setup_opensearch_migration(
     metax_container_for_integration_tests: MetaxContainer,
 ) -> AsyncIterator[None]:
-    from metax.frameworks_and_drivers.opensearch.migration import migrate_indices, delete_all_indices
+    from metax.frameworks_and_drivers.opensearch.migration import delete_all_indices, migrate_indices
 
     opensearch_async_client_ = await metax_container_for_integration_tests.opensearch_async_client.async_()
     await migrate_indices(opensearch_async_client_)

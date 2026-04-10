@@ -4,8 +4,8 @@ from metax.core.application.commands_handlers.retailer import (
     UpdateRetailerCommand,
     UpdateRetailerCommandHandler,
 )
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from tests.utils import make_retailer_entity
 
 

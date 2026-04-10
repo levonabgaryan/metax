@@ -23,7 +23,6 @@ from metax.frameworks_and_drivers.mixins.discounted_product_fields_cleaner impor
     DiscountedProductFieldsCleanerMixin,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

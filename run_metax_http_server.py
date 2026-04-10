@@ -8,9 +8,8 @@ from config_ import DevConfigs, metax_configs
 from entrypoint import run_entrypoint
 from metax.frameworks_and_drivers.gunicorn.run_gunicorn_server import run_django_gunicorn_server
 from metax.frameworks_and_drivers.uvicorn.run_uvicorn_server import run_django_uvicorn_server
-from metax_logger.logger import init_logger
-
 from metax_django_application import create_metax_django_app
+from metax_logger.logger import init_logger
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,11 @@ def run_metax_http_server() -> None:
     init_logger()
     app = create_metax_django_app()
     logger.info("SYSTEM | Application bootstrap started")
-    from metax.frameworks_and_drivers.di.metax_container import MetaxContainer, init_resources, shutdown_resources  # noqa: E402
+    from metax.frameworks_and_drivers.di.metax_container import (  # noqa: E402
+        MetaxContainer,
+        init_resources,
+        shutdown_resources,
+    )
 
     container: MetaxContainer = app.container  # type: ignore[attr-defined]
 

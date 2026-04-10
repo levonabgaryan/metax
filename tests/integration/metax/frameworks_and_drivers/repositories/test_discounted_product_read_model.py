@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -7,14 +7,13 @@ from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-
+from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from tests.integration.conftest import refresh_opensearch_index
 from tests.utils import (
-    make_discounted_product_read_model,
     make_category_entity,
+    make_discounted_product_read_model,
     make_retailer_entity,
 )
-from tests.integration.conftest import refresh_opensearch_index
-from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
 @pytest.mark.asyncio

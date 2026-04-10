@@ -3,6 +3,10 @@ from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from django.db.models import QuerySet
+from django_framework.metax.models.category import CategoryModel
+from django_framework.metax.models.category_helper_words import (
+    CategoryHelperWordsModel,
+)
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
@@ -11,10 +15,6 @@ from metax.core.domain.entities.category.entity import (
     Category,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from django_framework.metax.models.category import CategoryModel
-from django_framework.metax.models.category_helper_words import (
-    CategoryHelperWordsModel,
-)
 
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):

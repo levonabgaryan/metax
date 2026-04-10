@@ -1,17 +1,18 @@
 from datetime import datetime, timezone
+
 import pytest
 
+from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.category.entity import DataForCategoryUpdate
-from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from tests.integration.conftest import refresh_opensearch_index
 from tests.utils import (
     make_category_entity,
-    make_retailer_entity,
     make_discounted_product_entity,
+    make_retailer_entity,
 )
-from tests.integration.conftest import refresh_opensearch_index
 
 
 @pytest.mark.django_db(transaction=True)

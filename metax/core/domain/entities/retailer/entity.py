@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from typing import TypedDict
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
+
 from .value_objects import RetailersNames
 
 

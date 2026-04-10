@@ -5,15 +5,14 @@ import pytest
 from metax.core.application.event_handlers.discounted_product.events import (
     OldDiscountedProductsDeleted,
 )
-
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
-from tests.utils import (
-    make_retailer_entity,
-    make_discounted_product_entity,
-)
 from tests.integration.conftest import refresh_opensearch_index
+from tests.utils import (
+    make_discounted_product_entity,
+    make_retailer_entity,
+)
 
 
 @pytest.mark.django_db(transaction=True)

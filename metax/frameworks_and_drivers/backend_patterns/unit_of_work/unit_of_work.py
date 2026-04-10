@@ -2,7 +2,7 @@ from types import TracebackType
 from typing import Self, override
 
 from asgiref.sync import sync_to_async
-from django.db import transaction, close_old_connections
+from django.db import close_old_connections, transaction
 from django.db.transaction import Atomic
 
 from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work import AbstractUnitOfWork

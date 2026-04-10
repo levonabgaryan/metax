@@ -1,11 +1,10 @@
 from typing import Any, override
 
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.admin import GroupAdmin, UserAdmin
+from django.contrib.auth.models import Group, User
 from django.http import HttpRequest
-from django.urls import path, URLPattern, URLResolver
-
+from django.urls import URLPattern, URLResolver, path
 from django_framework.metax.admin.category import CategoryAdminHandler
 
 

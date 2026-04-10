@@ -1,4 +1,4 @@
-from abc import abstractmethod, ABC
+from abc import ABC, abstractmethod
 
 from metax.core.application.commands_handlers.command import Command
 from metax.core.application.event_handlers.event_bus import EventBus

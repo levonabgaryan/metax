@@ -1,9 +1,8 @@
 import asyncio
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import AsyncIterator, Iterator, Any, Iterable
+from typing import Any, AsyncIterator, Iterable, Iterator
 from uuid import UUID, uuid4
-
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.category.entity import Category

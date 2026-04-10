@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from uuid import uuid4
 
@@ -14,7 +14,7 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-from tests.utils import make_retailer_entity, make_discounted_product_entity
+from tests.utils import make_discounted_product_entity, make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)

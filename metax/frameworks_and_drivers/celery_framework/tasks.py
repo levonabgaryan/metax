@@ -5,26 +5,24 @@ from datetime import datetime, timezone
 
 from config_ import metax_configs
 from metax.core.application.ddd_patterns.services.category_classifier_service import CategoryClassifierService
+from metax.core.application.event_handlers.event_bus import EventBus
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
     DiscountedProductCollectorServiceCreator,
 )
-from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.use_cases.discounted_product.collect_discounted_products import (
     CollectDiscountedProducts,
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
-from metax.core.application.event_handlers.event_bus import EventBus
 
-
-from .errors import NoRetailersError
+from ...core.domain.entities.retailer.value_objects import RetailersNames
 from ..design_patterns.factories.discounted_product_collector_service_creators import (
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
-
 from ..di.metax_container import get_metax_container
 from .celery_application import celery_app
-from ...core.domain.entities.retailer.value_objects import RetailersNames
+from .errors import NoRetailersError
 
 
 async def collect_discounted_products_from_all_retailers(

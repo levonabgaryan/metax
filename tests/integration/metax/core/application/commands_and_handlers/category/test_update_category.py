@@ -5,7 +5,6 @@ from metax.core.application.commands_handlers.category import (
     UpdateCategoryCommandHandler,
 )
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-
 from tests.utils import make_category_entity
 
 

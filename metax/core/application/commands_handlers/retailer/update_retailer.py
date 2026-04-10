@@ -3,9 +3,9 @@ from dataclasses import dataclass, field
 from typing import override
 from uuid import UUID
 
-from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
+from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 logger = logging.getLogger(__name__)

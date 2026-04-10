@@ -1,19 +1,18 @@
 import logging
 from typing import override
 
+from metax.core.application.ddd_patterns.services.category_classifier_service import (
+    CategoryClassifierService,
+)
 from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.event_handlers.event_bus import EventBus
-from metax.core.application.ddd_patterns.services.category_classifier_service import (
-    CategoryClassifierService,
-)
+from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
     DiscountedProductCollectorServiceCreator,
 )
-from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.use_cases.base_use_case import UseCase
-
 from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
     CollectDiscountedProductsResponse,

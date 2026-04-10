@@ -10,8 +10,8 @@ from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
     OldDiscountedProductsDeleted,
 )
-from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.event_handlers.event import Event
+from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,

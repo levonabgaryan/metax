@@ -11,8 +11,8 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommandHandler,
 )
 from metax.core.application.commands_handlers.category.add_new_helper_words import (
-    AddNewHelperWordsCommandHandler,
     AddNewHelperWordsCommand,
+    AddNewHelperWordsCommandHandler,
 )
 from metax.core.application.commands_handlers.category.delete_helper_words import (
     DeleteHelperWordsCommand,

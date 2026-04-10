@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import override
 
-from django_stubs_ext.db.models import TypedModelMeta
-
 from django.db import models
+from django_stubs_ext.db.models import TypedModelMeta
 
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 from .base_model import BaseDbModel
-
 
 _RETAILER_NAME_CHOICES = tuple((member.value, member.value) for member in RetailersNames)
 

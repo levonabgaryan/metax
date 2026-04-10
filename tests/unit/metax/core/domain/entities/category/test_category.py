@@ -3,11 +3,11 @@ from uuid import uuid4
 import pytest
 
 from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.category.errors.errors import (
-    DuplicateCategoryHelperWordsError,
     CategoryHelperWordsNotFoundForDeletionError,
+    DuplicateCategoryHelperWordsError,
 )
+from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 
 
 def test_add_new_helper_words() -> None:

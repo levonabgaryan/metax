@@ -8,6 +8,7 @@ from celery.schedules import crontab
 
 from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
 )
@@ -15,9 +16,7 @@ from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_colle
     YerevanCityCollectorService,
 )
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-
-from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from tests.utils import make_retailer_entity, make_discounted_product_entity
+from tests.utils import make_discounted_product_entity, make_retailer_entity
 
 
 def test_collect_products_task_schedule() -> None:

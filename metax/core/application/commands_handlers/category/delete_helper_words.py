@@ -1,11 +1,10 @@
+import logging
 from dataclasses import dataclass
 from typing import override
 from uuid import UUID
-import logging
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-
 
 logger = logging.getLogger(__name__)
 
