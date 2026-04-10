@@ -2,6 +2,8 @@ from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
+from django.db import connection
+from django.db.backends.utils import CursorWrapper
 from django.db.models import QuerySet
 from django_framework.metax.models.category import CategoryModel
 from django_framework.metax.models.category_helper_words import (
@@ -20,46 +22,116 @@ from metax.core.domain.entities.category.value_objects import CategoryHelperWord
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _add(self, category: Category) -> None:
-        category_model = await CategoryModel._default_manager.acreate(
-            category_uuid=category.get_uuid(), name=category.get_name()
-        )
-        helper_words_models_to_create = []
-        for helper_word in category.get_helper_words():
-            helper_words_models_to_create.append(
-                CategoryHelperWordsModel(word=helper_word, category=category_model)
-            )
+        def _sync_version(_category: Category) -> None:
+            _category_insert_query = """
+                INSERT INTO categories (category_uuid, name)
+                VALUES (%s, %s);
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=_category_insert_query, params=[_category.get_uuid(), _category.get_name()])
 
-        if helper_words_models_to_create:
-            await CategoryHelperWordsModel._default_manager.abulk_create(helper_words_models_to_create)
+                _words = list(_category.get_helper_words())
+                if _words:
+                    helper_words_insert_query = """
+                        INSERT INTO category_helper_words (word, category_uuid)
+                        VALUES (%s, %s);
+                    """
+                    _params = [(word, _category.get_uuid()) for word in _words]
+
+                    _cursor.executemany(
+                        sql=helper_words_insert_query,
+                        param_list=_params,
+                    )
+
+        await sync_to_async(_sync_version)(category)
 
     @override
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
-        try:
-            category_model = await CategoryModel._default_manager.aget(category_uuid=category_uuid)
-        except CategoryModel.DoesNotExist:
-            return None
+        def _sync_version(category_uuid_: UUID) -> Category | None:
+            _category_select_query = """
+                SELECT c.category_uuid, c.name, ch.word
+                FROM categories c
+                INNER JOIN category_helper_words ch
+                ON c.category_uuid = ch.category_uuid
+                WHERE c.category_uuid = %s;
+            """
+            _cursor: CursorWrapper
 
-        return await self.__map_to_entity(model=category_model)
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=_category_select_query, params=[category_uuid_])
+                _rows: list[tuple[UUID, str, str | None]] = _cursor.fetchall()
+
+                if _rows:
+                    _first_row = _rows[0]
+                    _category_uuid = _first_row[0]
+                    _category_name = _first_row[1]
+                    _helper_words: list[str] = []
+                    for row in _rows:
+                        _word = row[2]
+                        if _word is not None:
+                            _helper_words.append(_word)
+                    return Category(
+                        category_uuid=_category_uuid,
+                        name=_category_name,
+                        helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
+                    )
+                return None
+
+        return await sync_to_async(_sync_version)(category_uuid)
 
     @override
     async def _get_by_name(self, category_name: str) -> Category | None:
-        try:
-            category_model = await CategoryModel._default_manager.aget(name=category_name)
-        except CategoryModel.DoesNotExist:
-            return None
+        def _sync_version(category_name_: str) -> Category | None:
+            _category_select_query = """
+                SELECT c.category_uuid, c.name, ch.word
+                FROM categories c
+                INNER JOIN category_helper_words ch
+                ON c.category_uuid = ch.category_uuid
+                WHERE c.name = %s;
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=_category_select_query, params=[category_name_])
+                _rows: list[tuple[UUID, str, str | None]] = _cursor.fetchall()
+                if _rows:
+                    _first_row = _rows[0]
+                    _category_uuid = _first_row[0]
+                    _category_name = _first_row[1]
+                    _helper_words: list[str] = []
+                    for _row in _rows:
+                        _word = _row[2]
+                        if _word is not None:
+                            _helper_words.append(_word)
+                    return Category(
+                        category_uuid=_category_uuid,
+                        name=_category_name,
+                        helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
+                    )
+                return None
 
-        return await self.__map_to_entity(model=category_model)
+        return await sync_to_async(_sync_version)(category_name)
 
     @override
     async def _update(self, updated_category: Category) -> None:
-        await CategoryModel._default_manager.filter(category_uuid=updated_category.get_uuid()).aupdate(
-            name=updated_category.get_name()
-        )
+        def _sync_version(_updated_category: Category) -> None:
+            _category_update_query = """
+                UPDATE categories
+                SET name = %s,
+                    updated_at = Now()
+                WHERE category_uuid = %s
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(
+                    sql=_category_update_query, params=[_updated_category.get_name(), _updated_category.get_uuid()]
+                )
+
+        return await sync_to_async(_sync_version)(updated_category)
 
     @override
     async def _update_helper_words(self, updated_category: Category) -> None:
         updated_words = list(updated_category.get_helper_words())
-
         await (
             CategoryHelperWordsModel._default_manager.filter(category_id=updated_category.get_uuid())
             .exclude(word__in=updated_words)

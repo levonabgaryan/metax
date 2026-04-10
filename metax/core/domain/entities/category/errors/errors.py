@@ -11,5 +11,5 @@ class DuplicateCategoryHelperWordsError(MetaxError):
 
 class CategoryHelperWordsNotFoundForDeletionError(MetaxError):
     def __init__(self, requested_words: frozenset[str]):
-        msg = f"None of the requested words for deletion ({', '.join(sorted(requested_words))}) were found in the existing list."
+        msg = f"None of the requested words for deletion ({', '.join(sorted(requested_words))}) were found in the existing list."  # noqa: E501
         super().__init__(title=msg, error_code=CategoryErrorCodes.WORDS_NOT_FOUND_FOR_DELETION)

@@ -51,6 +51,10 @@ class CategoryRepository(ABC):
         return category
 
     @abstractmethod
+    async def get_all(self) -> list[Category]:
+        pass
+
+    @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
 
@@ -72,8 +76,4 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
-        pass
-
-    @abstractmethod
-    async def get_all(self) -> list[Category]:
         pass

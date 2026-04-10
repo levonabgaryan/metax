@@ -6,7 +6,7 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
 )
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import RetailerRepository
-from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (
+from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     IDiscountedProductReadModelRepository,
 )
 from metax.frameworks_and_drivers.ddd_patterns.repositories.opensearch.discounted_product_read_model import (

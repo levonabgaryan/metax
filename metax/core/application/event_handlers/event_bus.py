@@ -17,7 +17,7 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
-from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (
+from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     IDiscountedProductReadModelRepository,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
@@ -52,7 +52,8 @@ class EventBus:
         if not handlers:
             msg = f"No handler for event type {type(event).__name__!r}"
             raise NotImplementedError(msg)
-        # Handlers for the same event type run concurrently; each should use its own UoW and not rely on peer order.
+        # Handlers for the same event type run concurrently,
+        # each should use its own UoW and not rely on peer order.
         await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 
     async def _handle_category_updated(self, event: Event) -> None:
