@@ -27,7 +27,10 @@ class AddNewHelperWords(UseCase[AddNewHelperWordsRequest]):
             repo = uow.category_repo
             category = await repo.get_by_uuid(request.category_uuid)
             category.add_new_helper_words(request.new_helper_words)
-            await repo.update_helper_words(updated_category=category)
+            await repo.add_new_helper_words_by_category_uuid(
+                category_uuid=request.category_uuid,
+                new_helper_words=request.new_helper_words,
+            )
             await uow.commit()
         logger.info(
             "[Use case: %s] | Status: SUCCESS | Target UUID: [%s]",

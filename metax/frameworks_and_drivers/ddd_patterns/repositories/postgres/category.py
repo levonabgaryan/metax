@@ -21,6 +21,40 @@ from metax.core.domain.entities.category.value_objects import CategoryHelperWord
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
+    async def add_new_helper_words_by_category_uuid(
+        self, category_uuid: UUID, new_helper_words: frozenset[str]
+    ) -> None:
+        def _sync_version(_category_uuid: UUID, _new_helper_words: frozenset[str]) -> None:
+            insert_query = """
+                INSERT INTO category_helper_words (category_uuid, word)
+                VALUES (%s, %s);
+            """
+            _params = [(_category_uuid, word) for word in _new_helper_words]
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.executemany(
+                    sql=insert_query,
+                    param_list=_params,
+                )
+
+        return await sync_to_async(_sync_version)(category_uuid, new_helper_words)
+
+    @override
+    async def delete_helper_words_by_category_uuid(self, category_uuid: UUID, words: frozenset[str]) -> None:
+        def _sync_version(_category_uuid: UUID, _words: frozenset[str]) -> None:
+            if not _words:
+                return
+            _delete_query = """
+                DELETE FROM category_helper_words
+                WHERE category_uuid = %s AND word = ANY(%s)
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=_delete_query, params=[_category_uuid, list(_words)])
+
+        return await sync_to_async(_sync_version)(category_uuid, words)
+
+    @override
     async def _add(self, category: Category) -> None:
         def _sync_version(_category: Category) -> None:
             _category_insert_query = """
@@ -34,10 +68,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 _words = list(_category.get_helper_words())
                 if _words:
                     helper_words_insert_query = """
-                        INSERT INTO category_helper_words (word, category_uuid)
+                        INSERT INTO category_helper_words (category_uuid, word)
                         VALUES (%s, %s);
                     """
-                    _params = [(word, _category.get_uuid()) for word in _words]
+                    _params = [(_category.get_uuid(), word) for word in _words]
 
                     _cursor.executemany(
                         sql=helper_words_insert_query,
@@ -48,7 +82,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
     @override
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
-        def _sync_version(category_uuid_: UUID) -> Category | None:
+        def _sync_version(_category_uuid: UUID) -> Category | None:
             _category_select_query = """
                 SELECT c.category_uuid, c.name, ch.word
                 FROM categories c
@@ -59,7 +93,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             _cursor: CursorWrapper
 
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_select_query, params=[category_uuid_])
+                _cursor.execute(sql=_category_select_query, params=[_category_uuid])
                 _rows: list[tuple[UUID, str, str | None]] = _cursor.fetchall()
 
                 if _rows:
@@ -128,20 +162,6 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 )
 
         return await sync_to_async(_sync_version)(updated_category)
-
-    @override
-    async def _update_helper_words(self, updated_category: Category) -> None:
-        updated_words = list(updated_category.get_helper_words())
-        await (
-            CategoryHelperWordsModel._default_manager.filter(category_id=updated_category.get_uuid())
-            .exclude(word__in=updated_words)
-            .adelete()
-        )
-        to_create = [
-            CategoryHelperWordsModel(word=word, category_id=updated_category.get_uuid()) for word in updated_words
-        ]
-        if to_create:
-            await CategoryHelperWordsModel._default_manager.abulk_create(to_create, ignore_conflicts=True)
 
     @sync_to_async(thread_sensitive=True)
     def __get_helper_words_by_category_uuid(self, category_uuid: UUID) -> frozenset[str]:

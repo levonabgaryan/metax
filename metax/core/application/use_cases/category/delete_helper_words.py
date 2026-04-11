@@ -26,8 +26,10 @@ class DeleteHelperWords(UseCase[DeleteHelperWordsRequest]):
         async with uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(request.category_uuid)
-            category.delete_helper_words(request.words_to_delete)
-            await repo.update_helper_words(updated_category=category)
+            await repo.delete_helper_words_by_category_uuid(
+                category_uuid=request.category_uuid,
+                words=request.words_to_delete,
+            )
             await uow.commit()
         logger.info(
             "[Use case: %s] | Status: SUCCESS | Target UUID: [%s]",

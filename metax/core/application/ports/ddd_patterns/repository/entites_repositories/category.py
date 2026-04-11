@@ -35,9 +35,6 @@ class CategoryRepository(ABC):
     async def update(self, updated_category: Category) -> None:
         await self._update(updated_category=updated_category)
 
-    async def update_helper_words(self, updated_category: Category) -> None:
-        await self._update_helper_words(updated_category=updated_category)
-
     async def get_by_helper_words_in_words(self, words: list[str]) -> Category:
         words = [w.lower() for w in words]
         category = await self._get_by_helper_words_in_words(words=words)
@@ -55,6 +52,16 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
+    async def add_new_helper_words_by_category_uuid(
+        self, category_uuid: UUID, new_helper_words: frozenset[str]
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_helper_words_by_category_uuid(self, category_uuid: UUID, words: frozenset[str]) -> None:
+        pass
+
+    @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
 
@@ -68,10 +75,6 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _update(self, updated_category: Category) -> None:
-        pass
-
-    @abstractmethod
-    async def _update_helper_words(self, updated_category: Category) -> None:
         pass
 
     @abstractmethod
