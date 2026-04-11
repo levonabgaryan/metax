@@ -5,10 +5,6 @@ from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
 
-from .errors.errors import (
-    CategoryHelperWordsNotFoundForDeletionError,
-    DuplicateCategoryHelperWordsError,
-)
 from .value_objects import CategoryHelperWords
 
 
@@ -24,22 +20,10 @@ class Category(AggregateRootEntity):
         self.__helper_words = helper_words
 
     def add_new_helper_words(self, new_words: frozenset[str]) -> None:
-        existing_words = self.__helper_words.words
-        duplicate_words = existing_words & new_words
-        if duplicate_words:
-            raise DuplicateCategoryHelperWordsError(duplicate_words)
-
-        updated_words = existing_words | new_words
-        self.__helper_words = CategoryHelperWords(words=updated_words)
+        self.__helper_words = self.__helper_words.plus_words(new_words)
 
     def delete_helper_words(self, words_to_delete: frozenset[str]) -> None:
-        existing_words = self.__helper_words.words
-        words_to_be_deleted = existing_words & words_to_delete
-        if not words_to_be_deleted:
-            raise CategoryHelperWordsNotFoundForDeletionError(requested_words=words_to_delete)
-
-        updated_words = existing_words - words_to_be_deleted
-        self.__helper_words = CategoryHelperWords(words=updated_words)
+        self.__helper_words = self.__helper_words.minus_words(words_to_delete)
 
     def set_name(self, new_name: str) -> None:
         self.__name = new_name
