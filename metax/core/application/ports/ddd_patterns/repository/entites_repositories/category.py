@@ -35,18 +35,6 @@ class CategoryRepository(ABC):
     async def update(self, updated_category: Category) -> None:
         await self._update(updated_category=updated_category)
 
-    async def get_by_helper_words_in_words(self, words: list[str]) -> Category:
-        words = [w.lower() for w in words]
-        category = await self._get_by_helper_words_in_words(words=words)
-        if category is None:
-            raise EntityIsNotFoundError(
-                entity_name="category",
-                searched_field_name="helper_words",
-                searched_field_value=f"{words}",
-                error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
-            )
-        return category
-
     @abstractmethod
     async def get_all(self) -> list[Category]:
         pass
@@ -65,8 +53,4 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _update(self, updated_category: Category) -> None:
-        pass
-
-    @abstractmethod
-    async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
         pass

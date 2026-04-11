@@ -4,11 +4,6 @@ from uuid import UUID
 from asgiref.sync import sync_to_async
 from django.db import connection
 from django.db.backends.utils import CursorWrapper
-from django.db.models import QuerySet
-from django_framework.metax.models.category import CategoryModel
-from django_framework.metax.models.category_helper_words import (
-    CategoryHelperWordsModel,
-)
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
@@ -17,6 +12,9 @@ from metax.core.domain.entities.category.entity import (
     Category,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+
+type CategoryName = str
+type HelperWord = str
 
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
@@ -160,36 +158,37 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
         return await sync_to_async(_sync_version)(updated_category)
 
-    @sync_to_async(thread_sensitive=True)
-    def __get_helper_words_by_category_uuid(self, category_uuid: UUID) -> frozenset[str]:
-        helper_words: QuerySet[CategoryHelperWordsModel, str] = CategoryHelperWordsModel._default_manager.filter(
-            category_id=category_uuid
-        ).values_list("word", flat=True)
-        return frozenset(helper_words)
-
-    async def __map_to_entity(self, model: CategoryModel) -> Category:
-        category_uuid = model.category_uuid
-        helper_words = await self.__get_helper_words_by_category_uuid(category_uuid)
-
-        return Category(
-            category_uuid=category_uuid, name=model.name, helper_words=CategoryHelperWords(words=helper_words)
-        )
-
     @override
     async def get_all(self) -> list[Category]:
-        categories: list[Category] = []
-        async for model in CategoryModel.objects.all():
-            entity = await self.__map_to_entity(model)
-            categories.append(entity)
-        return categories
+        def _sync_version() -> list[Category]:
+            select_all_query = """
+                SELECT c.category_uuid, c.name, ch.word
+                FROM categories c
+                LEFT JOIN category_helper_words ch
+                ON c.category_uuid = ch.category_uuid
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=select_all_query)
+                _rows: list[tuple[UUID, str, str | None]] = _cursor.fetchall()
 
-    @override
-    async def _get_by_helper_words_in_words(self, words: list[str]) -> Category | None:
-        helper_word_model = (
-            await CategoryHelperWordsModel.objects.select_related("category").filter(word__in=words).afirst()
-        )
+            _category_map: dict[UUID, tuple[CategoryName, list[HelperWord]]] = {}
+            for _row in _rows:
+                _category_uuid: UUID = _row[0]
+                _category_name: CategoryName = _row[1]
+                _category_helper_word: HelperWord | None = _row[2]
+                if _category_uuid not in _category_map:
+                    _category_map[_category_uuid] = (_category_name, [])
+                if _category_helper_word is not None:
+                    _category_map[_category_uuid][1].append(_category_helper_word)
 
-        if not helper_word_model:
-            return None
+            return [
+                Category(
+                    category_uuid=_category_uid,
+                    name=_name_and_words[0],
+                    helper_words=CategoryHelperWords(words=frozenset(_name_and_words[1])),
+                )
+                for _category_uid, _name_and_words in _category_map.items()
+            ]
 
-        return await self.__map_to_entity(helper_word_model.category)
+        return await sync_to_async(_sync_version)()

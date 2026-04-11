@@ -185,18 +185,28 @@ async def test_category_update_helper_words_when_deleting(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_by_helper_words_in_words(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_repo_get_all(metax_container_for_integration_tests: MetaxContainer) -> None:
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-
-    helper_words = CategoryHelperWords(words=frozenset(["գինի", "օղի", "vodka"]))
-    category = make_category_entity(helper_words=helper_words, name="ալկոհոլ")
+    cat_alpha = make_category_entity(
+        name="repo_get_all_alpha",
+        helper_words=CategoryHelperWords(words=frozenset(["repo_ga_alpha_1", "repo_ga_alpha_2"])),
+    )
+    cat_beta = make_category_entity(
+        name="repo_get_all_beta",
+        helper_words=CategoryHelperWords(words=frozenset(["repo_ga_beta_1"])),
+    )
     async with unit_of_work as uow:
-        await uow.category_repo.add(category)
+        await uow.category_repo.add(cat_alpha)
+        await uow.category_repo.add(cat_beta)
         await uow.commit()
 
     # when
-    category = await unit_of_work.category_repo.get_by_helper_words_in_words(words=["Գինի", "Ռոտշիլդ", "կարմիր"])
+    async with unit_of_work as uow:
+        all_categories = await uow.category_repo.get_all()
+        await uow.commit()
 
     # then
-    assert category == category
+    assert sorted(all_categories, key=lambda v: v.get_uuid()) == sorted(
+        [cat_alpha, cat_beta], key=lambda v: v.get_uuid()
+    )
