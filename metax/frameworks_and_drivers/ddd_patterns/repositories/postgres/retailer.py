@@ -1,10 +1,9 @@
-from typing import AsyncIterator, override
+from typing import AsyncIterator, Iterator, override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from django.db import connection
 from django.db.backends.utils import CursorWrapper
-from django_framework.metax.models import RetailerModel
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import (
     RetailerRepository,
@@ -103,18 +102,28 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
 
         return await sync_to_async(_sync_version)(updated_retailer)
 
-    @staticmethod
-    def __map_to_entity(model: RetailerModel) -> Retailer:
-        return Retailer(
-            retailer_uuid=model.retailer_uuid,
-            name=RetailersNames(model.name),
-            home_page_url=model.url,
-            phone_number=model.phone_number,
-        )
-
     @override
     async def get_all(self) -> AsyncIterator[Retailer]:
-        queryset = RetailerModel.objects.all().aiterator()
+        def _sync_version() -> Iterator[Retailer]:
+            _select_all_query = """
+                SELECT retailer_uuid, name, url, phone_number
+                FROM retailers
+                ORDER BY name ASC
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(sql=_select_all_query)
+                _rows = _cursor.fetchall()
+            return (
+                Retailer(
+                    retailer_uuid=_row[0],
+                    name=RetailersNames(_row[1]),
+                    home_page_url=_row[2],
+                    phone_number=_row[3],
+                )
+                for _row in _rows
+            )
 
-        async for model in queryset:
-            yield self.__map_to_entity(model=model)
+        _retailers = await sync_to_async(_sync_version)()
+        for _retailer in _retailers:
+            yield _retailer

@@ -101,3 +101,32 @@ async def test_retailer_is_not_found_by_name(metax_container_for_integration_tes
     assert err.value.title == f"There is no retailer entity found by field 'name' with value '{test_name}'."
     assert err.value.error_code == "RETAILER_IS_NOT_FOUND"
     assert err.value.details == {"searched_field_name": "name", "searched_field_value": f"{test_name}"}
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_retailer_repo_get_all(metax_container_for_integration_tests: MetaxContainer) -> None:
+    # given
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    r_sas = make_retailer_entity(
+        name=RetailersNames.SAS_AM,
+        url="https://repo-get-all-sas.example",
+        phone_number="+repo-get-all-sas",
+    )
+    r_yvn = make_retailer_entity(
+        name=RetailersNames.YEREVAN_CITY,
+        url="https://repo-get-all-yvn.example",
+        phone_number="+repo-get-all-yvn",
+    )
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(r_sas)
+        await uow.retailer_repo.add(r_yvn)
+        await uow.commit()
+
+    # when
+    async with unit_of_work as uow:
+        all_retailers = [r async for r in uow.retailer_repo.get_all()]
+
+    assert len(all_retailers) == 2
+    assert r_sas in all_retailers
+    assert r_yvn in all_retailers
