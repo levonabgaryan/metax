@@ -21,40 +21,6 @@ from metax.core.domain.entities.category.value_objects import CategoryHelperWord
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
-    async def add_new_helper_words_by_category_uuid(
-        self, category_uuid: UUID, new_helper_words: frozenset[str]
-    ) -> None:
-        def _sync_version(_category_uuid: UUID, _new_helper_words: frozenset[str]) -> None:
-            insert_query = """
-                INSERT INTO category_helper_words (category_uuid, word)
-                VALUES (%s, %s);
-            """
-            _params = [(_category_uuid, word) for word in _new_helper_words]
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.executemany(
-                    sql=insert_query,
-                    param_list=_params,
-                )
-
-        return await sync_to_async(_sync_version)(category_uuid, new_helper_words)
-
-    @override
-    async def delete_helper_words_by_category_uuid(self, category_uuid: UUID, words: frozenset[str]) -> None:
-        def _sync_version(_category_uuid: UUID, _words: frozenset[str]) -> None:
-            if not _words:
-                return
-            _delete_query = """
-                DELETE FROM category_helper_words
-                WHERE category_uuid = %s AND word = ANY(%s)
-            """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(sql=_delete_query, params=[_category_uuid, list(_words)])
-
-        return await sync_to_async(_sync_version)(category_uuid, words)
-
-    @override
     async def _add(self, category: Category) -> None:
         def _sync_version(_category: Category) -> None:
             _category_insert_query = """
@@ -149,17 +115,48 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _update(self, updated_category: Category) -> None:
         def _sync_version(_updated_category: Category) -> None:
+            _category_uuid = _updated_category.get_uuid()
+            _entity_helper_words = _updated_category.get_helper_words()
+
             _category_update_query = """
                 UPDATE categories
                 SET name = %s,
                     updated_at = Now()
                 WHERE category_uuid = %s
             """
+            _select_words_query = """
+                SELECT word FROM category_helper_words
+                WHERE category_uuid = %s
+            """
+            _delete_words_query = """
+                DELETE FROM category_helper_words
+                WHERE category_uuid = %s AND word = ANY(%s)
+            """
+            _insert_word_query = """
+                INSERT INTO category_helper_words (category_uuid, word)
+                VALUES (%s, %s);
+            """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(
-                    sql=_category_update_query, params=[_updated_category.get_name(), _updated_category.get_uuid()]
-                )
+                _cursor.execute(sql=_category_update_query, params=[_updated_category.get_name(), _category_uuid])
+                _cursor.execute(sql=_select_words_query, params=[_category_uuid])
+                _rows = _cursor.fetchall()
+                _current_helper_words_in_db = frozenset(str(row[0]) for row in _rows)
+
+                _helper_words_to_remove = _current_helper_words_in_db - _entity_helper_words
+                if _helper_words_to_remove:
+                    _cursor.execute(
+                        sql=_delete_words_query,
+                        params=[_category_uuid, list(_helper_words_to_remove)],
+                    )
+
+                _helper_words_to_add = _entity_helper_words - _current_helper_words_in_db
+                if _helper_words_to_add:
+                    _insert_params = [(_category_uuid, word) for word in _helper_words_to_add]
+                    _cursor.executemany(
+                        sql=_insert_word_query,
+                        param_list=_insert_params,
+                    )
 
         return await sync_to_async(_sync_version)(updated_category)
 

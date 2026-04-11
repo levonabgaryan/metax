@@ -52,16 +52,6 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def add_new_helper_words_by_category_uuid(
-        self, category_uuid: UUID, new_helper_words: frozenset[str]
-    ) -> None:
-        pass
-
-    @abstractmethod
-    async def delete_helper_words_by_category_uuid(self, category_uuid: UUID, words: frozenset[str]) -> None:
-        pass
-
-    @abstractmethod
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         pass
 

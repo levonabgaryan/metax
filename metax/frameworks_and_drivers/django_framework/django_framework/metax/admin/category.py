@@ -7,14 +7,12 @@ from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
 
 from metax.core.application.commands_handlers.category import (
+    AddNewHelperWordsCommand,
+    AddNewHelperWordsCommandHandler,
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
-)
-from metax.core.application.use_cases.category import (
-    AddNewHelperWords,
-    AddNewHelperWordsRequest,
-    DeleteHelperWords,
-    DeleteHelperWordsRequest,
+    DeleteHelperWordsCommand,
+    DeleteHelperWordsCommandHandler,
 )
 from metax.core.domain.entities.category.entity import Category
 from metax.frameworks_and_drivers.di.metax_container import get_metax_container
@@ -103,12 +101,12 @@ class CategoryAdminHandler:
         async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
-        request = AddNewHelperWordsRequest(
+        command = AddNewHelperWordsCommand(
             category_uuid=category.get_uuid(),
             new_helper_words=frozenset(new_helper_words),
         )
-        use_case = AddNewHelperWords(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await use_case.handle_use_case(request)
+        handler = AddNewHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+        await handler.handle_command(command)
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
@@ -120,12 +118,12 @@ class CategoryAdminHandler:
         async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
-        request = DeleteHelperWordsRequest(
+        command = DeleteHelperWordsCommand(
             category_uuid=category.get_uuid(),
             words_to_delete=frozenset(words_to_delete),
         )
-        use_case = DeleteHelperWords(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await use_case.handle_use_case(request)
+        handler = DeleteHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+        await handler.handle_command(command)
 
     @staticmethod
     async def __get__all_categories() -> list[Category]:

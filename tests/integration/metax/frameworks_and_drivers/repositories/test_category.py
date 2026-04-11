@@ -55,6 +55,38 @@ async def test_category_repo_update(metax_container_for_integration_tests: Metax
     # then
     updated_category = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     assert updated_category.get_name() == category.get_name()
+    assert updated_category.get_helper_words() == category.get_helper_words()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_update_syncs_helper_words_via_diff(
+    metax_container_for_integration_tests: MetaxContainer,
+) -> None:
+    # given
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    helper_words = CategoryHelperWords(words=frozenset(["keep", "drop", "stay"]))
+    category = make_category_entity(helper_words=helper_words)
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category)
+        await uow.commit()
+
+    # when
+    async with unit_of_work as uow:
+        category = await uow.category_repo.get_by_uuid(category.get_uuid())
+        category.set_helper_words(
+            CategoryHelperWords(words=frozenset(["keep", "stay", "new_one"])),
+        )
+        updated_category = category
+        await uow.category_repo.update(updated_category=updated_category)
+        await uow.commit()
+
+    # then
+    async with unit_of_work as uow:
+        testing_category = await uow.category_repo.get_by_uuid(updated_category.get_uuid())
+
+    assert testing_category.get_helper_words() == frozenset(["keep", "stay", "new_one"])
+    assert testing_category.get_name() == updated_category.get_name()
 
 
 @pytest.mark.django_db(transaction=True)
@@ -114,10 +146,7 @@ async def test_category_update_helper_words_when_adding_news(
         category = await uow.category_repo.get_by_uuid(category.get_uuid())
         new_helper_words = frozenset(["d", "e"])
         category.add_new_helper_words(new_helper_words)
-        await uow.category_repo.add_new_helper_words_by_category_uuid(
-            category_uuid=category.get_uuid(),
-            new_helper_words=new_helper_words,
-        )
+        await uow.category_repo.update(updated_category=category)
         await uow.commit()
 
     # then
@@ -145,13 +174,8 @@ async def test_category_update_helper_words_when_deleting(
     async with unit_of_work as uow:
         category = await uow.category_repo.get_by_uuid(category.get_uuid())
         words_to_delete = frozenset(["a", "c"])
-        words_before = category.get_helper_words()
         category.delete_helper_words(words_to_delete)
-        words_removed = words_before - category.get_helper_words()
-        await uow.category_repo.delete_helper_words_by_category_uuid(
-            category_uuid=category.get_uuid(),
-            words=words_removed,
-        )
+        await uow.category_repo.update(updated_category=category)
         await uow.commit()
 
     # then
@@ -176,51 +200,3 @@ async def test_get_by_helper_words_in_words(metax_container_for_integration_test
 
     # then
     assert category == category
-
-
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-async def test_category_repo_add_new_helper_words_by_category_uuid(
-    metax_container_for_integration_tests: MetaxContainer,
-) -> None:
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    helper_words = CategoryHelperWords(words=frozenset(["a", "b"]))
-    category = make_category_entity(helper_words=helper_words)
-    async with unit_of_work as uow:
-        await uow.category_repo.add(category)
-        await uow.commit()
-
-    async with unit_of_work as uow:
-        await uow.category_repo.add_new_helper_words_by_category_uuid(
-            category_uuid=category.get_uuid(),
-            new_helper_words=frozenset(["c", "d"]),
-        )
-        await uow.commit()
-
-    async with unit_of_work as uow:
-        loaded = await uow.category_repo.get_by_uuid(category.get_uuid())
-    assert loaded.get_helper_words() == frozenset(["a", "b", "c", "d"])
-
-
-@pytest.mark.django_db(transaction=True)
-@pytest.mark.asyncio
-async def test_category_repo_delete_helper_words_by_category_uuid(
-    metax_container_for_integration_tests: MetaxContainer,
-) -> None:
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
-    category = make_category_entity(helper_words=helper_words)
-    async with unit_of_work as uow:
-        await uow.category_repo.add(category)
-        await uow.commit()
-
-    async with unit_of_work as uow:
-        await uow.category_repo.delete_helper_words_by_category_uuid(
-            category_uuid=category.get_uuid(),
-            words=frozenset(["a", "c"]),
-        )
-        await uow.commit()
-
-    async with unit_of_work as uow:
-        loaded = await uow.category_repo.get_by_uuid(category.get_uuid())
-    assert loaded.get_helper_words() == frozenset(["b", "d"])

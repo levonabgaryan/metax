@@ -25,6 +25,8 @@ async def test_update_category_command_handler(
         await uow.category_repo.add(category)
         await uow.commit()
 
+    initial_helper_words = category.get_helper_words()
+
     # when
     cmd = UpdateCategoryCommand(category_uuid=category.get_uuid(), new_name="new_test_name")
     cmd_handler = UpdateCategoryCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
@@ -35,4 +37,5 @@ async def test_update_category_command_handler(
     async with uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
         assert updated_category.get_name() == cmd.new_name
+        assert updated_category.get_helper_words() == initial_helper_words
         await uow.commit()
