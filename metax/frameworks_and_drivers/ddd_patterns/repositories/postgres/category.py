@@ -29,13 +29,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             with connection.cursor() as _cursor:
                 _cursor.execute(sql=_category_insert_query, params=[_category.get_uuid(), _category.get_name()])
 
-                _words = list(_category.get_helper_words())
-                if _words:
+                if _category.get_helper_words():
                     helper_words_insert_query = """
                         INSERT INTO category_helper_words (category_uuid, word)
                         VALUES (%s, %s);
                     """
-                    _params = [(_category.get_uuid(), word) for word in _words]
+                    _params = [(_category.get_uuid(), word) for word in _category.get_helper_words()]
 
                     _cursor.executemany(
                         sql=helper_words_insert_query,
@@ -64,11 +63,8 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _first_row = _rows[0]
                     _category_uuid = _first_row[0]
                     _category_name = _first_row[1]
-                    _helper_words: list[str] = []
-                    for row in _rows:
-                        _word = row[2]
-                        if _word is not None:
-                            _helper_words.append(_word)
+                    _helper_words: frozenset[str] = frozenset(_row[2] for _row in _rows if _row[2] is not None)
+
                     return Category(
                         category_uuid=_category_uuid,
                         name=_category_name,
@@ -96,11 +92,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _first_row = _rows[0]
                     _category_uuid = _first_row[0]
                     _category_name = _first_row[1]
-                    _helper_words: list[str] = []
-                    for _row in _rows:
-                        _word = _row[2]
-                        if _word is not None:
-                            _helper_words.append(_word)
+                    _helper_words: frozenset[str] = frozenset(_row[2] for _row in _rows if _row[2] is not None)
                     return Category(
                         category_uuid=_category_uuid,
                         name=_category_name,
@@ -139,7 +131,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 _cursor.execute(sql=_category_update_query, params=[_updated_category.get_name(), _category_uuid])
                 _cursor.execute(sql=_select_words_query, params=[_category_uuid])
                 _rows = _cursor.fetchall()
-                _current_helper_words_in_db = frozenset(str(row[0]) for row in _rows)
+                _current_helper_words_in_db = frozenset(row[0] for row in _rows if row[0] is not None)
 
                 _helper_words_to_remove = _current_helper_words_in_db - _entity_helper_words
                 if _helper_words_to_remove:
