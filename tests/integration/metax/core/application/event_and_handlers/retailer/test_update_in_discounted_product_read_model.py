@@ -64,4 +64,4 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     product_uuid = str(discounted_product.get_uuid())
     updated_retailer = await discounted_product_read_model_repository.get_by_uuid(product_uuid)
 
-    assert updated_retailer["retailer_name"] == RetailersNames.SAS_AM.value
+    assert updated_retailer["retailer_name"] == RetailersNames.SAS_AM

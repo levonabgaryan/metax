@@ -6,6 +6,7 @@ from metax.core.application.commands_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )
+from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 
 
@@ -21,7 +22,7 @@ async def test_create_retailer_command_handler(
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     cmd = CreateRetailerCommand(
         retailer_uuid=uuid7(),
-        name="yerevan-city",
+        name=RetailersNames.YEREVAN_CITY,
         url="https://example.com",
         phone_number="test_phone_number",
     )
@@ -35,6 +36,6 @@ async def test_create_retailer_command_handler(
     async with uow:
         retailer = await uow.retailer_repo.get_by_uuid(cmd.retailer_uuid)
 
-    assert retailer.get_name().value == "yerevan-city"
+    assert retailer.get_name() == RetailersNames.YEREVAN_CITY
     assert retailer.get_home_page_url() == "https://example.com"
     assert retailer.get_phone_number() == "test_phone_number"

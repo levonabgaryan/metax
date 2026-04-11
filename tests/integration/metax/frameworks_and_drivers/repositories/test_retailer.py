@@ -90,7 +90,7 @@ async def test_retailer_is_not_found_by_name(metax_container_for_integration_tes
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    test_name = "test_name"
+    test_name = RetailersNames.SAS_AM
 
     # expect
     async with unit_of_work as uow:

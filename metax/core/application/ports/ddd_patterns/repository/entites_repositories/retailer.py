@@ -20,7 +20,7 @@ class RetailerRepository(ABC):
             )
         return retailer
 
-    async def get_by_name(self, retailer_name: RetailersNames | str) -> Retailer:
+    async def get_by_name(self, retailer_name: RetailersNames) -> Retailer:
         lookup = retailer_name.value if isinstance(retailer_name, RetailersNames) else retailer_name
         retailer = await self._get_by_name(retailer_name=retailer_name)
         if retailer is None:
@@ -47,15 +47,11 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_name(self, retailer_name: RetailersNames | str) -> Retailer | None:
+    async def _get_by_name(self, retailer_name: RetailersNames) -> Retailer | None:
         pass
 
     @abstractmethod
     async def _update(self, updated_retailer: Retailer) -> None:
-        pass
-
-    @abstractmethod
-    async def get_all_retailers_urls(self) -> tuple[str, ...]:
         pass
 
     @abstractmethod
