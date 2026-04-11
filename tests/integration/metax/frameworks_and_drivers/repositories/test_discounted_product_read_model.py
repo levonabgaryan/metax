@@ -3,8 +3,6 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from metax.core.domain.entities.category.entity import DataForCategoryUpdate
-from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
@@ -70,8 +68,7 @@ async def test_update_category(
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
-    data_for_update = DataForCategoryUpdate(new_name="category_new_name")
-    category.update(new_data=data_for_update)
+    category.set_name("category_new_name")
     await repo.update_category(updated_category=category)
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
@@ -101,12 +98,9 @@ async def test_update_retailer(
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
-    data_for_update = DataForRetailerUpdate(
-        new_name=RetailersNames.SAS_AM.value,
-        new_url="new_url",
-        new_phone_number="new_phone_number",
-    )
-    retailer.update(new_data=data_for_update)
+    retailer.set_name(RetailersNames.SAS_AM)
+    retailer.set_home_page_url("new_url")
+    retailer.set_phone_number("new_phone_number")
     await repo.update_retailer(updated_retailer=retailer)
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 

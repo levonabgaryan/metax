@@ -3,7 +3,6 @@ from uuid import uuid7
 import pytest
 
 from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
-from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from tests.utils import make_retailer_entity
@@ -47,13 +46,10 @@ async def test_retailer_repo_update(
         await uow.retailer_repo.add(retailer)
         await uow.commit()
 
-    new_data = DataForRetailerUpdate(
-        new_name=RetailersNames.SAS_AM.value,
-        new_url="new_url",
-        new_phone_number="new_phone_number",
-    )
     # when
-    retailer.update(new_data=new_data)
+    retailer.set_name(RetailersNames.SAS_AM)
+    retailer.set_home_page_url("new_url")
+    retailer.set_phone_number("new_phone_number")
     async with unit_of_work as uow:
         await uow.retailer_repo.update(updated_retailer=retailer)
         await uow.commit()

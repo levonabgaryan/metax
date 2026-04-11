@@ -4,7 +4,6 @@ import pytest
 
 from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category.entity import DataForCategoryUpdate
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from tests.integration.conftest import refresh_opensearch_index
@@ -53,8 +52,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
     async with unit_of_work as uow:
         found_category = await uow.category_repo.get_by_uuid(category.get_uuid())
-        new_data = DataForCategoryUpdate(new_name="test_new_name")
-        found_category.update(new_data)
+        found_category.set_name("test_new_name")
         await uow.category_repo.update(found_category)
         await uow.commit()
 

@@ -31,17 +31,8 @@ class DiscountedProduct(AggregateRootEntity):
     def get_url(self) -> str:
         return self.__url
 
-    def get_category_uuid(self) -> UUID:
-        if self.__category_uuid is None:
-            msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
-            raise AttributeError(msg)
-        return self.__category_uuid
-
-    def get_retailer_uuid(self) -> UUID:
-        return self.__retailer_uuid
-
-    def set_retailer_uuid(self, retailer_uuid: UUID) -> None:
-        self.__retailer_uuid = retailer_uuid
+    def set_url(self, url: str) -> None:
+        self.__url = url
 
     def get_name(self) -> str:
         return self.__name
@@ -49,26 +40,32 @@ class DiscountedProduct(AggregateRootEntity):
     def set_name(self, name: str) -> None:
         self.__name = name
 
-    def get_price_details(self) -> PriceDetails:
-        return self.__price_details
-
-    def set_price_details(self, price_details: PriceDetails) -> None:
-        self.__price_details = price_details
-
     def get_real_price(self) -> Decimal:
         return self.__price_details.real_price
 
     def get_discounted_price(self) -> Decimal:
         return self.__price_details.discounted_price
 
-    def has_category(self) -> bool:
-        return self.__category_uuid is not None
-
     def get_created_at(self) -> datetime:
         return self.__created_at
 
     def set_created_at(self, created_at: datetime) -> None:
         self.__created_at = created_at
+
+    def has_category(self) -> bool:
+        return self.__category_uuid is not None
+
+    def get_category_uuid(self) -> UUID:
+        if self.__category_uuid is None:
+            msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
+            raise AttributeError(msg)
+        return self.__category_uuid
+
+    def set_category_uuid(self, category_uuid: UUID | None) -> None:
+        self.__category_uuid = category_uuid
+
+    def get_retailer_uuid(self) -> UUID:
+        return self.__retailer_uuid
 
     @override
     def __str__(self) -> str:
@@ -82,9 +79,3 @@ class DiscountedProduct(AggregateRootEntity):
             f"  url='{self.__url}'\n"
             f")"
         )
-
-    def set_category_uuid(self, category_uuid: UUID | None) -> None:
-        self.__category_uuid = category_uuid
-
-    def set_url(self, url: str) -> None:
-        self.__url = url

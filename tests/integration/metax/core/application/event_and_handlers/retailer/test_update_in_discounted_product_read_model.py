@@ -4,7 +4,6 @@ import pytest
 
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
@@ -49,8 +48,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 
     async with unit_of_work as uow:
         found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
-        new_data = DataForRetailerUpdate(new_name=RetailersNames.SAS_AM.value)
-        found_retailer.update(new_data)
+        found_retailer.set_name(RetailersNames.SAS_AM)
         await uow.retailer_repo.update(updated_retailer=found_retailer)
         await uow.commit()
 

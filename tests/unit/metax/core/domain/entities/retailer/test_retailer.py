@@ -1,6 +1,6 @@
 from uuid import uuid7
 
-from metax.core.domain.entities.retailer.entity import DataForRetailerUpdate, Retailer
+from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
@@ -13,16 +13,12 @@ def test_retailer_update() -> None:
         phone_number="test_number",
     )
 
-    new_data = DataForRetailerUpdate(
-        new_name=RetailersNames.SAS_AM.value,
-        new_url="new_url",
-        new_phone_number="new_phone_number",
-    )
-
     # when
-    retailer.update(new_data)
+    retailer.set_name(RetailersNames.SAS_AM)
+    retailer.set_home_page_url("new_url")
+    retailer.set_phone_number("new_phone_number")
 
     # then
     assert retailer.get_name() == RetailersNames.SAS_AM
-    assert retailer.get_home_page_url() == new_data["new_url"]
-    assert retailer.get_phone_number() == new_data["new_phone_number"]
+    assert retailer.get_home_page_url() == "new_url"
+    assert retailer.get_phone_number() == "new_phone_number"
