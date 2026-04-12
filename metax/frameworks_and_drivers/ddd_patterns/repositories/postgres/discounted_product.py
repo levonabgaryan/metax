@@ -1,11 +1,11 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import AsyncIterator, override
 from uuid import UUID
 
-from django.db.models import QuerySet
-from django_framework.metax.models import (
-    DiscountedProductModel,
-)
+from asgiref.sync import sync_to_async
+from django.db import connection
+from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,
@@ -16,72 +16,229 @@ from metax.core.domain.entities.discounted_product.entity import (
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 
+type CategoryUUID = UUID
+type RetailerUUID = UUID
+type CategoryName = str
+type RetailerName = str
+
 
 class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     @override
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
-        models = [
-            DiscountedProductModel(
-                discounted_product_uuid=product.get_uuid(),
-                real_price=product.get_real_price(),
-                discounted_price=product.get_discounted_price(),
-                name=product.get_name(),
-                url=product.get_url(),
-                category_id=product.get_category_uuid() if product.has_category() else None,
-                retailer_id=product.get_retailer_uuid(),
-                created_at=product.get_created_at(),
-            )
-            for product in discounted_products
-        ]
-        await DiscountedProductModel._default_manager.abulk_create(models)
+        def _sync_version(_discounted_products: list[DiscountedProduct]) -> None:
+            _insert_query = """
+                INSERT INTO discounted_products (
+                    discounted_product_uuid,
+                    real_price,
+                    discounted_price,
+                    name,
+                    url,
+                    category_uuid,
+                    retailer_uuid,
+                    created_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.executemany(
+                    _insert_query,
+                    [
+                        (
+                            _discounted_product.get_uuid(),
+                            _discounted_product.get_real_price(),
+                            _discounted_product.get_discounted_price(),
+                            _discounted_product.get_name(),
+                            _discounted_product.get_url(),
+                            _discounted_product.get_category_uuid()
+                            if _discounted_product.has_category()
+                            else None,
+                            _discounted_product.get_retailer_uuid(),
+                            _discounted_product.get_created_at(),
+                        )
+                        for _discounted_product in _discounted_products
+                    ],
+                )
+
+        return await sync_to_async(_sync_version)(discounted_products)
 
     @override
     async def _get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct | None:
-        try:
-            discounted_product_model = await DiscountedProductModel._default_manager.select_related(
-                "category", "retailer"
-            ).aget(discounted_product_uuid=discounted_product_uuid)
-        except DiscountedProductModel.DoesNotExist:
+        def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
+            _select_query = """
+                SELECT
+                    real_price,
+                    discounted_price,
+                    name,
+                    url,
+                    category_uuid,
+                    retailer_uuid,
+                    created_at
+                FROM discounted_products dp
+                WHERE dp.discounted_product_uuid = %s;
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(_select_query, [discounted_product_uuid])
+                row = _cursor.fetchone()
+                if row is not None:
+                    return DiscountedProduct(
+                        discounted_product_uuid=_discounted_product_uuid,
+                        price_details=PriceDetails(
+                            real_price=row[0],
+                            discounted_price=row[1],
+                        ),
+                        name=row[2],
+                        url=row[3],
+                        category_uuid=row[4],
+                        retailer_uuid=row[5],
+                        created_at=row[6],
+                    )
             return None
 
-        return self.__convert_django_model_to_entity(discounted_product_model)
+        return await sync_to_async(_sync_version)(discounted_product_uuid)
 
     @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
-        deleted_count, _ = await DiscountedProductModel._default_manager.filter(
-            created_at__lt=date_limit
-        ).adelete()
+        def _sync_version(_date_limit: datetime) -> int:
+            _delete_query = """
+                DELETE FROM discounted_products
+                WHERE created_at < %s
+            """
+            _cursor: CursorWrapper
+            with connection.cursor() as _cursor:
+                _cursor.execute(_delete_query, [date_limit])
 
-        return deleted_count
+                return int(_cursor.rowcount)
+
+        return await sync_to_async(_sync_version)(date_limit)
 
     @override
-    async def get_all(self) -> AsyncIterator[DiscountedProduct]:
-        queryset = DiscountedProductModel._default_manager.select_related("category", "retailer").all()
-        async for model in queryset.aiterator(chunk_size=100):
-            yield self.__convert_django_model_to_entity(model)
-
-    @override
-    async def get_all_by_date(self, date_: datetime) -> AsyncIterator[DiscountedProductWithDetails]:
-        queryset: QuerySet[DiscountedProductModel, DiscountedProductModel] = (
-            DiscountedProductModel._default_manager.select_related("category", "retailer").filter(created_at=date_)
-        )
-        model: DiscountedProductModel
-        async for model in queryset.aiterator(chunk_size=100):
-            entity: DiscountedProduct = self.__convert_django_model_to_entity(model)
-            yield DiscountedProductWithDetails(
-                entity=entity,
-                category_name=model.category.name if model.category is not None else None,
-                retailer_name=model.retailer.name,
+    async def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
+        offset = 0
+        while True:
+            discounted_products: list[DiscountedProduct] = await sync_to_async(self.__fetch_chunk)(
+                offset, chunk_size
             )
+            for discounted_product in discounted_products:
+                yield discounted_product
+            if len(discounted_products) < chunk_size:
+                break
+            offset += chunk_size
+
+    @override
+    async def get_all_by_date(
+        self, date_: datetime, chunk_size: int = 500
+    ) -> AsyncIterator[DiscountedProductWithDetails]:
+        offset = 0
+        while True:
+            discounted_products_with_details = await sync_to_async(self.__fetch_chunk_by_created_at)(
+                date_, offset, chunk_size
+            )
+            for discounted_product_with_details in discounted_products_with_details:
+                yield discounted_product_with_details
+            if len(discounted_products_with_details) < chunk_size:
+                break
+            offset += chunk_size
 
     @staticmethod
-    def __convert_django_model_to_entity(model: DiscountedProductModel) -> DiscountedProduct:
-        return DiscountedProduct(
-            discounted_product_uuid=model.discounted_product_uuid,
-            name=model.name,
-            url=model.url,
-            price_details=PriceDetails(real_price=model.real_price, discounted_price=model.discounted_price),
-            category_uuid=model.category.category_uuid if model.category else None,
-            retailer_uuid=model.retailer.retailer_uuid,
-            created_at=model.created_at,
-        )
+    def __fetch_chunk_by_created_at(
+        created_at: datetime, offset: int, limit: int
+    ) -> list[DiscountedProductWithDetails]:
+        _cursor: CursorWrapper
+        with connection.cursor() as _cursor:
+            _cursor.execute(
+                """
+                SELECT
+                    dp.discounted_product_uuid,
+                    dp.real_price,
+                    dp.discounted_price,
+                    dp.name,
+                    dp.url,
+                    dp.category_uuid,
+                    dp.retailer_uuid,
+                    dp.created_at,
+                    c.name,
+                    r.name
+                FROM discounted_products dp
+                LEFT JOIN categories c ON dp.category_uuid = c.category_uuid
+                LEFT JOIN retailers r ON dp.retailer_uuid = r.retailer_uuid
+                WHERE dp.created_at = %s
+                ORDER BY dp.discounted_product_uuid
+                LIMIT %s OFFSET %s
+                """,
+                [created_at, limit, offset],
+            )
+            rows: list[
+                tuple[
+                    UUID,
+                    Decimal,
+                    Decimal,
+                    str,
+                    str,
+                    CategoryUUID,
+                    RetailerUUID,
+                    datetime,
+                    CategoryName,
+                    RetailerName,
+                ]
+            ] = _cursor.fetchall()
+            return [
+                DiscountedProductWithDetails(
+                    category_name=row[8],
+                    retailer_name=row[9],
+                    entity=DiscountedProduct(
+                        discounted_product_uuid=row[0],
+                        price_details=PriceDetails(
+                            real_price=row[1],
+                            discounted_price=row[2],
+                        ),
+                        name=row[3],
+                        url=row[4],
+                        category_uuid=row[5],
+                        retailer_uuid=row[6],
+                        created_at=row[7],
+                    ),
+                )
+                for row in rows
+            ]
+
+    @staticmethod
+    def __fetch_chunk(offset: int, limit: int) -> list[DiscountedProduct]:
+        _cursor: CursorWrapper
+        with connection.cursor() as _cursor:
+            _cursor.execute(
+                """
+                SELECT
+                    discounted_product_uuid,
+                    real_price,
+                    discounted_price,
+                    name,
+                    url,
+                    category_uuid,
+                    retailer_uuid,
+                    created_at
+                FROM discounted_products
+                ORDER BY discounted_product_uuid
+                LIMIT %s OFFSET %s
+                """,
+                [limit, offset],
+            )
+            rows: list[tuple[UUID, Decimal, Decimal, str, str, CategoryUUID, RetailerUUID, datetime]] = (
+                _cursor.fetchall()
+            )
+            return [
+                DiscountedProduct(
+                    discounted_product_uuid=row[0],
+                    price_details=PriceDetails(
+                        real_price=row[1],
+                        discounted_price=row[2],
+                    ),
+                    name=row[3],
+                    url=row[4],
+                    category_uuid=row[5],
+                    retailer_uuid=row[6],
+                    created_at=row[7],
+                )
+                for row in rows
+            ]

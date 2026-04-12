@@ -67,66 +67,64 @@ class DevConfigs(BaseConfigs):
     # When you run locally, make sure that variables from env are same here
     debug: bool = True
 
-    postgres_host: Annotated[str, Field(default="localhost")]
-    postgres_port: Annotated[int, Field(default="5432")]
-    postgres_user: Annotated[str, Field(default="p_user")]
-    postgres_password: Annotated[str, Field(default="pass111")]
-    postgres_db: Annotated[str, Field(default="discount-system")]
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_user: str = "p_user"
+    postgres_password: str = "pass111"  # noqa: S105
+    postgres_db: str = "discount-system"
 
-    opensearch_user: Annotated[str, Field(default="admin")]
-    opensearch_password: Annotated[str, Field(default="Os_Super_Secret_Pass_2026!")]
-    opensearch_host: Annotated[str, Field(default="localhost")]
-    opensearch_port: Annotated[int, Field(default=9200)]
-    opensearch_verify_certs: Annotated[bool, Field(default=False)]
+    opensearch_host: str = "localhost"
+    opensearch_verify_certs: bool = False
 
-    django_host: Annotated[str, Field(default="0.0.0.0")]
-    django_port: Annotated[int, Field(default=8000)]
-    django_secret_key: Annotated[
-        str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
-    ]
+    django_secret_key: str = "django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"  # noqa: S105
 
     # Local dev uses uvicorn --reload (run_metax); gunicorn reload is off here.
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
-    redis_host: Annotated[str, Field(default="localhost")]
-    redis_port: Annotated[int, Field(default=6379)]
-    redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
+    redis_port: int = 6379
+    redis_password: str = "R_Super_Secret_Pass_2026!"  # noqa: S105
 
-    fluent_bit_host: Annotated[str, Field(default="mock")]
-    fluent_bit_port: Annotated[int, Field(default=0)]
+    fluent_bit_host: str = "mock"
+    fluent_bit_port: int = 0
+
+    opensearch_user: str = "admin"
+    opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
+    opensearch_port: int = 9200
+    django_host: str = "localhost"
+    django_port: int = 8000
+    redis_host: str = "localhost"
 
 
 class TestConfigs(BaseConfigs):
     debug: bool = True
 
-    postgres_host: Annotated[str, Field(default="localhost")]
-    postgres_port: Annotated[int, Field(default="5432")]
-    postgres_user: Annotated[str, Field(default="p_user")]
-    postgres_password: Annotated[str, Field(default="pass111")]
-    postgres_db: Annotated[str, Field(default="metax")]
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_user: str = "p_user"
+    postgres_password: str = "pass111"  # noqa: S105
+    postgres_db: str = "metax"
 
-    opensearch_user: Annotated[str, Field(default="admin")]
-    opensearch_password: Annotated[str, Field(default="Os_Super_Secret_Pass_2026!")]
-    opensearch_host: Annotated[str, Field(default="localhost")]
-    opensearch_port: Annotated[int, Field(default=9200)]
-    opensearch_verify_certs: Annotated[bool, Field(default=False)]
+    opensearch_host: str = "localhost"
+    opensearch_verify_certs: bool = False
 
-    django_host: Annotated[str, Field(default="0.0.0.0")]
-    django_port: Annotated[int, Field(default=8000)]
-    django_secret_key: Annotated[
-        str, Field(default="django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s")
-    ]
+    django_secret_key: str = "django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"  # noqa: S105
 
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
-    redis_host: Annotated[str, Field(default="localhost")]
-    redis_port: Annotated[int, Field(default=6379)]
-    redis_password: Annotated[str, Field(default="R_Super_Secret_Pass_2026!")]
+    redis_port: int = 6379
+    redis_password: str = "R_Super_Secret_Pass_2026!"  # noqa: S105
 
-    fluent_bit_host: Annotated[str, Field(default="mock")]
-    fluent_bit_port: Annotated[int, Field(default=0)]
+    fluent_bit_host: str = "mock"
+    fluent_bit_port: int = 0
+
+    opensearch_user: str = "admin"
+    opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
+    opensearch_port: int = 9200
+    django_host: str = "localhost"
+    django_port: int = 8000
+    redis_host: str = "localhost"
 
     model_config = SettingsConfigDict(
         env_file=None,

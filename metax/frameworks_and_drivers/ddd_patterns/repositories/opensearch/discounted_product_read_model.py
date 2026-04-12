@@ -79,10 +79,11 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
                 name=source["name"],
                 real_price=source["real_price"],
                 discounted_price=source["discounted_price"],
-                category_uuid=source["category_uuid"],
-                category_name=source["category_name"],
+                category_uuid=source.get("category_uuid"),
+                category_name=source.get("category_name"),
                 retailer_uuid=source["retailer_uuid"],
                 retailer_name=source["retailer_name"],
+                url=source.get("url"),
                 created_at=source["created_at"],
             )
             await asyncio.sleep(0)

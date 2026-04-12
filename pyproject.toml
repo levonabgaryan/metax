@@ -126,13 +126,13 @@ extend-select = [
     "E",      # PyCodeStyle errors
     "W",      # PyCodeStyle warnings
     "I",      # Rules for sorting imports
-#    "S",      # flake8-bandit
+    "S",      # flake8-bandit
     "B",      # flake8-bugbear
     "A",      # flake8-builtins
     "COM",    # flake8-commas
     "C4",     # flake8-comprehensions
     "PTH",    # Using Pathlib instead of os.path
-    # "SLF",    # Access protected member
+     "SLF",    # Access protected member
     "ASYNC",  # flake8-async
     "DJ",     # flake8-django
     "DTZ",    # flake8-datetimez
