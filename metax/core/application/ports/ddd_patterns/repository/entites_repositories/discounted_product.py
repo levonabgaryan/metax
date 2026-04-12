@@ -41,10 +41,12 @@ class DiscountedProductRepository(ABC):
         pass
 
     @abstractmethod
-    def get_all(self) -> AsyncIterator[DiscountedProduct]:
+    def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
         # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
         pass
 
     @abstractmethod
-    def get_all_by_date(self, date_: datetime) -> AsyncIterator[DiscountedProductWithDetails]:
+    def get_all_by_date(
+        self, date_: datetime, chunk_size: int = 500
+    ) -> AsyncIterator[DiscountedProductWithDetails]:
         pass
