@@ -23,7 +23,7 @@ def test_uuid_value_object_create_returns_uuid_v7() -> None:
 def test_uuid_value_object_raises_for_non_v7_uuid() -> None:
     # expect
     with pytest.raises(InvalidUUIDError):
-        UUIDValueObject(value=uuid4())
+        UUIDValueObject.create(value=uuid4())
 
 
 def test_entity_datetime_details_raises_for_non_utc_datetime() -> None:
@@ -32,7 +32,7 @@ def test_entity_datetime_details_raises_for_non_utc_datetime() -> None:
 
     # expect
     with pytest.raises(InvalidUtcDateTimeError):
-        EntityDateTimeDetails(created_at=naive_dt, updated_at=naive_dt)
+        EntityDateTimeDetails.create(created_at=naive_dt, updated_at=naive_dt)
 
 
 def test_entity_datetime_details_raises_when_updated_before_created() -> None:
@@ -41,7 +41,7 @@ def test_entity_datetime_details_raises_when_updated_before_created() -> None:
 
     # expect
     with pytest.raises(UpdateBeforeCreationError):
-        EntityDateTimeDetails(created_at=now, updated_at=now - timedelta(seconds=1))
+        EntityDateTimeDetails.create(created_at=now, updated_at=now - timedelta(seconds=1))
 
 
 def test_entity_datetime_details_renew_update_at_keeps_creation_date() -> None:

@@ -16,10 +16,10 @@ def test_negative_price() -> None:
 
     # when
     with pytest.raises(NegativePriceError) as err:
-        PriceDetails(real_price=real_price, discounted_price=discounted_price)
+        PriceDetails.create(real_price=real_price, discounted_price=discounted_price)
 
     # then
-    assert err.value.title == "-1 cannot be negative."
+    assert err.value.title == "-1.00 cannot be negative."
 
 
 def test_discount_exceeds_real_price() -> None:
@@ -29,6 +29,6 @@ def test_discount_exceeds_real_price() -> None:
 
     # when
     with pytest.raises(DiscountExceedsRealPriceError) as err:
-        PriceDetails(real_price=real_price, discounted_price=discounted_price)
+        PriceDetails.create(real_price=real_price, discounted_price=discounted_price)
     # then
-    assert err.value.title == "Discounted price (2) cannot exceed the real price (1)."
+    assert err.value.title == "Discounted price (2.00) cannot exceed the real price (1.00)."

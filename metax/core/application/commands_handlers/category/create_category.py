@@ -30,13 +30,13 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
                 command.__class__.__name__,
                 command.category_uuid,
             )
-            helper_words = CategoryHelperWords(command.helper_words)
+            helper_words = CategoryHelperWords.create(command.helper_words)
             now = datetime.now(tz=timezone.utc)
             category = Category(
-                category_uuid=UUIDValueObject(command.category_uuid),
+                category_uuid=UUIDValueObject.create(command.category_uuid),
                 name=command.name,
                 helper_words=helper_words,
-                datetime_details=EntityDateTimeDetails(created_at=now, updated_at=now),
+                datetime_details=EntityDateTimeDetails.create(created_at=now, updated_at=now),
             )
             repo = uow.category_repo
             await repo.add(category)

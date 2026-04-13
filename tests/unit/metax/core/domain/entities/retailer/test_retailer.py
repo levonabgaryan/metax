@@ -10,11 +10,11 @@ def test_retailer_update() -> None:
     # given
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     retailer = Retailer(
-        retailer_uuid=UUIDValueObject(uuid7()),
+        retailer_uuid=UUIDValueObject.create(uuid7()),
         name=RetailersNames.YEREVAN_CITY,
         home_page_url="test_url",
         phone_number="test_number",
-        datetime_details=EntityDateTimeDetails(created_at=ts, updated_at=ts),
+        datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),
     )
 
     # when

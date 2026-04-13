@@ -61,7 +61,7 @@ async def test_category_repo_update_syncs_helper_words_via_diff(
 ) -> None:
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    helper_words = CategoryHelperWords(words=frozenset(["keep", "drop", "stay"]))
+    helper_words = CategoryHelperWords.create(words=frozenset(["keep", "drop", "stay"]))
     category = make_category_entity(helper_words=helper_words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -71,7 +71,7 @@ async def test_category_repo_update_syncs_helper_words_via_diff(
     async with unit_of_work as uow:
         category = await uow.category_repo.get_by_uuid(category.get_uuid())
         category.set_helper_words(
-            CategoryHelperWords(words=frozenset(["keep", "stay", "new_one"])),
+            CategoryHelperWords.create(words=frozenset(["keep", "stay", "new_one"])),
         )
         updated_category = category
         await uow.category_repo.update(updated_category=updated_category)
@@ -129,7 +129,7 @@ async def test_category_update_helper_words_when_adding_news(
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
+    helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -158,7 +158,7 @@ async def test_category_update_helper_words_when_deleting(
     # given
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c"]))
+    helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
     category = make_category_entity(helper_words=helper_words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -184,11 +184,11 @@ async def test_category_repo_get_all(metax_container_for_integration_tests: Meta
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     cat_alpha = make_category_entity(
         name="repo_get_all_alpha",
-        helper_words=CategoryHelperWords(words=frozenset(["repo_ga_alpha_1", "repo_ga_alpha_2"])),
+        helper_words=CategoryHelperWords.create(words=frozenset(["repo_ga_alpha_1", "repo_ga_alpha_2"])),
     )
     cat_beta = make_category_entity(
         name="repo_get_all_beta",
-        helper_words=CategoryHelperWords(words=frozenset(["repo_ga_beta_1"])),
+        helper_words=CategoryHelperWords.create(words=frozenset(["repo_ga_beta_1"])),
     )
     async with unit_of_work as uow:
         await uow.category_repo.add(cat_alpha)

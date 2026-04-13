@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Final, override
+from typing import TYPE_CHECKING, Any, Final, Self, override
 from uuid import UUID
 
-from .general_value_objects import EntityDateTimeDetails, UUIDValueObject
+if TYPE_CHECKING:
+    from .general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 class Entity:
@@ -72,3 +73,7 @@ class ValueObject:
         and have no lifecycle.
         Always implement a 'create' method for every value object, and use that method for creating a value object.
     """
+
+    @classmethod
+    def create(cls, *args: Any, **kwargs: Any) -> Self:
+        raise NotImplementedError

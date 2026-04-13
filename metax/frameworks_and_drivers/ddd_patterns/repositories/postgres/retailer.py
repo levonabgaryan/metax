@@ -50,11 +50,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=UUIDValueObject(row[0]),
+                    retailer_uuid=UUIDValueObject.create(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
-                    datetime_details=EntityDateTimeDetails(created_at=row[4], updated_at=row[5]),
+                    datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
                 )
 
         return await sync_to_async(_sync_version)(retailer_uuid)
@@ -74,11 +74,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=UUIDValueObject(row[0]),
+                    retailer_uuid=UUIDValueObject.create(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
-                    datetime_details=EntityDateTimeDetails(created_at=row[4], updated_at=row[5]),
+                    datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
                 )
 
         return await sync_to_async(_sync_version)(retailer_name)
@@ -119,11 +119,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 _rows = _cursor.fetchall()
             return (
                 Retailer(
-                    retailer_uuid=UUIDValueObject(_row[0]),
+                    retailer_uuid=UUIDValueObject.create(_row[0]),
                     name=RetailersNames(_row[1]),
                     home_page_url=_row[2],
                     phone_number=_row[3],
-                    datetime_details=EntityDateTimeDetails(created_at=_row[4], updated_at=_row[5]),
+                    datetime_details=EntityDateTimeDetails.create(created_at=_row[4], updated_at=_row[5]),
                 )
                 for _row in _rows
             )

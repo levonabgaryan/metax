@@ -109,18 +109,18 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
 
                     raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
                     yield DiscountedProduct(
-                        discounted_product_uuid=UUIDValueObject(uuid.uuid7()),
+                        discounted_product_uuid=UUIDValueObject.create(uuid.uuid7()),
                         name=self.clean_discounted_product_name(text=name),
-                        price_details=PriceDetails(
+                        price_details=PriceDetails.create(
                             real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
                             discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
                         ),
                         url=raw_product_url,
-                        datetime_details=EntityDateTimeDetails(
+                        datetime_details=EntityDateTimeDetails.create(
                             created_at=start_date_of_collecting,
                             updated_at=start_date_of_collecting,
                         ),
-                        retailer_uuid=self._retailer.get_uuid(),
+                        retailer_uuid=UUIDValueObject.create(self._retailer.get_uuid()),
                         category_uuid=None,
                     )
                     await asyncio.sleep(0.0)

@@ -70,10 +70,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
 
                     return Category(
-                        category_uuid=UUIDValueObject(_category_uuid),
+                        category_uuid=UUIDValueObject.create(_category_uuid),
                         name=_category_name,
-                        helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
-                        datetime_details=EntityDateTimeDetails(created_at=_created_at, updated_at=_updated_at),
+                        helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
+                        datetime_details=EntityDateTimeDetails.create(
+                            created_at=_created_at, updated_at=_updated_at
+                        ),
                     )
                 return None
 
@@ -101,10 +103,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _updated_at = _first_row[3]
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
                     return Category(
-                        category_uuid=UUIDValueObject(_category_uuid),
+                        category_uuid=UUIDValueObject.create(_category_uuid),
                         name=_category_name,
-                        helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
-                        datetime_details=EntityDateTimeDetails(created_at=_created_at, updated_at=_updated_at),
+                        helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
+                        datetime_details=EntityDateTimeDetails.create(
+                            created_at=_created_at, updated_at=_updated_at
+                        ),
                     )
                 return None
 
@@ -186,10 +190,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
             return [
                 Category(
-                    category_uuid=UUIDValueObject(_category_uid),
+                    category_uuid=UUIDValueObject.create(_category_uid),
                     name=_name_and_words[0],
-                    helper_words=CategoryHelperWords(words=frozenset(_name_and_words[3])),
-                    datetime_details=EntityDateTimeDetails(
+                    helper_words=CategoryHelperWords.create(words=frozenset(_name_and_words[3])),
+                    datetime_details=EntityDateTimeDetails.create(
                         created_at=_name_and_words[1], updated_at=_name_and_words[2]
                     ),
                 )

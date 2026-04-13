@@ -19,7 +19,7 @@ async def test_delete_helper_words_command(
     )
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    helper_words = CategoryHelperWords(words=frozenset(["a", "b", "c", "d"]))
+    helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c", "d"]))
     category = make_category_entity(
         helper_words=helper_words,
     )
@@ -32,7 +32,7 @@ async def test_delete_helper_words_command(
         words_to_delete=frozenset(["a", "b", "c"]),
     )
 
-    expected_helper_words = CategoryHelperWords(words=frozenset(["d"]))
+    expected_helper_words = CategoryHelperWords.create(words=frozenset(["d"]))
     handler = DeleteHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await handler.handle_command(command)
 

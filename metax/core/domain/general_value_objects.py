@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Self
+from typing import Self, override
 from uuid import UUID
 
 from metax_main_error import MetaxError
@@ -18,9 +18,10 @@ class UUIDValueObject(ValueObject):
     def __post_init__(self) -> None:
         self.__validate_uuid()
 
+    @override
     @classmethod
-    def create(cls) -> Self:
-        value = uuid.uuid7()
+    def create(cls, value: UUID | None = None) -> Self:
+        value = value or uuid.uuid7()
         return cls(value)
 
     def __validate_uuid(self) -> None:
@@ -43,13 +44,16 @@ class EntityDateTimeDetails(ValueObject):
         self.__validate_utc(self.updated_at)
         self.__validate_update_is_after_creation()
 
+    @override
     @classmethod
-    def create(cls) -> Self:
-        return cls(created_at=datetime.now(tz=timezone.utc), updated_at=datetime.now(tz=timezone.utc))
+    def create(cls, created_at: datetime | None = None, updated_at: datetime | None = None) -> Self:
+        created = created_at or datetime.now(tz=timezone.utc)
+        updated = updated_at or datetime.now(tz=timezone.utc)
+        return cls(created_at=created, updated_at=updated)
 
     @classmethod
     def renew_update_at(cls, old: Self) -> Self:
-        return cls(created_at=old.created_at, updated_at=datetime.now(tz=timezone.utc))
+        return cls.create(created_at=old.created_at, updated_at=datetime.now(tz=timezone.utc))
 
     @staticmethod
     def __validate_utc(dt: datetime) -> None:

@@ -33,43 +33,43 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
 
     created_data = datetime.now(tz=timezone.utc)
     category_uuid = uuid7()
-    helper_words = CategoryHelperWords(words=frozenset(["օղի", "գինի"]))
+    helper_words = CategoryHelperWords.create(words=frozenset(["օղի", "գինի"]))
     category = Category(
-        category_uuid=UUIDValueObject(category_uuid),
+        category_uuid=UUIDValueObject.create(category_uuid),
         name="Ալկոհոլ",
         helper_words=helper_words,
-        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
+        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 
     sas_supermarket_uuid = uuid7()
     retailer = Retailer(
-        retailer_uuid=UUIDValueObject(sas_supermarket_uuid),
+        retailer_uuid=UUIDValueObject.create(sas_supermarket_uuid),
         name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
-        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
+        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 
     discounted_product_1_uuid = uuid7()
     absolut_vodka = DiscountedProduct(
         name="«Absolut» 0.7լ",
-        category_uuid=category.get_uuid(),
-        retailer_uuid=retailer.get_uuid(),
+        category_uuid=UUIDValueObject.create(category.get_uuid()),
+        retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
         url="test_url_1",
-        price_details=PriceDetails(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
-        discounted_product_uuid=UUIDValueObject(discounted_product_1_uuid),
-        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
+        price_details=PriceDetails.create(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
+        discounted_product_uuid=UUIDValueObject.create(discounted_product_1_uuid),
+        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 
     discounted_product_2_uuid = uuid7()
     karas_whine = DiscountedProduct(
         name="Փրփրուն գինի «Կարաս» 0.75լ",
-        category_uuid=category.get_uuid(),
-        retailer_uuid=retailer.get_uuid(),
+        category_uuid=UUIDValueObject.create(category.get_uuid()),
+        retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
         url="test_url_2",
-        price_details=PriceDetails(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
-        discounted_product_uuid=UUIDValueObject(discounted_product_2_uuid),
-        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
+        price_details=PriceDetails.create(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
+        discounted_product_uuid=UUIDValueObject.create(discounted_product_2_uuid),
+        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 
     discounted_products = [absolut_vodka, karas_whine]

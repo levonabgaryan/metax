@@ -29,11 +29,11 @@ def make_category_entity(
 
     return Category(
         name=name,
-        category_uuid=UUIDValueObject(category_uuid or uuid7()),
+        category_uuid=UUIDValueObject.create(category_uuid or uuid7()),
         helper_words=helper_words
         if helper_words is not None
-        else CategoryHelperWords(words=frozenset(["test_word1", "test_word2"])),
-        datetime_details=EntityDateTimeDetails(created_at=created, updated_at=updated),
+        else CategoryHelperWords.create(words=frozenset(["test_word1", "test_word2"])),
+        datetime_details=EntityDateTimeDetails.create(created_at=created, updated_at=updated),
     )
 
 
@@ -49,11 +49,11 @@ def make_retailer_entity(
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
     return Retailer(
-        retailer_uuid=UUIDValueObject(retailer_uuid or uuid7()),
+        retailer_uuid=UUIDValueObject.create(retailer_uuid or uuid7()),
         name=name,
         phone_number=phone_number,
         home_page_url=url,
-        datetime_details=EntityDateTimeDetails(created_at=created, updated_at=updated),
+        datetime_details=EntityDateTimeDetails.create(created_at=created, updated_at=updated),
     )
 
 
@@ -67,19 +67,19 @@ def make_discounted_product_entity(
     url: str = "test_discounted_product_url",
     updated_at: datetime | None = None,
 ) -> DiscountedProduct:
-    price_details = price_details or PriceDetails(
+    price_details = price_details or PriceDetails.create(
         real_price=Decimal("100"),
         discounted_price=Decimal("50"),
     )
     updated = updated_at or (created_at + timedelta(seconds=1))
     return DiscountedProduct(
         name=name,
-        retailer_uuid=retailer_uuid,
-        category_uuid=category_uuid,
-        discounted_product_uuid=UUIDValueObject(discounted_product_uuid or uuid7()),
+        retailer_uuid=UUIDValueObject.create(retailer_uuid),
+        category_uuid=UUIDValueObject.create(category_uuid) if category_uuid is not None else None,
+        discounted_product_uuid=UUIDValueObject.create(discounted_product_uuid or uuid7()),
         price_details=price_details,
         url=url,
-        datetime_details=EntityDateTimeDetails(created_at=created_at, updated_at=updated),
+        datetime_details=EntityDateTimeDetails.create(created_at=created_at, updated_at=updated),
     )
 
 

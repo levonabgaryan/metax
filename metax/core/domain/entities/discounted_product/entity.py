@@ -13,8 +13,8 @@ class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
         discounted_product_uuid: UUIDValueObject,
-        category_uuid: UUID | None,
-        retailer_uuid: UUID,
+        category_uuid: UUIDValueObject | None,
+        retailer_uuid: UUIDValueObject,
         price_details: PriceDetails,
         name: str,
         url: str,
@@ -52,13 +52,13 @@ class DiscountedProduct(AggregateRootEntity):
         if self.__category_uuid is None:
             msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
             raise AttributeError(msg)
-        return self.__category_uuid
+        return self.__category_uuid.value
 
-    def set_category_uuid(self, category_uuid: UUID | None) -> None:
+    def set_category_uuid(self, category_uuid: UUIDValueObject | None) -> None:
         self.__category_uuid = category_uuid
 
     def get_retailer_uuid(self) -> UUID:
-        return self.__retailer_uuid
+        return self.__retailer_uuid.value
 
     @override
     def __str__(self) -> str:

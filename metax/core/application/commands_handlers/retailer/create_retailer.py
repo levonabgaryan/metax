@@ -33,11 +33,11 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
         async with uow:
             now = datetime.now(tz=timezone.utc)
             retailer = Retailer(
-                retailer_uuid=UUIDValueObject(command.retailer_uuid),
+                retailer_uuid=UUIDValueObject.create(command.retailer_uuid),
                 name=RetailersNames(command.name),
                 phone_number=command.phone_number,
                 home_page_url=command.url,
-                datetime_details=EntityDateTimeDetails(created_at=now, updated_at=now),
+                datetime_details=EntityDateTimeDetails.create(created_at=now, updated_at=now),
             )
             await uow.retailer_repo.add(retailer)
             await uow.commit()
