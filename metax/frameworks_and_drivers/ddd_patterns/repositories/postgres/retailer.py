@@ -38,7 +38,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
         def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
             _select_query = """
-                SELECT retailer_uuid, name, url, phone_number
+                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
                 FROM retailers
                 WHERE retailer_uuid = %s
             """
@@ -53,6 +53,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
+                    created_at=row[4],
+                    updated_at=row[5],
                 )
 
         return await sync_to_async(_sync_version)(retailer_uuid)
@@ -61,7 +63,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _get_by_name(self, retailer_name: RetailersNames) -> Retailer | None:
         def _sync_version(_retailer_name: RetailersNames) -> Retailer | None:
             _select_query = """
-                SELECT retailer_uuid, name, url, phone_number
+                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
                 FROM retailers
                 WHERE name = %s
             """
@@ -76,6 +78,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
+                    created_at=row[4],
+                    updated_at=row[5],
                 )
 
         return await sync_to_async(_sync_version)(retailer_name)
@@ -106,7 +110,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def get_all(self) -> AsyncIterator[Retailer]:
         def _sync_version() -> Iterator[Retailer]:
             _select_all_query = """
-                SELECT retailer_uuid, name, url, phone_number
+                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
                 FROM retailers
                 ORDER BY name ASC
             """
@@ -120,6 +124,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     name=RetailersNames(_row[1]),
                     home_page_url=_row[2],
                     phone_number=_row[3],
+                    created_at=_row[4],
+                    updated_at=_row[5],
                 )
                 for _row in _rows
             )

@@ -29,8 +29,7 @@ celery_app.conf.update(
 
 @after_setup_logger.connect
 def setup_celery_logger(logger: logging.Logger, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001
-    """
-    This signal ensures that when Celery starts its worker,
+    """This signal ensures that when Celery starts its worker,
     it initializes project's custom non-blocking metax_logger.
     """
     init_logger()

@@ -19,7 +19,7 @@ def run_metax_http_server() -> None:
     init_logger()
     app = create_metax_django_app()
     logger.info("SYSTEM | Application bootstrap started")
-    from metax.frameworks_and_drivers.di.metax_container import (  # noqa: E402
+    from metax.frameworks_and_drivers.di.metax_container import (
         MetaxContainer,
         init_resources,
         shutdown_resources,

@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import override
 from uuid import UUID
 
@@ -29,7 +30,14 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
                 command.category_uuid,
             )
             helper_words = CategoryHelperWords(command.helper_words)
-            category = Category(category_uuid=command.category_uuid, name=command.name, helper_words=helper_words)
+            now = datetime.now(tz=timezone.utc)
+            category = Category(
+                category_uuid=command.category_uuid,
+                name=command.name,
+                helper_words=helper_words,
+                created_at=now,
+                updated_at=now,
+            )
             repo = uow.category_repo
             await repo.add(category)
             await uow.commit()

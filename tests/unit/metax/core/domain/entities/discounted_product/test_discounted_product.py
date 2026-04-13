@@ -1,11 +1,11 @@
 from decimal import Decimal
 
 import pytest
-
-from metax.core.domain.entities.discounted_product.errors.errors import (
+from core.domain.entities.discounted_product.errors import (
     DiscountExceedsRealPriceError,
     NegativePriceError,
 )
+
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 
 
@@ -20,7 +20,6 @@ def test_negative_price() -> None:
 
     # then
     assert err.value.title == "Real price cannot be negative."
-    assert err.value.details == {"price_type": "Real price", "incorrect_price": str(Decimal("-1.00"))}
 
 
 def test_discount_exceeds_real_price() -> None:

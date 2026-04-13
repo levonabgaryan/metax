@@ -35,9 +35,10 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     url,
                     category_uuid,
                     retailer_uuid,
-                    created_at
+                    created_at,
+                    updated_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
@@ -55,6 +56,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                             else None,
                             _discounted_product.get_retailer_uuid(),
                             _discounted_product.get_created_at(),
+                            _discounted_product.get_updated_at(),
                         )
                         for _discounted_product in _discounted_products
                     ],
@@ -73,7 +75,8 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     url,
                     category_uuid,
                     retailer_uuid,
-                    created_at
+                    created_at,
+                    updated_at
                 FROM discounted_products dp
                 WHERE dp.discounted_product_uuid = %s;
             """
@@ -93,6 +96,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         category_uuid=row[4],
                         retailer_uuid=row[5],
                         created_at=row[6],
+                        updated_at=row[7],
                     )
             return None
 
@@ -158,6 +162,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     dp.category_uuid,
                     dp.retailer_uuid,
                     dp.created_at,
+                    dp.updated_at,
                     c.name,
                     r.name
                 FROM discounted_products dp
@@ -179,14 +184,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     CategoryUUID,
                     RetailerUUID,
                     datetime,
+                    datetime,
                     CategoryName,
                     RetailerName,
                 ]
             ] = _cursor.fetchall()
             return [
                 DiscountedProductWithDetails(
-                    category_name=row[8],
-                    retailer_name=row[9],
+                    category_name=row[9],
+                    retailer_name=row[10],
                     entity=DiscountedProduct(
                         discounted_product_uuid=row[0],
                         price_details=PriceDetails(
@@ -198,6 +204,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         category_uuid=row[5],
                         retailer_uuid=row[6],
                         created_at=row[7],
+                        updated_at=row[8],
                     ),
                 )
                 for row in rows
@@ -217,14 +224,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     url,
                     category_uuid,
                     retailer_uuid,
-                    created_at
+                    created_at,
+                    updated_at
                 FROM discounted_products
                 ORDER BY discounted_product_uuid
                 LIMIT %s OFFSET %s
                 """,
                 [limit, offset],
             )
-            rows: list[tuple[UUID, Decimal, Decimal, str, str, CategoryUUID, RetailerUUID, datetime]] = (
+            rows: list[tuple[UUID, Decimal, Decimal, str, str, CategoryUUID, RetailerUUID, datetime, datetime]] = (
                 _cursor.fetchall()
             )
             return [
@@ -239,6 +247,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     category_uuid=row[5],
                     retailer_uuid=row[6],
                     created_at=row[7],
+                    updated_at=row[8],
                 )
                 for row in rows
             ]

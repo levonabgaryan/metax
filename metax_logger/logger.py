@@ -26,8 +26,7 @@ PACKAGES_TO_MUTE = [
 
 
 def init_logger() -> None:
-    """
-    Initializes a global non-blocking logging system using a QueueListener.
+    """Initializes a global non-blocking logging system using a QueueListener.
 
     This setup ensures that logging operations do not block the main application thread,
     which is critical for high-performance and asynchronous applications.

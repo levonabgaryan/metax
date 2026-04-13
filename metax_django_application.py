@@ -14,14 +14,14 @@ def create_metax_django_app() -> AppConfig:
     sys.path.insert(0, str(project_root_))
     sys.path.insert(0, str(django_path_))
 
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")  # noqa: E402
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")
 
-    import django  # noqa: E402
-    from django.apps import apps  # noqa: E402
+    import django
+    from django.apps import apps
 
     django.setup()
 
-    from metax.frameworks_and_drivers.di.metax_container import get_metax_container  # noqa: E402
+    from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
     container = get_metax_container()
     metax_app = apps.get_app_config("metax")

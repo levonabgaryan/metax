@@ -1,4 +1,4 @@
-from typing import Any, Optional, override
+from typing import Optional, override
 
 
 class MetaxError(Exception):
@@ -7,15 +7,15 @@ class MetaxError(Exception):
         *,
         error_code: str,
         title: str = "An error occurred",
-        details: Optional[dict[str, Any]] = None,
+        details: Optional[str] = None,
     ) -> None:
         super().__init__(
             title
         )  # https://peps.python.org/pep-0352/#:~:text=No%20restriction%20is,in%20a%20subclass.
         self.title = super().args[0]
         self.error_code = error_code
-        self.details = details or {}
+        self.details = details or "No details provided."
 
     @override
     def __repr__(self) -> str:
-        return f"(title={self.title}, error_code={self.error_code}, details={self.details})"  # noqa: E501
+        return f"(title={self.title}, error_code={self.error_code}, details={self.details})"

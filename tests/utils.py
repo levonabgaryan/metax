@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any, AsyncIterator, Iterable, Iterator
 from uuid import UUID, uuid7
@@ -19,14 +19,21 @@ def make_category_entity(
     category_uuid: UUID | None = None,
     name: str = "test_category_name",
     helper_words: CategoryHelperWords | None = None,
+    created_at: datetime | None = None,
+    updated_at: datetime | None = None,
 ) -> Category:
     if helper_words is None:
         helper_words = CategoryHelperWords(words=frozenset(["test_word1", " test_word2"]))
+    now = datetime.now(tz=timezone.utc)
+    created = created_at or now
+    updated = updated_at or (created + timedelta(seconds=1))
 
     return Category(
         name=name,
         category_uuid=category_uuid or uuid7(),
         helper_words=helper_words,
+        created_at=created,
+        updated_at=updated,
     )
 
 
@@ -35,12 +42,19 @@ def make_retailer_entity(
     name: RetailersNames = RetailersNames.YEREVAN_CITY,
     url: str = "test_retailer_url",
     phone_number: str = "test_retailer_phone_number",
+    created_at: datetime | None = None,
+    updated_at: datetime | None = None,
 ) -> Retailer:
+    now = datetime.now(tz=timezone.utc)
+    created = created_at or now
+    updated = updated_at or (created + timedelta(seconds=1))
     return Retailer(
         retailer_uuid=retailer_uuid or uuid7(),
         name=name,
         phone_number=phone_number,
         home_page_url=url,
+        created_at=created,
+        updated_at=updated,
     )
 
 
@@ -52,11 +66,13 @@ def make_discounted_product_entity(
     name: str = "test_discounted_product_name",
     price_details: PriceDetails | None = None,
     url: str = "test_discounted_product_url",
+    updated_at: datetime | None = None,
 ) -> DiscountedProduct:
     price_details = price_details or PriceDetails(
         real_price=Decimal("100"),
         discounted_price=Decimal("50"),
     )
+    updated = updated_at or (created_at + timedelta(seconds=1))
     return DiscountedProduct(
         name=name,
         retailer_uuid=retailer_uuid,
@@ -65,6 +81,7 @@ def make_discounted_product_entity(
         price_details=price_details,
         url=url,
         created_at=created_at,
+        updated_at=updated,
     )
 
 

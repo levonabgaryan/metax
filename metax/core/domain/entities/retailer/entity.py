@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
@@ -14,8 +15,10 @@ class Retailer(AggregateRootEntity):
         name: RetailersNames,
         home_page_url: str,
         phone_number: str,
+        created_at: datetime,
+        updated_at: datetime,
     ) -> None:
-        super().__init__(uuid_=retailer_uuid)
+        super().__init__(retailer_uuid, created_at, updated_at)
         self.__name = name
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number

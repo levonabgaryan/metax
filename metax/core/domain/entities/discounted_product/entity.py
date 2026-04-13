@@ -19,14 +19,14 @@ class DiscountedProduct(AggregateRootEntity):
         name: str,
         url: str,
         created_at: datetime,
+        updated_at: datetime,
     ) -> None:
-        super().__init__(uuid_=discounted_product_uuid)
+        super().__init__(discounted_product_uuid, created_at, updated_at)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details
         self.__name = name
         self.__url = url
-        self.__created_at = created_at
 
     def get_url(self) -> str:
         return self.__url
@@ -45,12 +45,6 @@ class DiscountedProduct(AggregateRootEntity):
 
     def get_discounted_price(self) -> Decimal:
         return self.__price_details.discounted_price
-
-    def get_created_at(self) -> datetime:
-        return self.__created_at
-
-    def set_created_at(self, created_at: datetime) -> None:
-        self.__created_at = created_at
 
     def has_category(self) -> bool:
         return self.__category_uuid is not None

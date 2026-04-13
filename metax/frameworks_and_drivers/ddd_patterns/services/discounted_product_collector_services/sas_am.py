@@ -116,6 +116,7 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                         ),
                         url=raw_product_url,
                         created_at=start_date_of_collecting,
+                        updated_at=start_date_of_collecting,
                         retailer_uuid=self._retailer.get_uuid(),
                         category_uuid=None,
                     )

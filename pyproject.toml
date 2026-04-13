@@ -122,6 +122,7 @@ ignore = [
 ]
 
 extend-select = [
+    "RUF",     # Ruff-specific rules
     "E",      # PyCodeStyle errors
     "W",      # PyCodeStyle warnings
     "I",      # Rules for sorting imports
@@ -157,10 +158,10 @@ extend-select = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
-"*/test_*.py" = ["S101"]
+"tests/*" = ["S101", "D103", "PLR0913"]
+"*/test_*.py" = ["S101", "D103", "PLR0913"]
 "gunicorn.conf.py" = ["N999"]
-"metax/frameworks_and_drivers/django_framework/django_framework/metax/migrations/*" = ["E501"]
+"metax/frameworks_and_drivers/django_framework/django_framework/metax/migrations/*" = ["E501","RUF015","RUF012", ]
 
 [tool.ruff.format]
 docstring-code-format = true

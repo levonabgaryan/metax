@@ -8,5 +8,4 @@ class InvalidUrlForScrappingError(MetaxError):
         super().__init__(
             error_code=DiscountedProductStrategyErrorCodes.INVALID_URL_FOR_SCRAPING,
             title=f"Invalid URL for scraping: {invalid_url}",
-            details={"invalid_url": invalid_url},
         )

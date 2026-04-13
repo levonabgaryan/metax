@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from metax.core.domain.ddd_patterns import ValueObject
-
-from .errors.errors import (
+from core.domain.entities.category.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
+
+from metax.core.domain.ddd_patterns import ValueObject
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
@@ -25,3 +25,7 @@ class CategoryHelperWords(ValueObject):
         if not words_to_be_deleted:
             raise CategoryHelperWordsNotFoundForDeletionError(requested_words=words_to_delete)
         return CategoryHelperWords(words=self.words - words_to_be_deleted)
+
+    @classmethod
+    def create(cls, words: frozenset[str]) -> CategoryHelperWords:
+        return cls(words=frozenset(words))

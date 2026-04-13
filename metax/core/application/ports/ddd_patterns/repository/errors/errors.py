@@ -10,5 +10,4 @@ class EntityIsNotFoundError(MetaxError):
             f"by field '{searched_field_name}' with value '{searched_field_value}'."
         )  # Output: There is no Category entity found by field 'name' with value 'alcohol12'.
 
-        details = {"searched_field_name": searched_field_name, "searched_field_value": searched_field_value}
-        super().__init__(title=message, error_code=error_code, details=details)
+        super().__init__(title=message, error_code=error_code)

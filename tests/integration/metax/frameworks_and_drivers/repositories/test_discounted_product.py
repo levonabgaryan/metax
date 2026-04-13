@@ -33,7 +33,13 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
     created_data = datetime.now(tz=timezone.utc)
     category_uuid = uuid7()
     helper_words = CategoryHelperWords(words=frozenset(["օղի", "գինի"]))
-    category = Category(category_uuid=category_uuid, name="Ալկոհոլ", helper_words=helper_words)
+    category = Category(
+        category_uuid=category_uuid,
+        name="Ալկոհոլ",
+        helper_words=helper_words,
+        created_at=created_data,
+        updated_at=created_data,
+    )
 
     sas_supermarket_uuid = uuid7()
     retailer = Retailer(
@@ -41,6 +47,8 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
+        created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_product_1_uuid = uuid7()
@@ -52,6 +60,7 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         price_details=PriceDetails(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
         discounted_product_uuid=discounted_product_1_uuid,
         created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_product_2_uuid = uuid7()
@@ -63,6 +72,7 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         price_details=PriceDetails(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
         discounted_product_uuid=discounted_product_2_uuid,
         created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_products = [absolut_vodka, karas_whine]
@@ -120,7 +130,6 @@ async def test_discounted_products_is_not_found_by_uuid(
         == f"There is no discounted_product entity found by field 'uuid' with value '{random_uuid}'."
     )
     assert err.value.error_code == "DISCOUNTED_PRODUCT_IS_NOT_FOUND"
-    assert err.value.details == {"searched_field_name": "uuid", "searched_field_value": f"{random_uuid}"}
 
 
 @pytest.mark.django_db(transaction=True)

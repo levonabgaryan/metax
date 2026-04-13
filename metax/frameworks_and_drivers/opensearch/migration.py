@@ -22,7 +22,7 @@ async def opensearch_migrate_index(
         old_index_name = None
         try:
             response = await client.indices.get_alias(name=alias_name)
-            old_index_name = list(response.keys())[0]
+            old_index_name = next(iter(response), None)
         except NotFoundError:
             pass
 

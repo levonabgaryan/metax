@@ -91,6 +91,7 @@ class DevConfigs(BaseConfigs):
     opensearch_user: str = "admin"
     opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
     opensearch_port: int = 9200
+
     django_host: str = "localhost"
     django_port: int = 8000
     redis_host: str = "localhost"
@@ -122,6 +123,7 @@ class TestConfigs(BaseConfigs):
     opensearch_user: str = "admin"
     opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
     opensearch_port: int = 9200
+
     django_host: str = "localhost"
     django_port: int = 8000
     redis_host: str = "localhost"

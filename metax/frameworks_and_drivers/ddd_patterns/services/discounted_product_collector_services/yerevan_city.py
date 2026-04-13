@@ -63,6 +63,7 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
                 ),
                 url=f"{self.__yerevan_city_products_details_url}/{raw_product['id']}",
                 created_at=start_date_of_collecting,
+                updated_at=start_date_of_collecting,
                 retailer_uuid=self._retailer.get_uuid(),
                 category_uuid=None,
             )

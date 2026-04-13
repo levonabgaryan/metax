@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import override
 from uuid import UUID
 
@@ -29,11 +30,14 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
         )
         uow = await self._unit_of_work_provider.create()
         async with uow:
+            now = datetime.now(tz=timezone.utc)
             retailer = Retailer(
                 retailer_uuid=command.retailer_uuid,
                 name=RetailersNames(command.name),
                 phone_number=command.phone_number,
                 home_page_url=command.url,
+                created_at=now,
+                updated_at=now,
             )
             await uow.retailer_repo.add(retailer)
             await uow.commit()

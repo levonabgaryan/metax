@@ -77,7 +77,6 @@ async def test_retailer_is_not_found_by_uuid(metax_container_for_integration_tes
     # then
     assert err.value.title == f"There is no retailer entity found by field 'uuid' with value '{random_uuid}'."
     assert err.value.error_code == "RETAILER_IS_NOT_FOUND"
-    assert err.value.details == {"searched_field_name": "uuid", "searched_field_value": f"{random_uuid}"}
 
 
 @pytest.mark.django_db(transaction=True)
@@ -96,7 +95,6 @@ async def test_retailer_is_not_found_by_name(metax_container_for_integration_tes
     # then
     assert err.value.title == f"There is no retailer entity found by field 'name' with value '{test_name}'."
     assert err.value.error_code == "RETAILER_IS_NOT_FOUND"
-    assert err.value.details == {"searched_field_name": "name", "searched_field_value": f"{test_name}"}
 
 
 @pytest.mark.django_db(transaction=True)
