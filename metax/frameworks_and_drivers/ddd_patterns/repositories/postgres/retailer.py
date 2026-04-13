@@ -18,8 +18,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _add(self, retailer: Retailer) -> None:
         def _sync_version(_retailer: Retailer) -> None:
             _insert_query = """
-                INSERT INTO retailers (retailer_uuid, name, url, phone_number)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO retailers (retailer_uuid, name, url, phone_number, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
@@ -30,6 +30,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                         _retailer.get_name(),
                         _retailer.get_home_page_url(),
                         _retailer.get_phone_number(),
+                        _retailer.get_created_at(),
+                        _retailer.get_updated_at(),
                     ],
                 )
 
@@ -39,7 +41,13 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
         def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
             _select_query = """
-                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
+                SELECT
+                    retailer_uuid,
+                    name,
+                    url,
+                    phone_number,
+                    created_at,
+                    updated_at
                 FROM retailers
                 WHERE retailer_uuid = %s
             """
@@ -63,7 +71,13 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _get_by_name(self, retailer_name: RetailersNames) -> Retailer | None:
         def _sync_version(_retailer_name: RetailersNames) -> Retailer | None:
             _select_query = """
-                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
+                SELECT
+                    retailer_uuid,
+                    name,
+                    url,
+                    phone_number,
+                    created_at,
+                    updated_at
                 FROM retailers
                 WHERE name = %s
             """
@@ -110,7 +124,13 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def get_all(self) -> AsyncIterator[Retailer]:
         def _sync_version() -> Iterator[Retailer]:
             _select_all_query = """
-                SELECT retailer_uuid, name, url, phone_number, created_at, updated_at
+                SELECT
+                    retailer_uuid,
+                    name,
+                    url,
+                    phone_number,
+                    created_at,
+                    updated_at
                 FROM retailers
                 ORDER BY name ASC
             """

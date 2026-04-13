@@ -24,19 +24,35 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _add(self, category: Category) -> None:
         def _sync_version(_category: Category) -> None:
             _category_insert_query = """
-                INSERT INTO categories (category_uuid, name)
-                VALUES (%s, %s);
+                INSERT INTO categories (category_uuid, name, created_at, updated_at)
+                VALUES (%s, %s, %s, %s);
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_insert_query, params=[_category.get_uuid(), _category.get_name()])
+                _cursor.execute(
+                    sql=_category_insert_query,
+                    params=[
+                        _category.get_uuid(),
+                        _category.get_name(),
+                        _category.get_created_at(),
+                        _category.get_updated_at(),
+                    ],
+                )
 
                 if _category.get_helper_words():
                     helper_words_insert_query = """
-                        INSERT INTO category_helper_words (category_uuid, word)
-                        VALUES (%s, %s);
+                        INSERT INTO category_helper_words (category_uuid, word, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s);
                     """
-                    _params = [(_category.get_uuid(), word) for word in _category.get_helper_words()]
+                    _params = [
+                        (
+                            _category.get_uuid(),
+                            word,
+                            _category.get_created_at(),
+                            _category.get_updated_at(),
+                        )
+                        for word in _category.get_helper_words()
+                    ]
 
                     _cursor.executemany(
                         sql=helper_words_insert_query,
@@ -49,7 +65,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
         def _sync_version(_category_uuid: UUID) -> Category | None:
             _category_select_query = """
-                SELECT c.category_uuid, c.name, c.created_at, c.updated_at, ch.word
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.word
                 FROM categories c
                 INNER JOIN category_helper_words ch
                 ON c.category_uuid = ch.category_uuid
@@ -85,7 +106,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _get_by_name(self, category_name: str) -> Category | None:
         def _sync_version(category_name_: str) -> Category | None:
             _category_select_query = """
-                SELECT c.category_uuid, c.name, c.created_at, c.updated_at, ch.word
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.word
                 FROM categories c
                 INNER JOIN category_helper_words ch
                 ON c.category_uuid = ch.category_uuid
@@ -135,8 +161,8 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 WHERE category_uuid = %s AND word = ANY(%s)
             """
             _insert_word_query = """
-                INSERT INTO category_helper_words (category_uuid, word)
-                VALUES (%s, %s);
+                INSERT INTO category_helper_words (category_uuid, word, created_at, updated_at)
+                VALUES (%s, %s, %s, %s);
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
@@ -157,7 +183,15 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
                 _helper_words_to_add = _entity_helper_words - _current_helper_words_in_db
                 if _helper_words_to_add:
-                    _insert_params = [(_category_uuid, word) for word in _helper_words_to_add]
+                    _insert_params = [
+                        (
+                            _category_uuid,
+                            word,
+                            _updated_category.get_updated_at(),
+                            _updated_category.get_updated_at(),
+                        )
+                        for word in _helper_words_to_add
+                    ]
                     _cursor.executemany(
                         sql=_insert_word_query,
                         param_list=_insert_params,
@@ -169,7 +203,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def get_all(self) -> list[Category]:
         def _sync_version() -> list[Category]:
             select_all_query = """
-                SELECT c.category_uuid, c.name, c.created_at, c.updated_at, ch.word
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.word
                 FROM categories c
                 LEFT JOIN category_helper_words ch
                 ON c.category_uuid = ch.category_uuid
