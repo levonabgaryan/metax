@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
-from uuid import UUID
-
 from metax.core.domain.ddd_patterns import AggregateRootEntity
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 from .value_objects import RetailersNames
 
@@ -11,14 +9,13 @@ from .value_objects import RetailersNames
 class Retailer(AggregateRootEntity):
     def __init__(
         self,
-        retailer_uuid: UUID,
+        retailer_uuid: UUIDValueObject,
         name: RetailersNames,
         home_page_url: str,
         phone_number: str,
-        created_at: datetime,
-        updated_at: datetime,
+        datetime_details: EntityDateTimeDetails,
     ) -> None:
-        super().__init__(retailer_uuid, created_at, updated_at)
+        super().__init__(uuid_value_object=retailer_uuid, datetime_details=datetime_details)
         self.__name = name
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number

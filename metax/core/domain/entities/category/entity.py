@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime
-from uuid import UUID
-
 from metax.core.domain.ddd_patterns import AggregateRootEntity
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 from .value_objects import CategoryHelperWords
 
@@ -11,13 +9,12 @@ from .value_objects import CategoryHelperWords
 class Category(AggregateRootEntity):
     def __init__(
         self,
-        category_uuid: UUID,
+        category_uuid: UUIDValueObject,
         name: str,
         helper_words: CategoryHelperWords,
-        created_at: datetime,
-        updated_at: datetime,
+        datetime_details: EntityDateTimeDetails,
     ) -> None:
-        super().__init__(category_uuid, created_at, updated_at)
+        super().__init__(uuid_value_object=category_uuid, datetime_details=datetime_details)
         self.__name = name
         self.__helper_words = helper_words
 

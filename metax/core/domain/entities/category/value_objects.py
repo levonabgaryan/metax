@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from core.domain.entities.category.errors import (
+from metax.core.domain.ddd_patterns import ValueObject
+from metax.core.domain.entities.category.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
-
-from metax.core.domain.ddd_patterns import ValueObject
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

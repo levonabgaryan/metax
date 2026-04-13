@@ -15,6 +15,7 @@ from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 type CategoryUUID = UUID
 type RetailerUUID = UUID
@@ -86,7 +87,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 row = _cursor.fetchone()
                 if row is not None:
                     return DiscountedProduct(
-                        discounted_product_uuid=_discounted_product_uuid,
+                        discounted_product_uuid=UUIDValueObject(_discounted_product_uuid),
                         price_details=PriceDetails(
                             real_price=row[0],
                             discounted_price=row[1],
@@ -95,8 +96,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         url=row[3],
                         category_uuid=row[4],
                         retailer_uuid=row[5],
-                        created_at=row[6],
-                        updated_at=row[7],
+                        datetime_details=EntityDateTimeDetails(created_at=row[6], updated_at=row[7]),
                     )
             return None
 
@@ -194,7 +194,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     category_name=row[9],
                     retailer_name=row[10],
                     entity=DiscountedProduct(
-                        discounted_product_uuid=row[0],
+                        discounted_product_uuid=UUIDValueObject(row[0]),
                         price_details=PriceDetails(
                             real_price=row[1],
                             discounted_price=row[2],
@@ -203,8 +203,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         url=row[4],
                         category_uuid=row[5],
                         retailer_uuid=row[6],
-                        created_at=row[7],
-                        updated_at=row[8],
+                        datetime_details=EntityDateTimeDetails(created_at=row[7], updated_at=row[8]),
                     ),
                 )
                 for row in rows
@@ -237,7 +236,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             )
             return [
                 DiscountedProduct(
-                    discounted_product_uuid=row[0],
+                    discounted_product_uuid=UUIDValueObject(row[0]),
                     price_details=PriceDetails(
                         real_price=row[1],
                         discounted_price=row[2],
@@ -246,8 +245,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     url=row[4],
                     category_uuid=row[5],
                     retailer_uuid=row[6],
-                    created_at=row[7],
-                    updated_at=row[8],
+                    datetime_details=EntityDateTimeDetails(created_at=row[7], updated_at=row[8]),
                 )
                 for row in rows
             ]

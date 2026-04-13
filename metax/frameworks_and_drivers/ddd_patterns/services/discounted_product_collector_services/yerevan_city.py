@@ -15,6 +15,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
     InvalidUrlForScrappingError,
 )
@@ -55,15 +56,17 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
 
         for raw_product in raw_products:
             yield DiscountedProduct(
-                discounted_product_uuid=uuid.uuid7(),
+                discounted_product_uuid=UUIDValueObject(uuid.uuid7()),
                 name=self.clean_discounted_product_name(text=raw_product["name"]),
                 price_details=PriceDetails(
                     real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),
                     discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discountedPrice"])),
                 ),
                 url=f"{self.__yerevan_city_products_details_url}/{raw_product['id']}",
-                created_at=start_date_of_collecting,
-                updated_at=start_date_of_collecting,
+                datetime_details=EntityDateTimeDetails(
+                    created_at=start_date_of_collecting,
+                    updated_at=start_date_of_collecting,
+                ),
                 retailer_uuid=self._retailer.get_uuid(),
                 category_uuid=None,
             )

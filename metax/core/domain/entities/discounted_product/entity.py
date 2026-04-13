@@ -1,27 +1,26 @@
 from __future__ import annotations
 
-from datetime import datetime
 from decimal import Decimal
 from typing import override
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
-        discounted_product_uuid: UUID,
+        discounted_product_uuid: UUIDValueObject,
         category_uuid: UUID | None,
         retailer_uuid: UUID,
         price_details: PriceDetails,
         name: str,
         url: str,
-        created_at: datetime,
-        updated_at: datetime,
+        datetime_details: EntityDateTimeDetails,
     ) -> None:
-        super().__init__(discounted_product_uuid, created_at, updated_at)
+        super().__init__(uuid_value_object=discounted_product_uuid, datetime_details=datetime_details)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details

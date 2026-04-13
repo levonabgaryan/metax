@@ -3,12 +3,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
-from core.domain.entities.discounted_product.errors import (
+from metax.core.domain.ddd_patterns import ValueObject
+from metax.core.domain.entities.discounted_product.errors import (
     DiscountExceedsRealPriceError,
     NegativePriceError,
 )
-
-from metax.core.domain.ddd_patterns import ValueObject
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)

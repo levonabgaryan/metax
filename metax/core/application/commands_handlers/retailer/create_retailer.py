@@ -8,6 +8,7 @@ from metax.core.application.commands_handlers.base_command_handler import Comman
 from metax.core.application.commands_handlers.command import Command
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +33,11 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
         async with uow:
             now = datetime.now(tz=timezone.utc)
             retailer = Retailer(
-                retailer_uuid=command.retailer_uuid,
+                retailer_uuid=UUIDValueObject(command.retailer_uuid),
                 name=RetailersNames(command.name),
                 phone_number=command.phone_number,
                 home_page_url=command.url,
-                created_at=now,
-                updated_at=now,
+                datetime_details=EntityDateTimeDetails(created_at=now, updated_at=now),
             )
             await uow.retailer_repo.add(retailer)
             await uow.commit()

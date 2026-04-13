@@ -1,9 +1,9 @@
 import pytest
-from core.domain.entities.category.errors import (
+
+from metax.core.domain.entities.category.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
-
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 
 

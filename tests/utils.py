@@ -13,6 +13,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 def make_category_entity(
@@ -22,18 +23,17 @@ def make_category_entity(
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> Category:
-    if helper_words is None:
-        helper_words = CategoryHelperWords(words=frozenset(["test_word1", " test_word2"]))
     now = datetime.now(tz=timezone.utc)
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
 
     return Category(
         name=name,
-        category_uuid=category_uuid or uuid7(),
-        helper_words=helper_words,
-        created_at=created,
-        updated_at=updated,
+        category_uuid=UUIDValueObject(category_uuid or uuid7()),
+        helper_words=helper_words
+        if helper_words is not None
+        else CategoryHelperWords(words=frozenset(["test_word1", "test_word2"])),
+        datetime_details=EntityDateTimeDetails(created_at=created, updated_at=updated),
     )
 
 
@@ -49,12 +49,11 @@ def make_retailer_entity(
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
     return Retailer(
-        retailer_uuid=retailer_uuid or uuid7(),
+        retailer_uuid=UUIDValueObject(retailer_uuid or uuid7()),
         name=name,
         phone_number=phone_number,
         home_page_url=url,
-        created_at=created,
-        updated_at=updated,
+        datetime_details=EntityDateTimeDetails(created_at=created, updated_at=updated),
     )
 
 
@@ -77,11 +76,10 @@ def make_discounted_product_entity(
         name=name,
         retailer_uuid=retailer_uuid,
         category_uuid=category_uuid,
-        discounted_product_uuid=discounted_product_uuid or uuid7(),
+        discounted_product_uuid=UUIDValueObject(discounted_product_uuid or uuid7()),
         price_details=price_details,
         url=url,
-        created_at=created_at,
-        updated_at=updated,
+        datetime_details=EntityDateTimeDetails(created_at=created_at, updated_at=updated),
     )
 
 

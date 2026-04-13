@@ -16,6 +16,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
     InvalidUrlForScrappingError,
 )
@@ -108,15 +109,17 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
 
                     raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
                     yield DiscountedProduct(
-                        discounted_product_uuid=uuid.uuid7(),
+                        discounted_product_uuid=UUIDValueObject(uuid.uuid7()),
                         name=self.clean_discounted_product_name(text=name),
                         price_details=PriceDetails(
                             real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
                             discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
                         ),
                         url=raw_product_url,
-                        created_at=start_date_of_collecting,
-                        updated_at=start_date_of_collecting,
+                        datetime_details=EntityDateTimeDetails(
+                            created_at=start_date_of_collecting,
+                            updated_at=start_date_of_collecting,
+                        ),
                         retailer_uuid=self._retailer.get_uuid(),
                         category_uuid=None,
                     )

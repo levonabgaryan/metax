@@ -13,6 +13,7 @@ from metax.core.domain.entities.category.entity import (
     Category,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 type CategoryName = str
 type HelperWord = str
@@ -69,11 +70,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
 
                     return Category(
-                        category_uuid=_category_uuid,
+                        category_uuid=UUIDValueObject(_category_uuid),
                         name=_category_name,
                         helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
-                        created_at=_created_at,
-                        updated_at=_updated_at,
+                        datetime_details=EntityDateTimeDetails(created_at=_created_at, updated_at=_updated_at),
                     )
                 return None
 
@@ -101,11 +101,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _updated_at = _first_row[3]
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
                     return Category(
-                        category_uuid=_category_uuid,
+                        category_uuid=UUIDValueObject(_category_uuid),
                         name=_category_name,
                         helper_words=CategoryHelperWords(words=frozenset(_helper_words)),
-                        created_at=_created_at,
-                        updated_at=_updated_at,
+                        datetime_details=EntityDateTimeDetails(created_at=_created_at, updated_at=_updated_at),
                     )
                 return None
 
@@ -187,11 +186,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
             return [
                 Category(
-                    category_uuid=_category_uid,
+                    category_uuid=UUIDValueObject(_category_uid),
                     name=_name_and_words[0],
                     helper_words=CategoryHelperWords(words=frozenset(_name_and_words[3])),
-                    created_at=_name_and_words[1],
-                    updated_at=_name_and_words[2],
+                    datetime_details=EntityDateTimeDetails(
+                        created_at=_name_and_words[1], updated_at=_name_and_words[2]
+                    ),
                 )
                 for _category_uid, _name_and_words in _category_map.items()
             ]

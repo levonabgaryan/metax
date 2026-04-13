@@ -3,18 +3,18 @@ from uuid import uuid7
 
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 def test_retailer_update() -> None:
     # given
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     retailer = Retailer(
-        retailer_uuid=uuid7(),
+        retailer_uuid=UUIDValueObject(uuid7()),
         name=RetailersNames.YEREVAN_CITY,
         home_page_url="test_url",
         phone_number="test_number",
-        created_at=ts,
-        updated_at=ts,
+        datetime_details=EntityDateTimeDetails(created_at=ts, updated_at=ts),
     )
 
     # when

@@ -10,6 +10,7 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.r
 )
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
@@ -49,12 +50,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=row[0],
+                    retailer_uuid=UUIDValueObject(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
-                    created_at=row[4],
-                    updated_at=row[5],
+                    datetime_details=EntityDateTimeDetails(created_at=row[4], updated_at=row[5]),
                 )
 
         return await sync_to_async(_sync_version)(retailer_uuid)
@@ -74,12 +74,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=row[0],
+                    retailer_uuid=UUIDValueObject(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
-                    created_at=row[4],
-                    updated_at=row[5],
+                    datetime_details=EntityDateTimeDetails(created_at=row[4], updated_at=row[5]),
                 )
 
         return await sync_to_async(_sync_version)(retailer_name)
@@ -120,12 +119,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 _rows = _cursor.fetchall()
             return (
                 Retailer(
-                    retailer_uuid=_row[0],
+                    retailer_uuid=UUIDValueObject(_row[0]),
                     name=RetailersNames(_row[1]),
                     home_page_url=_row[2],
                     phone_number=_row[3],
-                    created_at=_row[4],
-                    updated_at=_row[5],
+                    datetime_details=EntityDateTimeDetails(created_at=_row[4], updated_at=_row[5]),
                 )
                 for _row in _rows
             )

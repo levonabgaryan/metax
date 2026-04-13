@@ -16,6 +16,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from tests.utils import (
     make_category_entity,
@@ -34,21 +35,19 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
     category_uuid = uuid7()
     helper_words = CategoryHelperWords(words=frozenset(["օղի", "գինի"]))
     category = Category(
-        category_uuid=category_uuid,
+        category_uuid=UUIDValueObject(category_uuid),
         name="Ալկոհոլ",
         helper_words=helper_words,
-        created_at=created_data,
-        updated_at=created_data,
+        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
     )
 
     sas_supermarket_uuid = uuid7()
     retailer = Retailer(
-        retailer_uuid=sas_supermarket_uuid,
+        retailer_uuid=UUIDValueObject(sas_supermarket_uuid),
         name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
-        created_at=created_data,
-        updated_at=created_data,
+        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
     )
 
     discounted_product_1_uuid = uuid7()
@@ -58,9 +57,8 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         retailer_uuid=retailer.get_uuid(),
         url="test_url_1",
         price_details=PriceDetails(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
-        discounted_product_uuid=discounted_product_1_uuid,
-        created_at=created_data,
-        updated_at=created_data,
+        discounted_product_uuid=UUIDValueObject(discounted_product_1_uuid),
+        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
     )
 
     discounted_product_2_uuid = uuid7()
@@ -70,9 +68,8 @@ async def test_add_many_discounted_products(metax_container_for_integration_test
         retailer_uuid=retailer.get_uuid(),
         url="test_url_2",
         price_details=PriceDetails(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
-        discounted_product_uuid=discounted_product_2_uuid,
-        created_at=created_data,
-        updated_at=created_data,
+        discounted_product_uuid=UUIDValueObject(discounted_product_2_uuid),
+        datetime_details=EntityDateTimeDetails(created_at=created_data, updated_at=created_data),
     )
 
     discounted_products = [absolut_vodka, karas_whine]
