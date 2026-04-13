@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import override
+from typing import Self, override
 
 from metax.core.domain.ddd_patterns import ValueObject
 from metax.core.domain.entities.category.errors import (
@@ -16,7 +16,7 @@ class CategoryHelperWords(ValueObject):
 
     @override
     @classmethod
-    def create(cls, words: frozenset[str]) -> CategoryHelperWords:
+    def create(cls, words: frozenset[str]) -> Self:
         return cls(words=frozenset(words))
 
     def plus_words(self, new_words: frozenset[str]) -> CategoryHelperWords:

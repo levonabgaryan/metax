@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import override
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
@@ -16,9 +15,9 @@ class DiscountedProduct(AggregateRootEntity):
         category_uuid: UUIDValueObject | None,
         retailer_uuid: UUIDValueObject,
         price_details: PriceDetails,
+        datetime_details: EntityDateTimeDetails,
         name: str,
         url: str,
-        datetime_details: EntityDateTimeDetails,
     ) -> None:
         super().__init__(uuid_value_object=discounted_product_uuid, datetime_details=datetime_details)
         self.__category_uuid = category_uuid
@@ -32,12 +31,14 @@ class DiscountedProduct(AggregateRootEntity):
 
     def set_url(self, url: str) -> None:
         self.__url = url
+        self._touch()
 
     def get_name(self) -> str:
         return self.__name
 
     def set_name(self, name: str) -> None:
         self.__name = name
+        self._touch()
 
     def get_real_price(self) -> Decimal:
         return self.__price_details.real_price
@@ -56,19 +57,7 @@ class DiscountedProduct(AggregateRootEntity):
 
     def set_category_uuid(self, category_uuid: UUIDValueObject | None) -> None:
         self.__category_uuid = category_uuid
+        self._touch()
 
     def get_retailer_uuid(self) -> UUID:
         return self.__retailer_uuid.value
-
-    @override
-    def __str__(self) -> str:
-        return (
-            f"DiscountedProduct(\n"
-            f"  uuid={self.get_uuid()},\n"
-            f"  name='{self.__name}',\n"
-            f"  price={self.get_discounted_price()} (old: {self.get_real_price()}),\n"
-            f"  retailer_uuid={self.__retailer_uuid},\n"
-            f"  category_uuid={self.__category_uuid},\n"
-            f"  url='{self.__url}'\n"
-            f")"
-        )

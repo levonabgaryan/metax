@@ -3,8 +3,7 @@ from datetime import datetime
 from typing import AsyncIterator, NamedTuple
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors.error_codes import RepositoriesErrorCodes
-from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
@@ -24,7 +23,6 @@ class DiscountedProductRepository(ABC):
                 entity_name="discounted_product",
                 searched_field_name="uuid",
                 searched_field_value=str(discounted_product_uuid),
-                error_code=RepositoriesErrorCodes.DISCOUNTED_PRODUCT_IS_NOT_FOUND,
             )
         return discounted_product
 

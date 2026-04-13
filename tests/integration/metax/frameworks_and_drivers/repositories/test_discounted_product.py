@@ -7,7 +7,7 @@ import pytest
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductWithDetails,
 )
-from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords

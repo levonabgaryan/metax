@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
-from typing import override
+from typing import Self, override
 
 from metax.core.domain.ddd_patterns import ValueObject
 from metax.core.domain.entities.discounted_product.errors import (
@@ -23,7 +23,7 @@ class PriceDetails(ValueObject):
 
     @override
     @classmethod
-    def create(cls, real_price: Decimal, discounted_price: Decimal) -> PriceDetails:
+    def create(cls, real_price: Decimal, discounted_price: Decimal) -> Self:
         return cls(
             real_price=cls.__normalize(real_price),
             discounted_price=cls.__normalize(discounted_price),

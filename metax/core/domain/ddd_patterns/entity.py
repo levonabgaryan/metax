@@ -27,6 +27,9 @@ class Entity:
     def get_updated_at(self) -> datetime:
         return self.__datetime_details.updated_at
 
+    def _touch(self) -> None:
+        self.__datetime_details = self.__datetime_details.renew_update_at(self.__datetime_details)
+
     @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):

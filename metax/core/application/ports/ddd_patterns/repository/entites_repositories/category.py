@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors.error_codes import RepositoriesErrorCodes
-from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.entity import Category
 
 
@@ -14,7 +13,6 @@ class CategoryRepository(ABC):
                 entity_name="category",
                 searched_field_name="uuid",
                 searched_field_value=str(category_uuid),
-                error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
         return category
 
@@ -25,7 +23,6 @@ class CategoryRepository(ABC):
                 entity_name="category",
                 searched_field_name="name",
                 searched_field_value=category_name,
-                error_code=RepositoriesErrorCodes.CATEGORY_IS_NOT_FOUND,
             )
         return category
 

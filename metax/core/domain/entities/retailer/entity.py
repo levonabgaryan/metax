@@ -10,10 +10,10 @@ class Retailer(AggregateRootEntity):
     def __init__(
         self,
         retailer_uuid: UUIDValueObject,
+        datetime_details: EntityDateTimeDetails,
         name: RetailersNames,
         home_page_url: str,
         phone_number: str,
-        datetime_details: EntityDateTimeDetails,
     ) -> None:
         super().__init__(uuid_value_object=retailer_uuid, datetime_details=datetime_details)
         self.__name = name
@@ -25,9 +25,11 @@ class Retailer(AggregateRootEntity):
 
     def set_name(self, new_name: RetailersNames) -> None:
         self.__name = new_name
+        self._touch()
 
     def set_home_page_url(self, new_url: str) -> None:
         self.__home_page_url = new_url
+        self._touch()
 
     def get_home_page_url(self) -> str:
         return self.__home_page_url
@@ -37,3 +39,4 @@ class Retailer(AggregateRootEntity):
 
     def set_phone_number(self, new_phone_number: str) -> None:
         self.__phone_number = new_phone_number
+        self._touch()

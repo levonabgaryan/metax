@@ -2,7 +2,7 @@ from uuid import uuid7
 
 import pytest
 
-from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from tests.utils import make_category_entity

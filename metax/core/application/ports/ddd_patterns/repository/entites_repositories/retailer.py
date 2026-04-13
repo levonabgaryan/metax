@@ -2,8 +2,7 @@ from abc import ABC, abstractmethod
 from typing import AsyncIterator
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors.error_codes import RepositoriesErrorCodes
-from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
@@ -16,7 +15,6 @@ class RetailerRepository(ABC):
                 entity_name="retailer",
                 searched_field_name="uuid",
                 searched_field_value=str(retailer_uuid),
-                error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
             )
         return retailer
 
@@ -28,7 +26,6 @@ class RetailerRepository(ABC):
                 entity_name="retailer",
                 searched_field_name="name",
                 searched_field_value=lookup,
-                error_code=RepositoriesErrorCodes.RETAILER_IS_NOT_FOUND,
             )
         return retailer
 
