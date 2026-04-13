@@ -8,6 +8,7 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductWithDetails,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors.errors import EntityIsNotFoundError
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.discounted_product.entity import (
@@ -16,7 +17,6 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from tests.utils import (
     make_category_entity,

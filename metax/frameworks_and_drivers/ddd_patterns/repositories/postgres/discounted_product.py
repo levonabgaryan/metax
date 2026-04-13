@@ -11,11 +11,11 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 type CategoryUUID = UUID | None
 type RetailerUUID = UUID

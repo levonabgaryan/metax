@@ -11,12 +11,12 @@ from bs4 import BeautifulSoup
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
     InvalidUrlForScrappingError,
 )

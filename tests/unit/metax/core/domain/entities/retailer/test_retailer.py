@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from uuid import uuid7
 
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 def test_retailer_update() -> None:

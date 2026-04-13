@@ -3,13 +3,13 @@ from uuid import uuid7
 
 import pytest
 
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.errors import (
     CategoryHelperWordsNotFoundForDeletionError,
     DuplicateCategoryHelperWordsError,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 def test_add_new_helper_words() -> None:

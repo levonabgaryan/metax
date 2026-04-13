@@ -17,8 +17,8 @@ from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
     CollectDiscountedProductsResponse,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
-from metax.core.domain.general_value_objects import UUIDValueObject
 
 logger = logging.getLogger(__name__)
 

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 
-from metax.core.domain.general_value_objects import (
+from metax.core.domain.ddd_patterns.general_value_objects import (
     EntityDateTimeDetails,
     InvalidUtcDateTimeError,
     InvalidUUIDError,

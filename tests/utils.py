@@ -5,6 +5,7 @@ from typing import Any, AsyncIterator, Iterable, Iterator
 from uuid import UUID, uuid7
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.discounted_product.entity import (
@@ -13,7 +14,6 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 def make_category_entity(

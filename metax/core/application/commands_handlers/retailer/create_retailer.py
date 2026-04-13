@@ -6,9 +6,9 @@ from uuid import UUID
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 logger = logging.getLogger(__name__)
 

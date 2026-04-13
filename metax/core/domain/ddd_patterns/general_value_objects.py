@@ -8,7 +8,7 @@ from uuid import UUID
 
 from metax_main_error import MetaxError
 
-from .ddd_patterns import ValueObject
+from .value_object import ValueObject
 
 
 @dataclass(frozen=True, unsafe_hash=False, eq=True, slots=True)
@@ -21,8 +21,9 @@ class UUIDValueObject(ValueObject):
     @override
     @classmethod
     def create(cls, value: UUID | None = None) -> Self:
-        value = value or uuid.uuid7()
-        return cls(value)
+        if value is None:
+            return cls(uuid.uuid7())
+        return cls(value=value)
 
     def __validate_uuid(self) -> None:
         try:

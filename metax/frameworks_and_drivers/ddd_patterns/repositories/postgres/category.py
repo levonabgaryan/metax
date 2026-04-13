@@ -9,11 +9,11 @@ from django.db.backends.utils import CursorWrapper
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import (
     Category,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 type CategoryName = str
 type HelperWord = str

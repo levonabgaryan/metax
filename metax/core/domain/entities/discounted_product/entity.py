@@ -5,8 +5,8 @@ from typing import override
 from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 
 class DiscountedProduct(AggregateRootEntity):

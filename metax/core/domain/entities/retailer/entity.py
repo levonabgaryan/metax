@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from metax.core.domain.ddd_patterns import AggregateRootEntity
-from metax.core.domain.general_value_objects import EntityDateTimeDetails, UUIDValueObject
+from metax.core.domain.ddd_patterns.aggregate import AggregateRootEntity
+from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
 from .value_objects import RetailersNames
 
