@@ -123,7 +123,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             _category_update_query = """
                 UPDATE categories
                 SET name = %s,
-                    updated_at = Now()
+                    updated_at = %s
                 WHERE category_uuid = %s
             """
             _select_words_query = """
@@ -140,7 +140,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_update_query, params=[_updated_category.get_name(), _category_uuid])
+                _cursor.execute(
+                    sql=_category_update_query,
+                    params=[_updated_category.get_name(), _updated_category.get_updated_at(), _category_uuid],
+                )
                 _cursor.execute(sql=_select_words_query, params=[_category_uuid])
                 _rows = _cursor.fetchall()
                 _current_helper_words_in_db = frozenset(row[0] for row in _rows if row[0] is not None)

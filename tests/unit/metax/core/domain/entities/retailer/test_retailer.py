@@ -26,3 +26,24 @@ def test_retailer_update() -> None:
     assert retailer.get_name() == RetailersNames.SAS_AM
     assert retailer.get_home_page_url() == "new_url"
     assert retailer.get_phone_number() == "new_phone_number"
+
+
+def test_retailer_setter_touches_updated_at() -> None:
+    # given
+    ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    retailer = Retailer(
+        retailer_uuid=UUIDValueObject.create(uuid7()),
+        datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),
+        name=RetailersNames.YEREVAN_CITY,
+        home_page_url="test_url",
+        phone_number="test_number",
+    )
+    old_created_at = retailer.get_created_at()
+    old_updated_at = retailer.get_updated_at()
+
+    # when
+    retailer.set_name(RetailersNames.SAS_AM)
+
+    # then
+    assert retailer.get_created_at() == old_created_at
+    assert retailer.get_updated_at() >= old_updated_at

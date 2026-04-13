@@ -88,7 +88,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         def _sync_version(_updated_retailer: Retailer) -> None:
             _update_query = """
                 UPDATE retailers
-                SET name = %s, url = %s, phone_number = %s
+                SET name = %s, url = %s, phone_number = %s, updated_at = %s
                 WHERE retailer_uuid = %s
             """
             _cursor: CursorWrapper
@@ -99,6 +99,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                         _updated_retailer.get_name(),
                         _updated_retailer.get_home_page_url(),
                         _updated_retailer.get_phone_number(),
+                        _updated_retailer.get_updated_at(),
                         _updated_retailer.get_uuid(),
                     ],
                 )
