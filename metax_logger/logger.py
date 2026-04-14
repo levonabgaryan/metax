@@ -4,7 +4,7 @@ import queue
 import sys
 from logging.handlers import QueueHandler, QueueListener
 
-from metax_configs import METAX_CONFIGS
+from metax_configs import BaseConfigs
 
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)s %(threadName)s] [%(name)s] [%(message)s]"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -25,7 +25,7 @@ PACKAGES_TO_MUTE = [
 ]
 
 
-def init_logger() -> None:
+def init_logger(metax_configs: BaseConfigs) -> None:
     """Initializes a global non-blocking logging system using a QueueListener.
 
     This setup ensures that logging operations do not block the main application thread,
@@ -44,7 +44,7 @@ def init_logger() -> None:
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    log_level = logging.DEBUG if METAX_CONFIGS.debug else logging.INFO
+    log_level = logging.DEBUG if metax_configs.debug else logging.INFO
     root_logger.setLevel(log_level)
 
     formatter = logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)

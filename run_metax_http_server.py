@@ -6,7 +6,7 @@ from pathlib import Path
 
 import uvicorn
 
-from metax_application import METAX_APPLICATION, MetaxApplication
+from metax_application_manager import METAX_APPLICATION_MANAGER, MetaxApplicationManager
 from metax_configs import DevConfigs
 
 logger = logging.getLogger(__name__)
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 _DJANGO_ASGI_APP = "django_framework.asgi:application"
 
 
-async def _run_django_gunicorn_server(_metax_app: MetaxApplication) -> None:
+async def _run_django_gunicorn_server(_metax_app: MetaxApplicationManager) -> None:
     _metax_configs = _metax_app.get_configs()
 
     env = os.environ.copy()
@@ -38,28 +38,27 @@ async def _run_django_gunicorn_server(_metax_app: MetaxApplication) -> None:
         f"--config={gunicorn_conf}",
         _DJANGO_ASGI_APP,
     ]
-    async with _metax_app:
-        process = await asyncio.create_subprocess_exec(
-            sys.executable, *command, cwd=_metax_configs.django_dir, env=env
-        )
+    process = await asyncio.create_subprocess_exec(
+        sys.executable, *command, cwd=_metax_configs.django_dir, env=env
+    )
 
-        logger.info("STARTUP | Task: Web Server (gunicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
+    logger.info("STARTUP | Task: Web Server (gunicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
 
-        try:
-            await process.wait()
-        except asyncio.CancelledError:
-            logger.info("SHUTDOWN | Task: Web Server | Status: Terminating (SIGTERM)...")
-            process.terminate()
-            await process.wait()
-            logger.info("SHUTDOWN | Task: Web Server | Status: Clean Shutdown")
+    try:
+        await process.wait()
+    except asyncio.CancelledError:
+        logger.info("SHUTDOWN | Task: Web Server | Status: Terminating (SIGTERM)...")
+        process.terminate()
+        await process.wait()
+        logger.info("SHUTDOWN | Task: Web Server | Status: Clean Shutdown")
 
-        if process.returncode != 0 and process.returncode != -15:
-            logger.error("RUNTIME | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
-            msg = f"Gunicorn failed with exit code {process.returncode}"
-            raise RuntimeError(msg)
+    if process.returncode != 0 and process.returncode != -15:
+        logger.error("RUNTIME | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
+        msg = f"Gunicorn failed with exit code {process.returncode}"
+        raise RuntimeError(msg)
 
 
-def _run_django_uvicorn_server(_metax_app: MetaxApplication) -> None:
+def _run_django_uvicorn_server(_metax_app: MetaxApplicationManager) -> None:
     _metax_configs = _metax_app.get_configs()
     host = _metax_configs.django_host
     port = _metax_configs.django_port
@@ -87,8 +86,8 @@ def _run_django_uvicorn_server(_metax_app: MetaxApplication) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION))
-    if isinstance(METAX_APPLICATION.get_configs(), DevConfigs):
-        asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION))
+    asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION_MANAGER))
+    if isinstance(METAX_APPLICATION_MANAGER.get_configs(), DevConfigs):
+        asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION_MANAGER))
     else:
-        _run_django_uvicorn_server(METAX_APPLICATION)
+        _run_django_uvicorn_server(METAX_APPLICATION_MANAGER)

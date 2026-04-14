@@ -1,10 +1,10 @@
 import pytest
 
-from metax_application import MetaxApplication
+from metax_application_manager import MetaxApplicationManager
 
 
 @pytest.mark.asyncio
-async def test_message_buss_is_singleton(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_message_buss_is_singleton(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     event_bus_1 = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     event_bus_2 = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()

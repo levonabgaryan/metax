@@ -6,13 +6,13 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
-from metax_application import MetaxApplication
+from metax_application_manager import MetaxApplicationManager
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_create_category_command_handler(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()

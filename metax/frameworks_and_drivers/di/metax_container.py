@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import logging
+
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
 from .patterns_container import PatternsContainer
 from .repositories_container import RepositoriesContainer
 from .resources import async_opensearch_client_resource
+
+logger = logging.getLogger(__name__)
 
 
 class MetaxContainer(containers.DeclarativeContainer):

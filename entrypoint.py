@@ -7,18 +7,20 @@ from pathlib import Path
 
 from opensearchpy import AsyncOpenSearch
 
-from metax_configs import METAX_CONFIGS
+from metax_configs import BaseConfigs
 
 logger = logging.getLogger(__name__)
 
 
-async def _run_postgres_db_migrations() -> None:
-    manage_py = Path(METAX_CONFIGS.django_dir) / "manage.py"
+async def _run_postgres_db_migrations(metax_configs: BaseConfigs) -> None:
+
+    metax_configs = metax_configs
+    manage_py = Path(metax_configs.django_dir) / "manage.py"
     logger.info("STARTUP | Task: Postgres Migrations | Status: Started")
 
     for command in ["makemigrations", "migrate"]:
         process = await asyncio.create_subprocess_exec(
-            sys.executable, str(manage_py), command, cwd=METAX_CONFIGS.django_dir
+            sys.executable, str(manage_py), command, cwd=metax_configs.django_dir
         )
         await process.wait()
         if process.returncode != 0:
@@ -41,8 +43,8 @@ async def _run_opensearch_db_migrations(client: AsyncOpenSearch) -> None:
         raise
 
 
-async def run_entrypoint(client: AsyncOpenSearch) -> None:
+async def run_entrypoint(metax_configs: BaseConfigs, client: AsyncOpenSearch) -> None:
     logger.info("STARTUP | Task: Entrypoint | Status: Started")
     await _run_opensearch_db_migrations(client=client)
-    await _run_postgres_db_migrations()
+    await _run_postgres_db_migrations(metax_configs=metax_configs)
     logger.info("STARTUP | Task: Entrypoint | Status: SUCCESS")

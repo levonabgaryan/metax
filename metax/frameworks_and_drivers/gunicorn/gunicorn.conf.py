@@ -1,8 +1,8 @@
 # https://gunicorn.org/asgi/?h=gunicorn.conf.py#recommended-settings
 # https://gunicorn.org/reference/settings/?h=gunicorn.conf.py#config
-from metax_application import METAX_APPLICATION
+from metax_application_manager import METAX_APPLICATION_MANAGER
 
-_configs = METAX_APPLICATION.get_configs()
+_configs = METAX_APPLICATION_MANAGER.get_configs()
 
 bind = f"{_configs.django_host}:{_configs.django_port}"  # https://gunicorn.org/reference/settings/?query=gunicorn+--c#bind
 reload = _configs.gunicorn_reload  # https://gunicorn.org/reference/settings/#reload

@@ -4,13 +4,13 @@ import pytest
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax_application import MetaxApplication
+from metax_application_manager import MetaxApplicationManager
 from tests.utils import make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
@@ -36,7 +36,7 @@ async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxA
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_retailer_repo_update(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -66,7 +66,7 @@ async def test_retailer_repo_update(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
@@ -84,7 +84,7 @@ async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: Me
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_name(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_retailer_is_not_found_by_name(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
@@ -103,7 +103,7 @@ async def test_retailer_is_not_found_by_name(metax_app_for_integration_tests: Me
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_repo_get_all(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_retailer_repo_get_all(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()

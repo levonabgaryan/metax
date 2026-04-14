@@ -17,7 +17,7 @@ from metax.core.domain.entities.discounted_product.entity import (
 from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax_application import MetaxApplication
+from metax_application_manager import MetaxApplicationManager
 from tests.utils import (
     make_category_entity,
     make_discounted_product_entity,
@@ -27,7 +27,7 @@ from tests.utils import (
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_add_many_discounted_products(metax_app_for_integration_tests: MetaxApplication) -> None:
+async def test_add_many_discounted_products(metax_app_for_integration_tests: MetaxApplicationManager) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
@@ -111,7 +111,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_discounted_products_is_not_found_by_uuid(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -134,7 +134,7 @@ async def test_discounted_products_is_not_found_by_uuid(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -167,7 +167,7 @@ async def test_delete_older_than_and_return_deleted_count(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_when_no_discounted_products(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -184,7 +184,7 @@ async def test_get_all_when_no_discounted_products(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_returns_all_products_ordered_by_uuid(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -240,7 +240,7 @@ async def test_get_all_returns_all_products_ordered_by_uuid(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_chunk_size(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -275,7 +275,7 @@ async def test_get_all_chunk_size(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -293,7 +293,7 @@ async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_by_date(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -340,7 +340,7 @@ async def test_get_all_by_date(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_by_date_filters_by_created_at(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -371,7 +371,7 @@ async def test_get_all_by_date_filters_by_created_at(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_by_date_without_category_returns_none_category_name(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -399,7 +399,7 @@ async def test_get_all_by_date_without_category_returns_none_category_name(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_get_all_by_date_chunk_size(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()

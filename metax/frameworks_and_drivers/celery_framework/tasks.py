@@ -18,8 +18,7 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
-from metax_application import METAX_APPLICATION
-from metax_configs import METAX_CONFIGS
+from metax_application_manager import METAX_APPLICATION_MANAGER
 
 from .celery_application import celery_app
 from .errors import NoRetailersError
@@ -31,6 +30,7 @@ async def collect_discounted_products_from_all_retailers(
     category_classifier_service: CategoryClassifierService,
     start_date_of_collecting: datetime,
 ) -> None:
+    metax_configs = METAX_APPLICATION_MANAGER.get_configs()
     uow = await unit_of_work_provider.create()
     async with uow:
         retailers = [r async for r in uow.retailer_repo.get_all()]
@@ -48,16 +48,16 @@ async def collect_discounted_products_from_all_retailers(
         if collector_service_creator_class is YerevanCityDiscountProductCollectorCreator:
             collector_service_creator = YerevanCityDiscountProductCollectorCreator(
                 start_date_of_collecting=start_date_of_collecting,
-                yerevan_city_products_details_url=METAX_CONFIGS.yerevan_city_products_details_url,
-                yerevan_city_data_source_url=METAX_CONFIGS.yerevan_city_data_source_url,
+                yerevan_city_products_details_url=metax_configs.yerevan_city_products_details_url,
+                yerevan_city_data_source_url=metax_configs.yerevan_city_data_source_url,
                 retailer=retailer,
             )
         elif collector_service_creator_class is SasAmDiscountProductCollectorCreator:
             collector_service_creator = SasAmDiscountProductCollectorCreator(
                 start_date_of_collecting=start_date_of_collecting,
                 retailer=retailer,
-                sas_am_main_page_url=METAX_CONFIGS.sas_am_main_page_url,
-                sas_am_data_source_url=METAX_CONFIGS.sas_am_data_source_url,
+                sas_am_main_page_url=metax_configs.sas_am_main_page_url,
+                sas_am_data_source_url=metax_configs.sas_am_data_source_url,
             )
 
         else:
@@ -77,7 +77,7 @@ async def collect_discounted_products_from_all_retailers(
 
 @celery_app.task(name="CollectDiscountedProducts")
 async def celery_task_collect_discounted_products_from_all_retailers() -> None:
-    patterns = METAX_APPLICATION.get_di_container().patterns_container.container
+    patterns = METAX_APPLICATION_MANAGER.get_di_container().patterns_container.container
     unit_of_work_provider = patterns.unit_of_work_provider()
     category_classifier_service = patterns.category_classifier_service()
     event_bus = await patterns.event_bus.async_()

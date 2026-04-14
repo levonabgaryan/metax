@@ -5,14 +5,14 @@ from metax.core.application.commands_handlers.category import (
     DeleteHelperWordsCommandHandler,
 )
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax_application import MetaxApplication
+from metax_application_manager import MetaxApplicationManager
 from tests.utils import make_category_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_delete_helper_words_command(
-    metax_app_for_integration_tests: MetaxApplication,
+    metax_app_for_integration_tests: MetaxApplicationManager,
 ) -> None:
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work_provider = (
