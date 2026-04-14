@@ -6,10 +6,21 @@ For more information on this file, see
 https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 """
 
-import os
+from typing import Awaitable, Callable
 
-from django.core.asgi import get_asgi_application
+from asgiref.typing import ASGIReceiveEvent, ASGISendEvent, LifespanScope, WWWScope
+from django_asgi_lifespan.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")
+ASGIScope = WWWScope | LifespanScope
+Receive = Callable[[], Awaitable[ASGIReceiveEvent]]
+Send = Callable[[ASGISendEvent], Awaitable[None]]
 
-application = get_asgi_application()
+django_application = get_asgi_application()
+
+
+async def application(scope: ASGIScope, receive: Receive, send: Send) -> None:
+    if scope["type"] in {"http", "lifespan"}:
+        await django_application(scope, receive, send)
+    else:
+        msg = f"Unknown scope type {scope['type']}"
+        raise NotImplementedError(msg)

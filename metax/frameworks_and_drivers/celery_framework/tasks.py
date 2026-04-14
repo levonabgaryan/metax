@@ -18,7 +18,8 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
-from metax_application_manager import METAX_APPLICATION_MANAGER
+from metax_bootstrap import get_metax_lifespan_manager
+from metax_configs import METAX_CONFIGS
 
 from .celery_application import celery_app
 from .errors import NoRetailersError
@@ -30,7 +31,7 @@ async def collect_discounted_products_from_all_retailers(
     category_classifier_service: CategoryClassifierService,
     start_date_of_collecting: datetime,
 ) -> None:
-    metax_configs = METAX_APPLICATION_MANAGER.get_configs()
+    metax_configs = METAX_CONFIGS
     uow = await unit_of_work_provider.create()
     async with uow:
         retailers = [r async for r in uow.retailer_repo.get_all()]
@@ -77,7 +78,10 @@ async def collect_discounted_products_from_all_retailers(
 
 @celery_app.task(name="CollectDiscountedProducts")
 async def celery_task_collect_discounted_products_from_all_retailers() -> None:
-    patterns = METAX_APPLICATION_MANAGER.get_di_container().patterns_container.container
+    metax_application_manager = get_metax_lifespan_manager()
+    await metax_application_manager.init_di_container_resources()
+    await metax_application_manager.configure_logger()
+    patterns = metax_application_manager.get_di_container().patterns_container.container
     unit_of_work_provider = patterns.unit_of_work_provider()
     category_classifier_service = patterns.category_classifier_service()
     event_bus = await patterns.event_bus.async_()

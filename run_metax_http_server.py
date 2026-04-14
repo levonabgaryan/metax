@@ -6,16 +6,16 @@ from pathlib import Path
 
 import uvicorn
 
-from metax_application_manager import METAX_APPLICATION_MANAGER, MetaxApplicationManager
-from metax_configs import DevConfigs
+from metax_bootstrap import get_metax_lifespan_manager
+from metax_configs import METAX_CONFIGS, BaseConfigs, DevConfigs
+from metax_lifespan import MetaxAppLifespanManager
 
 logger = logging.getLogger(__name__)
 
 _DJANGO_ASGI_APP = "django_framework.asgi:application"
 
 
-async def _run_django_gunicorn_server(_metax_app: MetaxApplicationManager) -> None:
-    _metax_configs = _metax_app.get_configs()
+async def _run_django_gunicorn_server(_metax_app: MetaxAppLifespanManager, _metax_configs: BaseConfigs) -> None:
 
     env = os.environ.copy()
     env["PYTHONPATH"] = os.pathsep.join(
@@ -24,6 +24,7 @@ async def _run_django_gunicorn_server(_metax_app: MetaxApplicationManager) -> No
             str(_metax_configs.django_dir),
         ]
     )
+    env["DJANGO_SETTINGS_MODULE"] = "django_framework.settings"
 
     host = _metax_configs.django_host
     port = _metax_configs.django_port
@@ -58,8 +59,7 @@ async def _run_django_gunicorn_server(_metax_app: MetaxApplicationManager) -> No
         raise RuntimeError(msg)
 
 
-def _run_django_uvicorn_server(_metax_app: MetaxApplicationManager) -> None:
-    _metax_configs = _metax_app.get_configs()
+def _run_django_uvicorn_server(_metax_app: MetaxAppLifespanManager, _metax_configs: BaseConfigs) -> None:
     host = _metax_configs.django_host
     port = _metax_configs.django_port
     project_root_ = _metax_configs.project_root_pythonpath
@@ -71,6 +71,7 @@ def _run_django_uvicorn_server(_metax_app: MetaxApplicationManager) -> None:
     os.environ["PYTHONPATH"] = (
         f"{extra_pythonpath}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else extra_pythonpath
     )
+    os.environ["DJANGO_SETTINGS_MODULE"] = "django_framework.settings"
 
     logger.info("STARTUP | Task: Web Server (uvicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
 
@@ -86,8 +87,7 @@ def _run_django_uvicorn_server(_metax_app: MetaxApplicationManager) -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION_MANAGER))
-    if isinstance(METAX_APPLICATION_MANAGER.get_configs(), DevConfigs):
-        asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION_MANAGER))
+    if isinstance(METAX_CONFIGS, DevConfigs):
+        _run_django_uvicorn_server(get_metax_lifespan_manager(), METAX_CONFIGS)
     else:
-        _run_django_uvicorn_server(METAX_APPLICATION_MANAGER)
+        asyncio.run(_run_django_gunicorn_server(get_metax_lifespan_manager(), METAX_CONFIGS))

@@ -1,12 +1,12 @@
 from celery import Celery
 from celery.schedules import crontab
 
-from metax_application_manager import METAX_APPLICATION_MANAGER
+from metax_configs import METAX_CONFIGS
 
 celery_app = Celery(
     main="metax",
-    backend=METAX_APPLICATION_MANAGER.get_configs().celery_result_backend_url,
-    broker=METAX_APPLICATION_MANAGER.get_configs().celery_broker_url,
+    backend=METAX_CONFIGS.celery_result_backend_url,
+    broker=METAX_CONFIGS.celery_broker_url,
 )
 
 celery_app.conf.update(

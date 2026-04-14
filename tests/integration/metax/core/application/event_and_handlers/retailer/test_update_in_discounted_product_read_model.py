@@ -6,7 +6,7 @@ from metax.core.application.event_handlers.retailer.events import RetailerUpdate
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
-from metax_application_manager import MetaxApplicationManager
+from metax_lifespan import MetaxAppLifespanManager
 from tests.integration.conftest import refresh_opensearch_index
 from tests.utils import (
     make_discounted_product_entity,
@@ -17,7 +17,7 @@ from tests.utils import (
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_update_retailer_in_read_model(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()

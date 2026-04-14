@@ -13,19 +13,18 @@ from pathlib import Path
 
 from django.db.backends.postgresql.psycopg_any import IsolationLevel
 
-from metax_application_manager import METAX_APPLICATION_MANAGER
+from metax_configs import METAX_CONFIGS
 
-METAX_APPLICATION_MANAGER.get_configs()
-DEBUG = METAX_APPLICATION_MANAGER.get_configs().debug
+DEBUG = METAX_CONFIGS.debug
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(METAX_APPLICATION_MANAGER.get_configs().django_dir)
+BASE_DIR = Path(METAX_CONFIGS.django_dir)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = METAX_APPLICATION_MANAGER.get_configs().django_secret_key
+SECRET_KEY = METAX_CONFIGS.django_secret_key
 
 
 ALLOWED_HOSTS: list[str] = ["localhost", "127.0.0.1"]
@@ -54,6 +53,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_asgi_lifespan.middleware.LifespanStateMiddleware",
 ]
 
 ROOT_URLCONF = "django_framework.urls"
@@ -122,11 +122,11 @@ MEDIA_URL = "/media/"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": f"{METAX_APPLICATION_MANAGER.get_configs().postgres_db}",
-        "USER": f"{METAX_APPLICATION_MANAGER.get_configs().postgres_user}",
-        "PASSWORD": f"{METAX_APPLICATION_MANAGER.get_configs().postgres_password}",
-        "HOST": f"{METAX_APPLICATION_MANAGER.get_configs().postgres_host}",
-        "PORT": f"{METAX_APPLICATION_MANAGER.get_configs().postgres_port}",
+        "NAME": f"{METAX_CONFIGS.postgres_db}",
+        "USER": f"{METAX_CONFIGS.postgres_user}",
+        "PASSWORD": f"{METAX_CONFIGS.postgres_password}",
+        "HOST": f"{METAX_CONFIGS.postgres_host}",
+        "PORT": f"{METAX_CONFIGS.postgres_port}",
         "OPTIONS": {
             "pool": True,
             "client_encoding": "UTF8",

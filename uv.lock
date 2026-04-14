@@ -348,6 +348,19 @@ wheels = [
 ]
 
 [[package]]
+name = "django-asgi-lifespan"
+version = "0.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/93/79/14ab57a80b0cc65d032f47661b7cac3a4ce1392ed8b056a4a8caca93e12f/django_asgi_lifespan-0.5.1.tar.gz", hash = "sha256:2e0a422ec53ffac648e0cc247f4728d97b64e0a3c022077f937592d5af024d4b", size = 8458, upload-time = "2026-01-04T21:32:20.374Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c7/60/4aedbd3a5b0f9f6abaa067d1e9c03572c3ef39a666bf33c924f5bb16e740/django_asgi_lifespan-0.5.1-py3-none-any.whl", hash = "sha256:98be665a406ab355d3d96971d2cfa945def764297e8c6162c8e5b1f789c029ba", size = 11374, upload-time = "2026-01-04T21:32:19.591Z" },
+]
+
+[[package]]
 name = "django-modern-rest"
 version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -793,6 +806,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "celery-types" },
     { name = "dependency-injector" },
+    { name = "django-asgi-lifespan" },
     { name = "django-modern-rest", extra = ["openapi", "pydantic"] },
     { name = "django-stubs", extra = ["compatible-mypy"] },
     { name = "gunicorn", extra = ["fast"] },
@@ -824,6 +838,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "celery-types", specifier = ">=0.26.0" },
     { name = "dependency-injector", specifier = ">=4.49.0" },
+    { name = "django-asgi-lifespan", specifier = ">=0.5.1" },
     { name = "django-modern-rest", extras = ["openapi", "pydantic"], specifier = ">=0.6.0" },
     { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=6.0.2" },
     { name = "gunicorn", extras = ["fast"], specifier = ">=25.3.0" },

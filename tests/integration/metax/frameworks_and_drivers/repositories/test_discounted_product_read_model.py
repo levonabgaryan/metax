@@ -5,7 +5,7 @@ import pytest
 
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
-from metax_application_manager import MetaxApplicationManager
+from metax_lifespan import MetaxAppLifespanManager
 from tests.integration.conftest import refresh_opensearch_index
 from tests.utils import (
     make_category_entity,
@@ -16,7 +16,7 @@ from tests.utils import (
 
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -51,7 +51,7 @@ async def test_delete_older_than_and_return_deleted_count(
 
 @pytest.mark.asyncio
 async def test_update_category(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -83,7 +83,7 @@ async def test_update_category(
 
 @pytest.mark.asyncio
 async def test_update_retailer(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -116,7 +116,7 @@ async def test_update_retailer(
 
 @pytest.mark.asyncio
 async def test_get_all(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
@@ -154,7 +154,7 @@ async def test_get_all(
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
 async def test_get_by_name_page(
     query: str,
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()

@@ -66,7 +66,7 @@ def init_logger(metax_configs: BaseConfigs) -> None:
     for logger_name in PACKAGES_TO_MUTE:
         lib_logger = logging.getLogger(logger_name)
         lib_logger.setLevel(logging.WARNING)
-        lib_logger.propagate = True
+        lib_logger.propagate = False
 
     listener.start()
     atexit.register(listener.stop)

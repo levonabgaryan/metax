@@ -4,14 +4,14 @@ from metax.core.application.commands_handlers.category import (
     UpdateCategoryCommand,
     UpdateCategoryCommandHandler,
 )
-from metax_application_manager import MetaxApplicationManager
+from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_update_category_command_handler(
-    metax_app_for_integration_tests: MetaxApplicationManager,
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
