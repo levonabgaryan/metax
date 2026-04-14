@@ -15,7 +15,7 @@ from metax.frameworks_and_drivers.celery_framework.tasks import (
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
+from metax_application import MetaxApplication
 from tests.utils import make_discounted_product_entity, make_retailer_entity
 
 
@@ -39,10 +39,11 @@ def test_collect_products_task_schedule() -> None:
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_collect_discounted_products_from_all_retailers(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     started_time = datetime.now(tz=timezone.utc)
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()

@@ -5,16 +5,17 @@ from metax.core.application.commands_handlers.retailer import (
     UpdateRetailerCommandHandler,
 )
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
+from metax_application import MetaxApplication
 from tests.utils import make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_update_retailer_command_handler(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )

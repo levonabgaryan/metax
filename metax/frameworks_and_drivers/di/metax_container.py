@@ -3,9 +3,6 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
-from config_ import metax_configs
-from metax_logger.logger import init_logger
-
 from .patterns_container import PatternsContainer
 from .repositories_container import RepositoriesContainer
 from .resources import async_opensearch_client_resource
@@ -28,32 +25,3 @@ class MetaxContainer(containers.DeclarativeContainer):
     patterns_container: providers.Container[PatternsContainer] = providers.Container(
         PatternsContainer, repositories_container=repositories_container
     )
-
-
-def _build_metax_container() -> MetaxContainer:
-    service_container_ = MetaxContainer()
-    service_container_.config.from_pydantic(metax_configs)
-    return service_container_
-
-
-_service_container_singleton: MetaxContainer | None = None
-
-
-def get_metax_container() -> MetaxContainer:
-    global _service_container_singleton
-    if _service_container_singleton is None:
-        init_logger()
-        _service_container_singleton = _build_metax_container()
-    return _service_container_singleton
-
-
-async def init_resources(container: MetaxContainer) -> None:
-    init_task = container.init_resources()
-    if init_task:
-        await init_task
-
-
-async def shutdown_resources(container: MetaxContainer) -> None:
-    shutdown_task = container.shutdown_resources()
-    if shutdown_task:
-        await shutdown_task

@@ -2,6 +2,8 @@ import asyncio
 import sys
 from asyncio.subprocess import Process
 
+from metax_application import METAX_APPLICATION
+
 
 async def run_celery_worker(concurrency: int = 1) -> Process:
     cmd = [
@@ -34,10 +36,11 @@ async def run_celery_beat() -> Process:
 
 
 async def run_all_celery() -> None:
-    worker = await run_celery_worker(concurrency=2)
-    beat = await run_celery_beat()
+    async with METAX_APPLICATION:
+        worker = await run_celery_worker(concurrency=2)
+        beat = await run_celery_beat()
 
-    await asyncio.gather(worker.wait(), beat.wait())
+        await asyncio.gather(worker.wait(), beat.wait())
 
 
 if __name__ == "__main__":

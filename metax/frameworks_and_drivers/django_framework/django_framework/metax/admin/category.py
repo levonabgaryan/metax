@@ -5,6 +5,7 @@ from django.contrib.admin import AdminSite
 from django.http import HttpRequest
 from django.http.response import HttpResponse
 from django.shortcuts import redirect, render
+from django_framework.metax.metax_app_context import get_current_metax_app
 
 from metax.core.application.commands_handlers.category import (
     AddNewHelperWordsCommand,
@@ -15,7 +16,6 @@ from metax.core.application.commands_handlers.category import (
     DeleteHelperWordsCommandHandler,
 )
 from metax.core.domain.entities.category.entity import Category
-from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
 class CategoryAdminHandler:
@@ -79,7 +79,7 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
-        container = get_metax_container().patterns_container.container
+        container = get_current_metax_app().get_di_container().patterns_container.container
         unit_of_work_provider = container.unit_of_work_provider()
         event_bus = await container.event_bus.async_()
 
@@ -93,7 +93,7 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
-        container = get_metax_container().patterns_container.container
+        container = get_current_metax_app().get_di_container().patterns_container.container
         unit_of_work_provider = container.unit_of_work_provider()
         event_bus = await container.event_bus.async_()
 
@@ -110,7 +110,7 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
-        container = get_metax_container().patterns_container.container
+        container = get_current_metax_app().get_di_container().patterns_container.container
         unit_of_work_provider = container.unit_of_work_provider()
         event_bus = await container.event_bus.async_()
 
@@ -127,7 +127,7 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __get__all_categories() -> list[Category]:
-        container = get_metax_container().patterns_container.container
+        container = get_current_metax_app().get_di_container().patterns_container.container
         unit_of_work_provider = container.unit_of_work_provider()
         uow = await unit_of_work_provider.create()
         async with uow:

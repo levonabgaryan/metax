@@ -6,16 +6,17 @@ from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
+from metax_application import MetaxApplication
 from tests.utils import make_discounted_product_entity, make_retailer_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_delete_old_data(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity()

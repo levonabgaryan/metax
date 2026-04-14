@@ -85,7 +85,7 @@ services:
       dockerfile: ./Dockerfile.base
     env_file: ".env"
     container_name: metax-celery
-    entrypoint: ["python", "run_celery_metax_app.py"]
+    entrypoint: ["python", "run_metax_celery_app.py"]
     networks:
       - metax-net
     depends_on:

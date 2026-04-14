@@ -3,6 +3,7 @@ from http import HTTPStatus
 from typing import Self, override
 from uuid import UUID
 
+from django_framework.metax.metax_app_context import get_current_metax_app
 from dmr import Body, Controller, modify
 from dmr.plugins.pydantic import PydanticSerializer
 from pydanja import DANJAResource
@@ -12,7 +13,6 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
-from metax.frameworks_and_drivers.di.metax_container import get_metax_container
 
 
 class CategoryResource(BaseModel):
@@ -43,7 +43,7 @@ class CategoryController(Controller[PydanticSerializer]):
         tags=["Category"],
     )
     async def post(self, parsed_body: Body[CategoryDANJAResource]) -> CategoryDANJAResource:
-        container = get_metax_container()
+        container = get_current_metax_app().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()

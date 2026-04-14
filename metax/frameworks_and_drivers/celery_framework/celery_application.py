@@ -1,17 +1,12 @@
-import logging
-from typing import Any
-
 from celery import Celery
 from celery.schedules import crontab
-from celery.signals import after_setup_logger
 
-from config_ import metax_configs
-from metax_logger.logger import init_logger
+from metax_application import METAX_APPLICATION
 
 celery_app = Celery(
     main="metax",
-    backend=metax_configs.celery_result_backend_url,
-    broker=metax_configs.celery_broker_url,
+    backend=METAX_APPLICATION.get_configs().celery_result_backend_url,
+    broker=METAX_APPLICATION.get_configs().celery_broker_url,
 )
 
 celery_app.conf.update(
@@ -25,11 +20,3 @@ celery_app.conf.update(
         },
     },
 )
-
-
-@after_setup_logger.connect
-def setup_celery_logger(logger: logging.Logger, *args: Any, **kwargs: Any) -> None:  # noqa: ARG001
-    """This signal ensures that when Celery starts its worker,
-    it initializes project's custom non-blocking metax_logger.
-    """
-    init_logger()

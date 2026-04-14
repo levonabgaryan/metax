@@ -4,14 +4,15 @@ import pytest
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
+from metax_application import MetaxApplication
 from tests.utils import make_category_entity
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_add_and_get(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_repo_add_and_get(metax_app_for_integration_tests: MetaxApplication) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     category = make_category_entity()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     # when
@@ -32,8 +33,9 @@ async def test_category_repo_add_and_get(metax_container_for_integration_tests: 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_update(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_repo_update(metax_app_for_integration_tests: MetaxApplication) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     category = make_category_entity()
@@ -57,9 +59,10 @@ async def test_category_repo_update(metax_container_for_integration_tests: Metax
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_repo_update_syncs_helper_words_via_diff(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     helper_words = CategoryHelperWords.create(words=frozenset(["keep", "drop", "stay"]))
     category = make_category_entity(helper_words=helper_words)
@@ -87,8 +90,9 @@ async def test_category_repo_update_syncs_helper_words_via_diff(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_uuid(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_is_not_found_by_uuid(metax_app_for_integration_tests: MetaxApplication) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid7()
@@ -100,13 +104,14 @@ async def test_category_is_not_found_by_uuid(metax_container_for_integration_tes
 
     # then
     assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
-    assert err.value.error_code == "CATEGORY_IS_NOT_FOUND"
+    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_name(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_is_not_found_by_name(metax_app_for_integration_tests: MetaxApplication) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     test_name = "test_name"
@@ -118,15 +123,16 @@ async def test_category_is_not_found_by_name(metax_container_for_integration_tes
 
     # then
     assert err.value.title == f"There is no category entity found by field 'name' with value '{test_name}'."
-    assert err.value.error_code == "CATEGORY_IS_NOT_FOUND"
+    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_update_helper_words_when_adding_news(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
@@ -153,9 +159,10 @@ async def test_category_update_helper_words_when_adding_news(
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_update_helper_words_when_deleting(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
@@ -179,8 +186,9 @@ async def test_category_update_helper_words_when_deleting(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_get_all(metax_container_for_integration_tests: MetaxContainer) -> None:
+async def test_category_repo_get_all(metax_app_for_integration_tests: MetaxApplication) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     cat_alpha = make_category_entity(
         name="repo_get_all_alpha",

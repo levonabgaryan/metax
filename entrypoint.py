@@ -7,18 +7,18 @@ from pathlib import Path
 
 from opensearchpy import AsyncOpenSearch
 
-from config_ import metax_configs
+from metax_configs import METAX_CONFIGS
 
 logger = logging.getLogger(__name__)
 
 
 async def _run_postgres_db_migrations() -> None:
-    manage_py = Path(metax_configs.django_dir) / "manage.py"
+    manage_py = Path(METAX_CONFIGS.django_dir) / "manage.py"
     logger.info("STARTUP | Task: Postgres Migrations | Status: Started")
 
     for command in ["makemigrations", "migrate"]:
         process = await asyncio.create_subprocess_exec(
-            sys.executable, str(manage_py), command, cwd=metax_configs.django_dir
+            sys.executable, str(manage_py), command, cwd=METAX_CONFIGS.django_dir
         )
         await process.wait()
         if process.returncode != 0:

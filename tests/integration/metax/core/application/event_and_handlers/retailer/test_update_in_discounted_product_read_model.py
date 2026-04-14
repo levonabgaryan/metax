@@ -5,8 +5,8 @@ import pytest
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
-from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from metax_application import MetaxApplication
 from tests.integration.conftest import refresh_opensearch_index
 from tests.utils import (
     make_discounted_product_entity,
@@ -17,9 +17,10 @@ from tests.utils import (
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_update_retailer_in_read_model(
-    metax_container_for_integration_tests: MetaxContainer,
+    metax_app_for_integration_tests: MetaxApplication,
 ) -> None:
     # given
+    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
@@ -44,7 +45,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         created_at=discounted_product.get_created_at().isoformat(),
     )
     await discounted_product_read_model_repository.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     async with unit_of_work as uow:
         found_retailer = await uow.retailer_repo.get_by_uuid(retailer_uuid=retailer.get_uuid())
@@ -56,7 +57,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
 
     # when
     await event_bus.handle(event)
-    await refresh_opensearch_index(metax_container_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
     product_uuid = str(discounted_product.get_uuid())

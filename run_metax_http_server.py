@@ -1,54 +1,94 @@
-from __future__ import annotations
-
 import asyncio
-import contextlib
 import logging
+import os
 import sys
+from pathlib import Path
 
-from config_ import DevConfigs, metax_configs
-from entrypoint import run_entrypoint
-from metax.frameworks_and_drivers.gunicorn.run_gunicorn_server import run_django_gunicorn_server
-from metax.frameworks_and_drivers.uvicorn.run_uvicorn_server import run_django_uvicorn_server
-from metax_django_application import create_metax_django_app
-from metax_logger.logger import init_logger
+import uvicorn
+
+from metax_application import METAX_APPLICATION, MetaxApplication
+from metax_configs import DevConfigs
 
 logger = logging.getLogger(__name__)
 
+_DJANGO_ASGI_APP = "django_framework.asgi:application"
 
-def run_metax_http_server() -> None:
-    init_logger()
-    app = create_metax_django_app()
-    logger.info("SYSTEM | Application bootstrap started")
-    from metax.frameworks_and_drivers.di.metax_container import (
-        MetaxContainer,
-        init_resources,
-        shutdown_resources,
+
+async def _run_django_gunicorn_server(_metax_app: MetaxApplication) -> None:
+    _metax_configs = _metax_app.get_configs()
+
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(
+        [
+            str(_metax_configs.project_root_pythonpath),
+            str(_metax_configs.django_dir),
+        ]
     )
 
-    container: MetaxContainer = app.container  # type: ignore[attr-defined]
+    host = _metax_configs.django_host
+    port = _metax_configs.django_port
 
-    async def startup() -> None:
-        await init_resources(container)
-        opensearch_client = await container.opensearch_async_client.async_()
-        await run_entrypoint(opensearch_client)
+    gunicorn_conf = (
+        Path(_metax_configs.project_root_pythonpath) / "metax/frameworks_and_drivers/gunicorn/gunicorn.conf.py"
+    )
 
-    try:
-        asyncio.run(startup())
-        if isinstance(metax_configs, DevConfigs):
-            run_django_uvicorn_server()
-        else:
-            asyncio.run(run_django_gunicorn_server())
-    except KeyboardInterrupt:
-        logger.warning("SHUTDOWN | Stop signal received. Cleaning up...")
-    except Exception as e:
-        logger.critical("RUNTIME | Unhandled Exception during startup: %s", e, exc_info=True)
-        sys.exit(1)
-    finally:
-        logger.info("SHUTDOWN | Releasing resources...")
-        asyncio.run(shutdown_resources(container))
-        logger.info("SHUTDOWN | Metax shut down!")
+    command = [
+        "-m",
+        "gunicorn",
+        f"--config={gunicorn_conf}",
+        _DJANGO_ASGI_APP,
+    ]
+    async with _metax_app:
+        process = await asyncio.create_subprocess_exec(
+            sys.executable, *command, cwd=_metax_configs.django_dir, env=env
+        )
+
+        logger.info("STARTUP | Task: Web Server (gunicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
+
+        try:
+            await process.wait()
+        except asyncio.CancelledError:
+            logger.info("SHUTDOWN | Task: Web Server | Status: Terminating (SIGTERM)...")
+            process.terminate()
+            await process.wait()
+            logger.info("SHUTDOWN | Task: Web Server | Status: Clean Shutdown")
+
+        if process.returncode != 0 and process.returncode != -15:
+            logger.error("RUNTIME | Task: Web Server | Status: CRASHED | ExitCode: %s", process.returncode)
+            msg = f"Gunicorn failed with exit code {process.returncode}"
+            raise RuntimeError(msg)
+
+
+def _run_django_uvicorn_server(_metax_app: MetaxApplication) -> None:
+    _metax_configs = _metax_app.get_configs()
+    host = _metax_configs.django_host
+    port = _metax_configs.django_port
+    project_root_ = _metax_configs.project_root_pythonpath
+    django_dir_ = _metax_configs.django_dir
+
+    # Ensure the reloader subprocess can import django_framework package.
+    existing_pythonpath = os.environ.get("PYTHONPATH", "")
+    extra_pythonpath = os.pathsep.join([str(project_root_), str(django_dir_)])
+    os.environ["PYTHONPATH"] = (
+        f"{extra_pythonpath}{os.pathsep}{existing_pythonpath}" if existing_pythonpath else extra_pythonpath
+    )
+
+    logger.info("STARTUP | Task: Web Server (uvicorn) | Status: RUNNING | Address: http://%s:%s", host, port)
+
+    uvicorn.run(
+        _DJANGO_ASGI_APP,
+        host=host,
+        port=port,
+        reload=True,
+        reload_dirs=[project_root_, django_dir_],
+        app_dir=str(django_dir_),
+        loop="uvloop",
+    )
 
 
 if __name__ == "__main__":
-    with contextlib.suppress(KeyboardInterrupt):
-        run_metax_http_server()
+    asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION))
+    if isinstance(METAX_APPLICATION.get_configs(), DevConfigs):
+        asyncio.run(_run_django_gunicorn_server(METAX_APPLICATION))
+    else:
+        _run_django_uvicorn_server(METAX_APPLICATION)

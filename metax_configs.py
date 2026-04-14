@@ -164,4 +164,4 @@ def configuration_factory() -> BaseConfigs:
             raise RuntimeError(msg)
 
 
-metax_configs = configuration_factory()
+METAX_CONFIGS = configuration_factory()
