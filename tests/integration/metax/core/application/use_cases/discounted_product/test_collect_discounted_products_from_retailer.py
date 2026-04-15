@@ -1,53 +1,97 @@
-# from datetime import datetime, timezone
-# from unittest.mock import MagicMock
-#
-# import pytest
-#
-# from metax.core.application.use_cases.discounted_product_collector_services.dtos import (
-#     CollectDiscountedProductsFromRetailerRequest,
-# )
-# from metax.frameworks_and_drivers.di.bootstrap import MetaxContainer
-# from tests.utils import make_retailer_entity, __aiter_wrapper
-#
-#
-# @pytest.mark.django_db(transaction=True)
-# @pytest.mark.asyncio
-# async def test_collect_discounted_products_from_retailer_use_case_saves_products_in_db(
-#     service_container_for_tests: ServiceContainer,
-# ) -> None:
-#     # given
-#     unit_of_work = await service_container_for_tests.patterns_container.container.unit_of_work.async_()
-#     retailer = make_retailer_entity()
-#
-#     await unit_of_work.retailer_repo.add(retailer)
-#     scrapper_mock = MagicMock()
-#     mock_data = [
-#         {"name": "lays", "real_price": "850", "discounted_price": "650.0", "url": "http://test.com/1"},
-#         {"name": "cola", "real_price": "450.0", "discounted_price": 350, "url": "http://test.com/2"},
-#     ]
-#     scrapper_mock.fetch.side_effect = lambda: __aiter_wrapper(mock_data)
-#
-#     # when
-#     started_date = datetime.now(tz=timezone.utc)
-#     request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
-#
-#     with metax_container_for_integration_tests.patterns_container.container.discounted_product_factory.override(
-#         mocked_factory_class
-#     ):
-#         use_case = await metax_container_for_integration_tests.use_cases_container.container.discounted_product_c
-#         ollector_services.container.collect_discounted_products_from_retailer.async_()
-#         request = CollectDiscountedProductsFromRetailerRequest(started_time=started_date)
-#         response = await use_case.execute(request)
-#
-#     # then
-#     assert response.added_count == 5
-#
-#     all_discounted_products = [product async for product in unit_of_work.discounted_product_repo.get_all()]
-#
-#     discounted_product_models = [
-#         model async for model in DiscountedProductModel._default_manager.filter(created_at=started_date)
-#     ]
-#     for product in discounted_product_models:
-#         assert product.created_at == started_date
-#
-#     assert all_discounted_products == expected_products
+from __future__ import annotations
+
+from datetime import datetime, timezone
+from typing import AsyncIterator, override
+from unittest.mock import AsyncMock
+
+import pytest
+
+from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
+    DiscountedProductCollectorService,
+)
+from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
+    DiscountedProductCollectorServiceCreator,
+)
+from metax.core.application.use_cases.discounted_product.collect_discounted_products import (
+    CollectDiscountedProducts,
+)
+from metax.core.application.use_cases.discounted_product.dtos import (
+    CollectDiscountedProductsRequest,
+)
+from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax_lifespan import MetaxAppLifespanManager
+from tests.utils import make_discounted_product_entity, make_retailer_entity
+
+
+class _FakeDiscountedProductsCreator(DiscountedProductCollectorServiceCreator):
+    def __init__(self, started_at: datetime, items: list[DiscountedProduct]) -> None:
+        super().__init__(start_date_of_collecting=started_at)
+        self._items = items
+
+    @override
+    def create_collector_service(self) -> DiscountedProductCollectorService:  # pragma: no cover
+        raise NotImplementedError
+
+    @override
+    async def do_collect(self) -> AsyncIterator[DiscountedProduct]:
+        for item in self._items:
+            yield item
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_collect_discounted_products_use_case_saves_products_in_db(
+    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # given
+    metax_container = metax_app_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    started_at = datetime.now(tz=timezone.utc)
+    retailer = make_retailer_entity()
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.commit()
+
+    products_to_collect = [
+        make_discounted_product_entity(
+            retailer_uuid=retailer.get_uuid(),
+            created_at=started_at,
+            name="lays",
+            url="http://test.com/1",
+        ),
+        make_discounted_product_entity(
+            retailer_uuid=retailer.get_uuid(),
+            created_at=started_at,
+            name="cola",
+            url="http://test.com/2",
+        ),
+    ]
+    creator = _FakeDiscountedProductsCreator(started_at=started_at, items=products_to_collect)
+
+    category_classifier = metax_container.patterns_container.container.category_classifier_service()
+    monkeypatch.setattr(category_classifier, "classify_category", AsyncMock(return_value=None))
+    event_bus = await metax_container.patterns_container.container.event_bus.async_()
+
+    use_case = CollectDiscountedProducts(
+        unit_of_work_provider=metax_container.patterns_container.container.unit_of_work_provider(),
+        event_bus=event_bus,
+        discounted_product_collector_service_creator=creator,
+        category_classifier_service=category_classifier,
+        batch_size_for_saving_discounted_products=1,
+    )
+
+    # when
+    response = await use_case.handle_use_case(
+        CollectDiscountedProductsRequest(start_date_of_collecting=started_at)
+    )
+
+    # then
+    assert response.added_count == 2
+    async with unit_of_work as uow:
+        saved_products = [p async for p in uow.discounted_product_repo.get_all()]
+
+    assert len(saved_products) == 2
+    assert {p.get_name() for p in saved_products} == {"lays", "cola"}
+    assert {p.get_url() for p in saved_products} == {"http://test.com/1", "http://test.com/2"}
