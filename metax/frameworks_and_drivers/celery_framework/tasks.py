@@ -77,10 +77,12 @@ async def collect_discounted_products_from_all_retailers(
 
 
 @celery_app.task(name="CollectDiscountedProducts")
-async def celery_task_collect_discounted_products_from_all_retailers() -> None:
+def celery_task_collect_discounted_products_from_all_retailers() -> None:
+    asyncio.run(_celery_task_collect_discounted_products_from_all_retailers())
+
+
+async def _celery_task_collect_discounted_products_from_all_retailers() -> None:
     metax_application_manager = get_metax_lifespan_manager()
-    await metax_application_manager.init_di_container_resources()
-    await metax_application_manager.configure_logger()
     patterns = metax_application_manager.get_di_container().patterns_container.container
     unit_of_work_provider = patterns.unit_of_work_provider()
     category_classifier_service = patterns.category_classifier_service()

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import sys
+
 from entrypoint import run_entrypoint
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 from metax_configs import BaseConfigs
@@ -54,20 +57,30 @@ class MetaxAppLifespanManager:
             await init_task
         self.__is_resources_initialized = True
 
-    async def configure_logger(self) -> None:
+    def configure_logger(self) -> None:
         init_logger(metax_configs=self.__metax_configs)
 
     async def run_entrypoints(self) -> None:
         opensearch_async_client = await self.get_di_container().opensearch_async_client.async_()
         await run_entrypoint(client=opensearch_async_client, metax_configs=self.__metax_configs)
 
-    @staticmethod
-    def configure_django_app() -> None:
+    def configure_django_app(self) -> None:
         import django
         from django.conf import settings
 
+        project_root = self.__metax_configs.project_root_pythonpath
+        django_dir = self.__metax_configs.django_dir
+
+        if project_root not in sys.path:
+            sys.path.insert(0, project_root)
+        if django_dir not in sys.path:
+            sys.path.insert(0, django_dir)
+
+        os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")
+
         if not settings.configured:
-            settings.configure()
+            django.setup(set_prefix=False)
+            return
         django.setup()
 
     # ==========================================

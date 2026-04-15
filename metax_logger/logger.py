@@ -8,6 +8,7 @@ from metax_configs import BaseConfigs
 
 LOG_FORMAT = "[%(asctime)s] [%(levelname)s] [%(filename)s:%(lineno)s %(threadName)s] [%(name)s] [%(message)s]"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+_listener: QueueListener | None = None
 
 PACKAGES_TO_MUTE = [
     "django",
@@ -35,11 +36,13 @@ def init_logger(metax_configs: BaseConfigs) -> None:
     """
     root_logger = logging.getLogger()
 
-    # Prevent duplicate initialization and clear default handlers (e.g., from Pytest)
-    # If handlers already exist but aren't our QueueHandler, we clear them
-    # to ensure our custom formatting and non-blocking logic take precedence.
-    if any(isinstance(h, QueueHandler) for h in root_logger.handlers):
-        return
+    global _listener
+
+    # In prefork environments (e.g. Celery), handlers are inherited by child
+    # processes but listener threads are not. Always reinitialize safely.
+    if _listener is not None:
+        _listener.stop()
+        _listener = None
 
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
@@ -66,9 +69,15 @@ def init_logger(metax_configs: BaseConfigs) -> None:
     for logger_name in PACKAGES_TO_MUTE:
         lib_logger = logging.getLogger(logger_name)
         lib_logger.setLevel(logging.WARNING)
-        lib_logger.propagate = False
+        lib_logger.propagate = True
+
+    # Celery logs should stay visible at INFO level.
+    celery_logger = logging.getLogger("celery")
+    celery_logger.setLevel(logging.INFO)
+    celery_logger.propagate = True
 
     listener.start()
+    _listener = listener
     atexit.register(listener.stop)
 
     return

@@ -12,7 +12,7 @@ from metax_lifespan import MetaxAppLifespanManager
 async def metax_app_for_integration_tests() -> AsyncIterator[MetaxAppLifespanManager]:
     metax_application_manager = get_metax_lifespan_manager()
     await metax_application_manager.init_di_container_resources()
-    await metax_application_manager.configure_logger()
+    metax_application_manager.configure_logger()
     metax_application_manager.configure_django_app()
     await metax_application_manager.run_entrypoints()
     try:
