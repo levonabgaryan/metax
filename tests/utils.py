@@ -89,20 +89,23 @@ def make_discounted_product_read_model(
     category_name: str | None = None,
     retailer_uuid: str = str(uuid7()),
     retailer_name: str = "test_retailer_name",
-    url: str | None = None,
+    url: str = "test_url",
 ) -> DiscountedProductReadModel:
-    return DiscountedProductReadModel(
+    result = DiscountedProductReadModel(
         uuid_=discounted_product_uuid,
         name=name,
         real_price=real_price,
         discounted_price=discounted_price,
-        category_uuid=category_uuid,
-        category_name=category_name,
         retailer_uuid=retailer_uuid,
         retailer_name=retailer_name,
         url=url,
         created_at=created_at.isoformat(),
     )
+    if category_uuid is not None:
+        result["category_uuid"] = category_uuid
+    if category_name is not None:
+        result["category_name"] = category_name
+    return result
 
 
 async def mock_create_many_discounted_products_from_retailer(

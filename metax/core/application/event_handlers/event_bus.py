@@ -160,19 +160,19 @@ class EventBus:
 
 
 def to_read_model(discounted_product_with_details: DiscountedProductWithDetails) -> DiscountedProductReadModel:
-    return DiscountedProductReadModel(
+    result = DiscountedProductReadModel(
         uuid_=str(discounted_product_with_details.entity.get_uuid()),
         name=discounted_product_with_details.entity.get_name(),
         real_price=float(discounted_product_with_details.entity.get_real_price()),
         discounted_price=float(discounted_product_with_details.entity.get_discounted_price()),
-        category_uuid=str(discounted_product_with_details.entity.get_category_uuid())
-        if discounted_product_with_details.entity.has_category()
-        else None,
-        category_name=str(discounted_product_with_details.category_name)
-        if discounted_product_with_details.entity.has_category()
-        else None,
         retailer_uuid=str(discounted_product_with_details.entity.get_retailer_uuid()),
         retailer_name=str(discounted_product_with_details.retailer_name),
         url=str(discounted_product_with_details.entity.get_url()),
         created_at=discounted_product_with_details.entity.get_created_at().isoformat(),
     )
+    if discounted_product_with_details.entity.has_category():
+        result["category_uuid"] = str(discounted_product_with_details.entity.get_category_uuid())
+    if discounted_product_with_details.entity.has_category():
+        result["category_name"] = discounted_product_with_details.entity.get_name()
+
+    return result

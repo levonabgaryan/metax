@@ -48,6 +48,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
                 retailer_uuid=str(product.get_retailer_uuid()),
                 retailer_name=retailer.get_name(),
                 created_at=product.get_created_at().isoformat(),
+                url=product.get_url(),
             )
         )
 

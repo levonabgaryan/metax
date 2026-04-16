@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from datetime import datetime
-from typing import AsyncIterator, NamedTuple
+from typing import AsyncIterator
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
@@ -9,7 +10,8 @@ from metax.core.domain.entities.discounted_product.entity import (
 )
 
 
-class DiscountedProductWithDetails(NamedTuple):
+@dataclass(frozen=True)
+class DiscountedProductWithDetails:
     entity: DiscountedProduct
     category_name: str | None
     retailer_name: str

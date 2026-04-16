@@ -130,18 +130,22 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         response = await self.__opensearch_async_client.get(id=uuid_, index=self.__alias_name)
         document: dict[str, Any] = response["_source"]
 
-        return DiscountedProductReadModel(
+        result = DiscountedProductReadModel(
             uuid_=response["_id"],
             name=document["name"],
             real_price=document["real_price"],
             discounted_price=document["discounted_price"],
-            category_uuid=document.get("category_uuid"),
-            category_name=document.get("category_name"),
             retailer_uuid=document["retailer_uuid"],
             retailer_name=document["retailer_name"],
-            url=document.get("url"),
+            url=document["url"],
             created_at=document["created_at"],
         )
+
+        if document.get("category_uuid"):
+            result["category_uuid"] = document["category_uuid"]
+        if document.get("category_name"):
+            result["category_name"] = document["category_name"]
+        return result
 
     @override
     async def get_by_name_page(

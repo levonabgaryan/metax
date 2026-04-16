@@ -48,6 +48,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         retailer_uuid=str(discounted_product.get_retailer_uuid()),
         retailer_name=retailer.get_name(),
         created_at=discounted_product.get_created_at().isoformat(),
+        url=discounted_product.get_url(),
     )
     await discounted_product_read_model_repository.add_many([discounted_product_read_model_])
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
