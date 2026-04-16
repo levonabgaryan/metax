@@ -17,7 +17,6 @@ from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
     CollectDiscountedProductsResponse,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
 
 logger = logging.getLogger(__name__)
@@ -53,7 +52,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
                 discounted_product_name=discounted_product.get_name()
             )
             if category is not None:
-                discounted_product.set_category_uuid(category_uuid=UUIDValueObject.create(category.get_uuid()))
+                discounted_product.set_category_uuid(category_uuid=category.get_uuid())
             batch.append(discounted_product)
 
             if len(batch) >= self.__batch_size_for_saving_discounted_products:

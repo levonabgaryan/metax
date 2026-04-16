@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 from uuid import uuid7
 
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
@@ -10,11 +9,12 @@ def test_retailer_update() -> None:
     # given
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     retailer = Retailer(
-        uuid_=UUIDValueObject.create(uuid7()),
+        uuid_=uuid7(),
         name=RetailersNames.YEREVAN_CITY,
         home_page_url="test_url",
         phone_number="test_number",
-        datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),
+        created_at=ts,
+        updated_at=ts,
     )
 
     # when
@@ -32,8 +32,9 @@ def test_retailer_setter_touches_updated_at() -> None:
     # given
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     retailer = Retailer(
-        uuid_=UUIDValueObject.create(uuid7()),
-        datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),
+        uuid_=uuid7(),
+        created_at=ts,
+        updated_at=ts,
         name=RetailersNames.YEREVAN_CITY,
         home_page_url="test_url",
         phone_number="test_number",

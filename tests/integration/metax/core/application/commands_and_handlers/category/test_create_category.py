@@ -6,7 +6,6 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax_lifespan import MetaxAppLifespanManager
 
 
@@ -35,7 +34,7 @@ async def test_create_category_command_handler(
     # then
     uow = await unit_of_work_provider.provide()
     async with uow:
-        category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category_uuid))
+        category = await uow.category_repo.get_by_uuid(category_uuid)
     assert category.get_uuid() == category_uuid
     assert category.get_name() == cmd.name
     assert category.get_helper_words() == {"B", "A"}

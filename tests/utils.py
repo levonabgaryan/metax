@@ -5,13 +5,10 @@ from typing import Any, AsyncIterator, Iterable, Iterator
 from uuid import UUID, uuid7
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
@@ -19,7 +16,7 @@ from metax.core.domain.entities.retailer.value_objects import RetailersNames
 def make_category_entity(
     category_uuid: UUID | None = None,
     name: str = "test_category_name",
-    helper_words: CategoryHelperWords | None = None,
+    helper_words: frozenset[str] | None = None,
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> Category:
@@ -29,17 +26,16 @@ def make_category_entity(
 
     return Category(
         name=name,
-        uuid_=UUIDValueObject.create(category_uuid or uuid7()),
-        helper_words=helper_words
-        if helper_words is not None
-        else CategoryHelperWords.create(words=frozenset(["test_word1", "test_word2"])),
-        datetime_details=EntityDateTimeDetails.create(created_at=created, updated_at=updated),
+        uuid_=category_uuid or uuid7(),
+        helper_words=helper_words if helper_words is not None else frozenset(["test_word1", "test_word2"]),
+        created_at=created,
+        updated_at=updated,
     )
 
 
 def make_retailer_entity(
     retailer_uuid: UUID | None = None,
-    name: RetailersNames = RetailersNames.YEREVAN_CITY,
+    name: str = RetailersNames.YEREVAN_CITY,
     url: str = "test_retailer_url",
     phone_number: str = "test_retailer_phone_number",
     created_at: datetime | None = None,
@@ -49,11 +45,12 @@ def make_retailer_entity(
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
     return Retailer(
-        uuid_=UUIDValueObject.create(retailer_uuid or uuid7()),
+        uuid_=retailer_uuid or uuid7(),
         name=name,
         phone_number=phone_number,
         home_page_url=url,
-        datetime_details=EntityDateTimeDetails.create(created_at=created, updated_at=updated),
+        created_at=created,
+        updated_at=updated,
     )
 
 
@@ -63,23 +60,22 @@ def make_discounted_product_entity(
     category_uuid: UUID | None = None,
     discounted_product_uuid: UUID | None = None,
     name: str = "test_discounted_product_name",
-    price_details: PriceDetails | None = None,
+    real_price: Decimal = Decimal("100"),
+    discounted_price: Decimal = Decimal("50"),
     url: str = "test_discounted_product_url",
     updated_at: datetime | None = None,
 ) -> DiscountedProduct:
-    price_details = price_details or PriceDetails.create(
-        real_price=Decimal("100"),
-        discounted_price=Decimal("50"),
-    )
     updated = updated_at or (created_at + timedelta(seconds=1))
     return DiscountedProduct(
         name=name,
-        retailer_uuid=UUIDValueObject.create(retailer_uuid),
-        category_uuid=UUIDValueObject.create(category_uuid) if category_uuid is not None else None,
-        uuid_=UUIDValueObject.create(discounted_product_uuid or uuid7()),
-        price_details=price_details,
+        retailer_uuid=retailer_uuid,
+        category_uuid=category_uuid,
+        uuid_=discounted_product_uuid or uuid7(),
+        real_price=real_price,
+        discounted_price=discounted_price,
         url=url,
-        datetime_details=EntityDateTimeDetails.create(created_at=created_at, updated_at=updated),
+        created_at=created_at,
+        updated_at=updated,
     )
 
 

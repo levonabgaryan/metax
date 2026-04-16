@@ -8,8 +8,6 @@ from metax.core.application.ports.ddd_patterns.repository.read_models_repositori
     IDiscountedProductReadModelRepository,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
@@ -31,14 +29,14 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         return int(response.get("deleted", 0))
 
     @override
-    async def update_category(self, updated_category: Category) -> None:
+    async def update_category_names_by_category_uuid(self, category_uuid: str, new_category_name: str) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
-            "query": {"term": {"category_uuid": str(updated_category.get_uuid())}},
+            "query": {"term": {"category_uuid": category_uuid}},
             "script": {
                 "source": "ctx._source.category_name = params.new_name",
                 "lang": "painless",
-                "params": {"new_name": updated_category.get_name()},
+                "params": {"new_name": new_category_name},
             },
         }
         await self.__opensearch_async_client.update_by_query(
@@ -47,14 +45,14 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         )
 
     @override
-    async def update_retailer(self, updated_retailer: Retailer) -> None:
+    async def update_retailer_names_by_retailer_uuid(self, retailer_uuid: str, new_retailer_name: str) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
-            "query": {"term": {"retailer_uuid": str(updated_retailer.get_uuid())}},
+            "query": {"term": {"retailer_uuid": retailer_uuid}},
             "script": {
                 "source": "ctx._source.retailer_name = params.new_name",
                 "lang": "painless",
-                "params": {"new_name": updated_retailer.get_name().value},
+                "params": {"new_name": new_retailer_name},
             },
         }
 

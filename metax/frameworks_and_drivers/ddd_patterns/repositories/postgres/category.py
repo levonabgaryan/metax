@@ -9,11 +9,9 @@ from django.db.backends.utils import CursorWrapper
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import (
     Category,
 )
-from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 
 type CategoryName = str
 type HelperWord = str
@@ -62,8 +60,8 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         await sync_to_async(_sync_version)(category)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Category | None:
-        def _sync_version(_category_uuid: UUIDValueObject) -> Category | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
+        def _sync_version(_category_uuid: UUID) -> Category | None:
             _category_select_query = """
                 SELECT
                     c.category_uuid,
@@ -79,7 +77,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             _cursor: CursorWrapper
 
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_select_query, params=[_category_uuid.value])
+                _cursor.execute(sql=_category_select_query, params=[_category_uuid])
                 _rows: list[tuple[UUID, str, datetime, datetime, str | None]] = _cursor.fetchall()
 
                 if _rows:
@@ -91,12 +89,11 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
 
                     return Category(
-                        uuid_=UUIDValueObject.create(_db_category_uuid),
+                        uuid_=_db_category_uuid,
                         name=_category_name,
-                        helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
-                        datetime_details=EntityDateTimeDetails.create(
-                            created_at=_created_at, updated_at=_updated_at
-                        ),
+                        helper_words=frozenset(_helper_words),
+                        created_at=_created_at,
+                        updated_at=_updated_at,
                     )
                 return None
 
@@ -129,12 +126,11 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _updated_at = _first_row[3]
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
                     return Category(
-                        uuid_=UUIDValueObject.create(_category_uuid),
+                        uuid_=_category_uuid,
                         name=_category_name,
-                        helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
-                        datetime_details=EntityDateTimeDetails.create(
-                            created_at=_created_at, updated_at=_updated_at
-                        ),
+                        helper_words=frozenset(_helper_words),
+                        created_at=_created_at,
+                        updated_at=_updated_at,
                     )
                 return None
 
@@ -232,12 +228,11 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
             return [
                 Category(
-                    uuid_=UUIDValueObject.create(_category_uid),
+                    uuid_=_category_uid,
                     name=_name_and_words[0],
-                    helper_words=CategoryHelperWords.create(words=frozenset(_name_and_words[3])),
-                    datetime_details=EntityDateTimeDetails.create(
-                        created_at=_name_and_words[1], updated_at=_name_and_words[2]
-                    ),
+                    helper_words=frozenset(_name_and_words[3]),
+                    created_at=_name_and_words[1],
+                    updated_at=_name_and_words[2],
                 )
                 for _category_uid, _name_and_words in _category_map.items()
             ]

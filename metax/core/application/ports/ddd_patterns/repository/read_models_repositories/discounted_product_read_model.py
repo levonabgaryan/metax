@@ -3,8 +3,6 @@ from datetime import datetime
 from typing import AsyncIterator
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.retailer.entity import Retailer
 
 
 class IDiscountedProductReadModelRepository(ABC):
@@ -13,11 +11,11 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_category(self, updated_category: Category) -> None:
+    async def update_category_names_by_category_uuid(self, category_uuid: str, new_category_name: str) -> None:
         pass
 
     @abstractmethod
-    async def update_retailer(self, updated_retailer: Retailer) -> None:
+    async def update_retailer_names_by_retailer_uuid(self, retailer_uuid: str, new_retailer_name: str) -> None:
         pass
 
     @abstractmethod

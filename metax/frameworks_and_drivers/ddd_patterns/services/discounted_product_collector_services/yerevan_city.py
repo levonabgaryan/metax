@@ -10,11 +10,9 @@ import httpx
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
     InvalidUrlForScrappingError,
@@ -56,18 +54,14 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
 
         for raw_product in raw_products:
             yield DiscountedProduct(
-                uuid_=UUIDValueObject.create(uuid.uuid7()),
+                uuid_=uuid.uuid7(),
                 name=self.clean_discounted_product_name(text=raw_product["name"]),
-                price_details=PriceDetails.create(
-                    real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),
-                    discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discountedPrice"])),
-                ),
+                real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),
+                discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discountedPrice"])),
                 url=f"{self.__yerevan_city_products_details_url}/{raw_product['id']}",
-                datetime_details=EntityDateTimeDetails.create(
-                    created_at=start_date_of_collecting,
-                    updated_at=start_date_of_collecting,
-                ),
-                retailer_uuid=UUIDValueObject.create(self._retailer.get_uuid()),
+                created_at=start_date_of_collecting,
+                updated_at=start_date_of_collecting,
+                retailer_uuid=self._retailer.get_uuid(),
                 category_uuid=None,
             )
             await asyncio.sleep(0.0)

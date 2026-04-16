@@ -71,7 +71,10 @@ async def test_update_category(
 
     # when
     category.set_name("category_new_name")
-    await repo.update_category(updated_category=category)
+    await repo.update_category_names_by_category_uuid(
+        category_uuid=str(category.get_uuid()),
+        new_category_name=category.get_name(),
+    )
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
@@ -93,16 +96,19 @@ async def test_update_retailer(
         created_at=created_at,
         discounted_product_uuid=str(uuid.uuid7()),
         retailer_uuid=str(retailer.get_uuid()),
-        retailer_name=retailer.get_name().value,
+        retailer_name=retailer.get_name(),
     )
     await repo.add_many([discounted_product_read_model_])
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
-    retailer.set_name(RetailersNames.SAS_AM)
+    retailer.set_name(RetailersNames.SAS_AM.value)
     retailer.set_home_page_url("new_url")
     retailer.set_phone_number("new_phone_number")
-    await repo.update_retailer(updated_retailer=retailer)
+    await repo.update_retailer_names_by_retailer_uuid(
+        retailer_uuid=str(retailer.get_uuid()),
+        new_retailer_name=retailer.get_name(),
+    )
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then

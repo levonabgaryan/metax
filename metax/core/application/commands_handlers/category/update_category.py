@@ -6,7 +6,6 @@ from uuid import UUID
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
 from metax.core.application.event_handlers.category.events import CategoryUpdated
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
         uow = await self._unit_of_work_provider.provide()
         async with uow:
             repo = uow.category_repo
-            category = await repo.get_by_uuid(UUIDValueObject.create(command.category_uuid))
+            category = await repo.get_by_uuid(command.category_uuid)
             if command.new_name is not None:
                 category.set_name(command.new_name)
 

@@ -1,24 +1,23 @@
 from abc import ABC, abstractmethod
 from typing import AsyncIterator
+from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.entity import Retailer
-from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 class RetailerRepository(ABC):
-    async def get_by_uuid(self, uuid_: UUIDValueObject) -> Retailer:
+    async def get_by_uuid(self, uuid_: UUID) -> Retailer:
         retailer = await self._get_by_uuid(uuid_=uuid_)
         if retailer is None:
             raise EntityIsNotFoundError(
                 entity_name="retailer",
                 searched_field_name="uuid",
-                searched_field_value=str(uuid_.value),
+                searched_field_value=str(uuid_),
             )
         return retailer
 
-    async def get_by_name(self, name: RetailersNames) -> Retailer:
+    async def get_by_name(self, name: str) -> Retailer:
         retailer = await self._get_by_name(name=name)
         if retailer is None:
             raise EntityIsNotFoundError(
@@ -39,7 +38,7 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Retailer | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
         pass
 
     @abstractmethod
@@ -47,7 +46,7 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_name(self, name: RetailersNames) -> Retailer | None:
+    async def _get_by_name(self, name: str) -> Retailer | None:
         pass
 
     @abstractmethod

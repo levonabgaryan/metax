@@ -11,11 +11,9 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 
 type CategoryUUID = UUID | None
 type RetailerUUID = UUID
@@ -66,8 +64,8 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(discounted_products)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> DiscountedProduct | None:
-        def _sync_version(_discounted_product_uuid: UUIDValueObject) -> DiscountedProduct | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
+        def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
             _select_query = """
                 SELECT
                     real_price,
@@ -83,20 +81,19 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(_select_query, [_discounted_product_uuid.value])
+                _cursor.execute(_select_query, [_discounted_product_uuid])
                 row = _cursor.fetchone()
                 if row is not None:
                     return DiscountedProduct(
-                        uuid_=UUIDValueObject.create(_discounted_product_uuid.value),
-                        price_details=PriceDetails.create(
-                            real_price=row[0],
-                            discounted_price=row[1],
-                        ),
+                        uuid_=_discounted_product_uuid,
+                        real_price=row[0],
+                        discounted_price=row[1],
                         name=row[2],
                         url=row[3],
-                        category_uuid=UUIDValueObject.create(row[4]) if row[4] is not None else None,
-                        retailer_uuid=UUIDValueObject.create(row[5]),
-                        datetime_details=EntityDateTimeDetails.create(created_at=row[6], updated_at=row[7]),
+                        category_uuid=row[4],
+                        retailer_uuid=row[5],
+                        created_at=row[6],
+                        updated_at=row[7],
                     )
             return None
 
@@ -194,16 +191,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     category_name=row[9],
                     retailer_name=row[10],
                     entity=DiscountedProduct(
-                        uuid_=UUIDValueObject.create(row[0]),
-                        price_details=PriceDetails.create(
-                            real_price=row[1],
-                            discounted_price=row[2],
-                        ),
+                        uuid_=row[0],
+                        real_price=row[1],
+                        discounted_price=row[2],
                         name=row[3],
                         url=row[4],
-                        category_uuid=UUIDValueObject.create(row[5]) if row[5] is not None else None,
-                        retailer_uuid=UUIDValueObject.create(row[6]),
-                        datetime_details=EntityDateTimeDetails.create(created_at=row[7], updated_at=row[8]),
+                        category_uuid=row[5],
+                        retailer_uuid=row[6],
+                        created_at=row[7],
+                        updated_at=row[8],
                     ),
                 )
                 for row in rows
@@ -236,16 +232,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             )
             return [
                 DiscountedProduct(
-                    uuid_=UUIDValueObject.create(row[0]),
-                    price_details=PriceDetails.create(
-                        real_price=row[1],
-                        discounted_price=row[2],
-                    ),
+                    uuid_=row[0],
+                    real_price=row[1],
+                    discounted_price=row[2],
                     name=row[3],
                     url=row[4],
-                    category_uuid=UUIDValueObject.create(row[5]) if row[5] is not None else None,
-                    retailer_uuid=UUIDValueObject.create(row[6]),
-                    datetime_details=EntityDateTimeDetails.create(created_at=row[7], updated_at=row[8]),
+                    category_uuid=row[5],
+                    retailer_uuid=row[6],
+                    created_at=row[7],
+                    updated_at=row[8],
                 )
                 for row in rows
             ]

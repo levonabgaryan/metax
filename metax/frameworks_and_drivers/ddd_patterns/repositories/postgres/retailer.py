@@ -1,4 +1,5 @@
 from typing import AsyncIterator, Iterator, override
+from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from django.db import connection
@@ -7,9 +8,7 @@ from django.db.backends.utils import CursorWrapper
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import (
     RetailerRepository,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.retailer.entity import Retailer
-from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
@@ -37,8 +36,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         await sync_to_async(_sync_version)(retailer)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Retailer | None:
-        def _sync_version(_retailer_uuid: UUIDValueObject) -> Retailer | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
+        def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
             _select_query = """
                 SELECT
                     retailer_uuid,
@@ -52,23 +51,24 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_select_query, params=[_retailer_uuid.value])
+                _cursor.execute(sql=_select_query, params=[_retailer_uuid])
                 row = _cursor.fetchone()
                 if row is None:
                     return None
                 return Retailer(
-                    uuid_=UUIDValueObject.create(row[0]),
-                    name=RetailersNames(row[1]),
+                    uuid_=row[0],
+                    name=row[1],
                     home_page_url=row[2],
                     phone_number=row[3],
-                    datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
+                    created_at=row[4],
+                    updated_at=row[5],
                 )
 
         return await sync_to_async(_sync_version)(uuid_)
 
     @override
-    async def _get_by_name(self, name: RetailersNames) -> Retailer | None:
-        def _sync_version(_retailer_name: RetailersNames) -> Retailer | None:
+    async def _get_by_name(self, name: str) -> Retailer | None:
+        def _sync_version(_retailer_name: str) -> Retailer | None:
             _select_query = """
                 SELECT
                     retailer_uuid,
@@ -87,11 +87,12 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    uuid_=UUIDValueObject.create(row[0]),
-                    name=RetailersNames(row[1]),
+                    uuid_=row[0],
+                    name=row[1],
                     home_page_url=row[2],
                     phone_number=row[3],
-                    datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
+                    created_at=row[4],
+                    updated_at=row[5],
                 )
 
         return await sync_to_async(_sync_version)(name)
@@ -139,11 +140,12 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 _rows = _cursor.fetchall()
             return (
                 Retailer(
-                    uuid_=UUIDValueObject.create(_row[0]),
-                    name=RetailersNames(_row[1]),
+                    uuid_=_row[0],
+                    name=_row[1],
                     home_page_url=_row[2],
                     phone_number=_row[3],
-                    datetime_details=EntityDateTimeDetails.create(created_at=_row[4], updated_at=_row[5]),
+                    created_at=_row[4],
+                    updated_at=_row[5],
                 )
                 for _row in _rows
             )

@@ -8,13 +8,11 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductWithDetails,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
@@ -36,41 +34,47 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
     category_uuid = uuid7()
     helper_words = CategoryHelperWords.create(words=frozenset(["օղի", "գինի"]))
     category = Category(
-        uuid_=UUIDValueObject.create(category_uuid),
+        uuid_=category_uuid,
         name="Ալկոհոլ",
-        helper_words=helper_words,
-        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
+        helper_words=helper_words.words,
+        created_at=created_data,
+        updated_at=created_data,
     )
 
     sas_supermarket_uuid = uuid7()
     retailer = Retailer(
-        uuid_=UUIDValueObject.create(sas_supermarket_uuid),
+        uuid_=sas_supermarket_uuid,
         name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
-        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
+        created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_product_1_uuid = uuid7()
     absolut_vodka = DiscountedProduct(
         name="«Absolut» 0.7լ",
-        category_uuid=UUIDValueObject.create(category.get_uuid()),
-        retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
+        category_uuid=category.get_uuid(),
+        retailer_uuid=retailer.get_uuid(),
         url="test_url_1",
-        price_details=PriceDetails.create(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
-        uuid_=UUIDValueObject.create(discounted_product_1_uuid),
-        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
+        real_price=Decimal("8390.00"),
+        discounted_price=Decimal("7500.00"),
+        uuid_=discounted_product_1_uuid,
+        created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_product_2_uuid = uuid7()
     karas_whine = DiscountedProduct(
         name="Փրփրուն գինի «Կարաս» 0.75լ",
-        category_uuid=UUIDValueObject.create(category.get_uuid()),
-        retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
+        category_uuid=category.get_uuid(),
+        retailer_uuid=retailer.get_uuid(),
         url="test_url_2",
-        price_details=PriceDetails.create(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
-        uuid_=UUIDValueObject.create(discounted_product_2_uuid),
-        datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
+        real_price=Decimal("5680.00"),
+        discounted_price=Decimal("4950.00"),
+        uuid_=discounted_product_2_uuid,
+        created_at=created_data,
+        updated_at=created_data,
     )
 
     discounted_products = [absolut_vodka, karas_whine]
@@ -87,12 +91,8 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
 
     # then
     async with unit_of_work as uow:
-        added_absolut_vodka = await uow.discounted_product_repo.get_by_uuid(
-            UUIDValueObject.create(discounted_product_1_uuid)
-        )
-        added_karas_whine = await uow.discounted_product_repo.get_by_uuid(
-            UUIDValueObject.create(discounted_product_2_uuid)
-        )
+        added_absolut_vodka = await uow.discounted_product_repo.get_by_uuid(discounted_product_1_uuid)
+        added_karas_whine = await uow.discounted_product_repo.get_by_uuid(discounted_product_2_uuid)
         await uow.commit()
 
     assert added_absolut_vodka.get_uuid() == discounted_product_1_uuid
@@ -125,7 +125,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError) as err:
-            await uow.discounted_product_repo.get_by_uuid(UUIDValueObject.create(random_uuid))
+            await uow.discounted_product_repo.get_by_uuid(random_uuid)
 
     # then
     assert (

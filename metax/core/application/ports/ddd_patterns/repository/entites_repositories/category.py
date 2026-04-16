@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
+from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.category.entity import Category
 
 
 class CategoryRepository(ABC):
-    async def get_by_uuid(self, uuid_: UUIDValueObject) -> Category:
+    async def get_by_uuid(self, uuid_: UUID) -> Category:
         category = await self._get_by_uuid(uuid_=uuid_)
         if category is None:
             raise EntityIsNotFoundError(
                 entity_name="category",
                 searched_field_name="uuid",
-                searched_field_value=str(uuid_.value),
+                searched_field_value=str(uuid_),
             )
         return category
 
@@ -37,7 +37,7 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Category | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         pass
 
     @abstractmethod

@@ -7,7 +7,6 @@ import pytest
 from celery.schedules import crontab
 
 from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,
@@ -57,13 +56,15 @@ async def test_collect_discounted_products_from_all_retailers(
             retailer_uuid=retailer.get_uuid(),
             name="lays",
             created_at=started_time,
-            price_details=PriceDetails.create(discounted_price=Decimal("650"), real_price=Decimal("850.0")),
+            real_price=Decimal("850.0"),
+            discounted_price=Decimal("650"),
         ),
         make_discounted_product_entity(
             retailer_uuid=retailer.get_uuid(),
             name="cola",
             created_at=started_time,
-            price_details=PriceDetails.create(discounted_price=Decimal("350"), real_price=Decimal(450)),
+            real_price=Decimal(450),
+            discounted_price=Decimal("350"),
         ),
     ]
     discounted_product_names = {mock_data[0].get_name(), mock_data[1].get_name()}

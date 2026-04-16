@@ -42,7 +42,7 @@ async def collect_discounted_products_from_all_retailers(
     for retailer in retailers:
         retailer_key = retailer.get_name()
         collector_service_creator_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP[
-            retailer_key
+            RetailersNames(retailer_key)
         ]
 
         collector_service_creator: DiscountedProductCollectorServiceCreator

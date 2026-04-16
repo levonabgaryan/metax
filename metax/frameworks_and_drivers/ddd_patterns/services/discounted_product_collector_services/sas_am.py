@@ -11,11 +11,9 @@ from bs4 import BeautifulSoup
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,
 )
-from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.discounted_product.value_objects import PriceDetails
 from metax.core.domain.entities.retailer.entity import Retailer
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.errors import (
     InvalidUrlForScrappingError,
@@ -109,18 +107,14 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
 
                     raw_product_url = f"{self.__sas_am_main_page_url}{href}" if href.startswith("/") else href
                     yield DiscountedProduct(
-                        uuid_=UUIDValueObject.create(uuid.uuid7()),
+                        uuid_=uuid.uuid7(),
                         name=self.clean_discounted_product_name(text=name),
-                        price_details=PriceDetails.create(
-                            real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
-                            discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
-                        ),
+                        real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
+                        discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
                         url=raw_product_url,
-                        datetime_details=EntityDateTimeDetails.create(
-                            created_at=start_date_of_collecting,
-                            updated_at=start_date_of_collecting,
-                        ),
-                        retailer_uuid=UUIDValueObject.create(self._retailer.get_uuid()),
+                        created_at=start_date_of_collecting,
+                        updated_at=start_date_of_collecting,
+                        retailer_uuid=self._retailer.get_uuid(),
                         category_uuid=None,
                     )
                     await asyncio.sleep(0.0)

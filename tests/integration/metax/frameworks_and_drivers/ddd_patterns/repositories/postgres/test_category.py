@@ -3,7 +3,6 @@ from uuid import uuid7
 import pytest
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
@@ -22,9 +21,7 @@ async def test_category_repo_add_and_get(metax_app_for_integration_tests: MetaxA
         await uow.commit()
 
     # then
-    got_category_by_uuid = await unit_of_work.category_repo.get_by_uuid(
-        UUIDValueObject.create(category.get_uuid())
-    )
+    got_category_by_uuid = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     got_category_by_name = await unit_of_work.category_repo.get_by_name(category.get_name())
 
     assert got_category_by_uuid.get_uuid() == category.get_uuid()
@@ -54,7 +51,7 @@ async def test_category_repo_update(metax_app_for_integration_tests: MetaxAppLif
         await uow.commit()
 
     # then
-    updated_category = await unit_of_work.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+    updated_category = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     assert updated_category.get_name() == category.get_name()
     assert updated_category.get_helper_words() == category.get_helper_words()
 
@@ -68,16 +65,16 @@ async def test_category_repo_update_syncs_helper_words_via_diff(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     helper_words = CategoryHelperWords.create(words=frozenset(["keep", "drop", "stay"]))
-    category = make_category_entity(helper_words=helper_words)
+    category = make_category_entity(helper_words=helper_words.words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
         await uow.commit()
 
     # when
     async with unit_of_work as uow:
-        category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+        category = await uow.category_repo.get_by_uuid(category.get_uuid())
         category.set_helper_words(
-            CategoryHelperWords.create(words=frozenset(["keep", "stay", "new_one"])),
+            frozenset(["keep", "stay", "new_one"]),
         )
         updated_category = category
         await uow.category_repo.update(updated_category=updated_category)
@@ -85,7 +82,7 @@ async def test_category_repo_update_syncs_helper_words_via_diff(
 
     # then
     async with unit_of_work as uow:
-        testing_category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(updated_category.get_uuid()))
+        testing_category = await uow.category_repo.get_by_uuid(updated_category.get_uuid())
 
     assert testing_category.get_helper_words() == frozenset(["keep", "stay", "new_one"])
     assert testing_category.get_name() == updated_category.get_name()
@@ -103,7 +100,7 @@ async def test_category_is_not_found_by_uuid(metax_app_for_integration_tests: Me
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError) as err:
-            await uow.category_repo.get_by_uuid(UUIDValueObject.create(random_uuid))
+            await uow.category_repo.get_by_uuid(random_uuid)
 
     # then
     assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
@@ -139,14 +136,14 @@ async def test_category_update_helper_words_when_adding_news(
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
-    category = make_category_entity(helper_words=helper_words)
+    category = make_category_entity(helper_words=helper_words.words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
         await uow.commit()
 
     # when
     async with unit_of_work as uow:
-        category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+        category = await uow.category_repo.get_by_uuid(category.get_uuid())
         new_helper_words = frozenset(["d", "e"])
         category.add_new_helper_words(new_helper_words)
         await uow.category_repo.update(updated_category=category)
@@ -154,7 +151,7 @@ async def test_category_update_helper_words_when_adding_news(
 
     # then
     async with unit_of_work as uow:
-        category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+        category = await uow.category_repo.get_by_uuid(category.get_uuid())
         assert category.get_helper_words() == frozenset(["a", "b", "c", "e", "d"])
         await uow.commit()
 
@@ -169,21 +166,21 @@ async def test_category_update_helper_words_when_deleting(
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c"]))
-    category = make_category_entity(helper_words=helper_words)
+    category = make_category_entity(helper_words=helper_words.words)
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
         await uow.commit()
 
     # when
     async with unit_of_work as uow:
-        category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+        category = await uow.category_repo.get_by_uuid(category.get_uuid())
         words_to_delete = frozenset(["a", "c"])
         category.delete_helper_words(words_to_delete)
         await uow.category_repo.update(updated_category=category)
         await uow.commit()
 
     # then
-    category = await unit_of_work.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
+    category = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
     assert category.get_helper_words() == frozenset(["b"])
 
 
@@ -195,11 +192,11 @@ async def test_category_repo_get_all(metax_app_for_integration_tests: MetaxAppLi
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     cat_alpha = make_category_entity(
         name="repo_get_all_alpha",
-        helper_words=CategoryHelperWords.create(words=frozenset(["repo_ga_alpha_1", "repo_ga_alpha_2"])),
+        helper_words=frozenset(["repo_ga_alpha_1", "repo_ga_alpha_2"]),
     )
     cat_beta = make_category_entity(
         name="repo_get_all_beta",
-        helper_words=CategoryHelperWords.create(words=frozenset(["repo_ga_beta_1"])),
+        helper_words=frozenset(["repo_ga_beta_1"]),
     )
     async with unit_of_work as uow:
         await uow.category_repo.add(cat_alpha)
