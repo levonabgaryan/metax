@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Self, override
 from uuid import UUID
 
@@ -48,19 +48,19 @@ class EntityDateTimeDetails(ValueObject):
     @override
     @classmethod
     def create(cls, created_at: datetime | None = None, updated_at: datetime | None = None) -> Self:
-        created = created_at or datetime.now(tz=timezone.utc)
-        updated = updated_at or datetime.now(tz=timezone.utc)
+        created = created_at or datetime.now(tz=UTC)
+        updated = updated_at or datetime.now(tz=UTC)
         return cls(created_at=created, updated_at=updated)
 
     @classmethod
     def renew_update_at(cls, old: Self) -> Self:
-        return cls.create(created_at=old.created_at, updated_at=datetime.now(tz=timezone.utc))
+        return cls.create(created_at=old.created_at, updated_at=datetime.now(tz=UTC))
 
     @staticmethod
     def __validate_utc(dt: datetime) -> None:
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
             raise InvalidUtcDateTimeError
-        if dt.tzinfo != timezone.utc:
+        if dt.tzinfo != UTC:
             raise InvalidUtcDateTimeError
 
     def __validate_update_is_after_creation(self) -> None:

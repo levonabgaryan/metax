@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -37,7 +37,7 @@ def test_entity_datetime_details_raises_for_non_utc_datetime() -> None:
 
 def test_entity_datetime_details_raises_when_updated_before_created() -> None:
     # given
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     # expect
     with pytest.raises(UpdateBeforeCreationError):

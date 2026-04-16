@@ -1,4 +1,4 @@
-from typing import Optional, override
+from typing import override
 
 
 class MetaxError(Exception):
@@ -7,7 +7,7 @@ class MetaxError(Exception):
         *,
         error_code: str,
         title: str = "An error occurred",
-        details: Optional[str] = None,
+        details: str | None = None,
     ) -> None:
         super().__init__(
             title

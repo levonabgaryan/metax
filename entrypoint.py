@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 
 async def _run_postgres_db_migrations(metax_configs: BaseConfigs) -> None:
 
-    metax_configs = metax_configs
     manage_py = Path(metax_configs.django_dir) / "manage.py"
     logger.info("STARTUP | Task: Postgres Migrations | Status: Started")
 

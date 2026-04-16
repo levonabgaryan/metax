@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid7
 
 import pytest
@@ -12,7 +12,7 @@ from metax.core.domain.entities.category.errors import (
 
 def test_add_new_helper_words() -> None:
     # given
-    ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    ts = datetime(2026, 1, 1, tzinfo=UTC)
     category = Category(
         uuid_=uuid7(),
         name="test_name",
@@ -35,7 +35,7 @@ def test_add_new_helper_words() -> None:
 
 def test_delete_helper_words() -> None:
     # given
-    ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    ts = datetime(2026, 1, 1, tzinfo=UTC)
     category = Category(
         uuid_=uuid7(),
         name="test_name",

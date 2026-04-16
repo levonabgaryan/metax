@@ -21,14 +21,14 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _add(self, category: Category) -> None:
         def _sync_version(_category: Category) -> None:
-            _category_insert_query = """
+            category_insert_query = """
                 INSERT INTO categories (category_uuid, name, created_at, updated_at)
                 VALUES (%s, %s, %s, %s);
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(
-                    sql=_category_insert_query,
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql=category_insert_query,
                     params=[
                         _category.get_uuid(),
                         _category.get_name(),
@@ -42,7 +42,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         INSERT INTO category_helper_words (category_uuid, word, created_at, updated_at)
                         VALUES (%s, %s, %s, %s);
                     """
-                    _params = [
+                    params = [
                         (
                             _category.get_uuid(),
                             word,
@@ -52,9 +52,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         for word in _category.get_helper_words()
                     ]
 
-                    _cursor.executemany(
+                    cursor.executemany(
                         sql=helper_words_insert_query,
-                        param_list=_params,
+                        param_list=params,
                     )
 
         await sync_to_async(_sync_version)(category)
@@ -62,7 +62,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         def _sync_version(_category_uuid: UUID) -> Category | None:
-            _category_select_query = """
+            category_select_query = """
                 SELECT
                     c.category_uuid,
                     c.name,
@@ -74,26 +74,26 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 ON c.category_uuid = ch.category_uuid
                 WHERE c.category_uuid = %s;
             """
-            _cursor: CursorWrapper
+            cursor: CursorWrapper
 
-            with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_select_query, params=[_category_uuid])
-                _rows: list[tuple[UUID, str, datetime, datetime, str | None]] = _cursor.fetchall()
+            with connection.cursor() as cursor:
+                cursor.execute(sql=category_select_query, params=[_category_uuid])
+                rows: list[tuple[UUID, str, datetime, datetime, str | None]] = cursor.fetchall()
 
-                if _rows:
-                    _first_row = _rows[0]
-                    _db_category_uuid = _first_row[0]
-                    _category_name = _first_row[1]
-                    _created_at = _first_row[2]
-                    _updated_at = _first_row[3]
-                    _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
+                if rows:
+                    first_row = rows[0]
+                    db_category_uuid = first_row[0]
+                    category_name = first_row[1]
+                    created_at = first_row[2]
+                    updated_at = first_row[3]
+                    helper_words: frozenset[str] = frozenset(row[4] for row in rows if row[4] is not None)
 
                     return Category(
-                        uuid_=_db_category_uuid,
-                        name=_category_name,
-                        helper_words=frozenset(_helper_words),
-                        created_at=_created_at,
-                        updated_at=_updated_at,
+                        uuid_=db_category_uuid,
+                        name=category_name,
+                        helper_words=frozenset(helper_words),
+                        created_at=created_at,
+                        updated_at=updated_at,
                     )
                 return None
 
@@ -102,7 +102,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _get_by_name(self, name: str) -> Category | None:
         def _sync_version(category_name_: str) -> Category | None:
-            _category_select_query = """
+            category_select_query = """
                 SELECT
                     c.category_uuid,
                     c.name,
@@ -114,23 +114,23 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 ON c.category_uuid = ch.category_uuid
                 WHERE c.name = %s;
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_select_query, params=[category_name_])
-                _rows: list[tuple[UUID, str, datetime, datetime, str | None]] = _cursor.fetchall()
-                if _rows:
-                    _first_row = _rows[0]
-                    _category_uuid = _first_row[0]
-                    _category_name = _first_row[1]
-                    _created_at = _first_row[2]
-                    _updated_at = _first_row[3]
-                    _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=category_select_query, params=[category_name_])
+                rows: list[tuple[UUID, str, datetime, datetime, str | None]] = cursor.fetchall()
+                if rows:
+                    first_row = rows[0]
+                    category_uuid = first_row[0]
+                    category_name = first_row[1]
+                    created_at = first_row[2]
+                    updated_at = first_row[3]
+                    helper_words: frozenset[str] = frozenset(row[4] for row in rows if row[4] is not None)
                     return Category(
-                        uuid_=_category_uuid,
-                        name=_category_name,
-                        helper_words=frozenset(_helper_words),
-                        created_at=_created_at,
-                        updated_at=_updated_at,
+                        uuid_=category_uuid,
+                        name=category_name,
+                        helper_words=frozenset(helper_words),
+                        created_at=created_at,
+                        updated_at=updated_at,
                     )
                 return None
 
@@ -139,58 +139,58 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _update(self, updated_category: Category) -> None:
         def _sync_version(_updated_category: Category) -> None:
-            _category_uuid = _updated_category.get_uuid()
-            _entity_helper_words = _updated_category.get_helper_words()
+            category_uuid = _updated_category.get_uuid()
+            entity_helper_words = _updated_category.get_helper_words()
 
-            _category_update_query = """
+            category_update_query = """
                 UPDATE categories
                 SET name = %s,
                     updated_at = %s
                 WHERE category_uuid = %s
             """
-            _select_words_query = """
+            select_words_query = """
                 SELECT word FROM category_helper_words
                 WHERE category_uuid = %s
             """
-            _delete_words_query = """
+            delete_words_query = """
                 DELETE FROM category_helper_words
                 WHERE category_uuid = %s AND word = ANY(%s)
             """
-            _insert_word_query = """
+            insert_word_query = """
                 INSERT INTO category_helper_words (category_uuid, word, created_at, updated_at)
                 VALUES (%s, %s, %s, %s);
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(
-                    sql=_category_update_query,
-                    params=[_updated_category.get_name(), _updated_category.get_updated_at(), _category_uuid],
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql=category_update_query,
+                    params=[_updated_category.get_name(), _updated_category.get_updated_at(), category_uuid],
                 )
-                _cursor.execute(sql=_select_words_query, params=[_category_uuid])
-                _rows = _cursor.fetchall()
-                _current_helper_words_in_db = frozenset(row[0] for row in _rows if row[0] is not None)
+                cursor.execute(sql=select_words_query, params=[category_uuid])
+                rows = cursor.fetchall()
+                current_helper_words_in_db = frozenset(row[0] for row in rows if row[0] is not None)
 
-                _helper_words_to_remove = _current_helper_words_in_db - _entity_helper_words
-                if _helper_words_to_remove:
-                    _cursor.execute(
-                        sql=_delete_words_query,
-                        params=[_category_uuid, list(_helper_words_to_remove)],
+                helper_words_to_remove = current_helper_words_in_db - entity_helper_words
+                if helper_words_to_remove:
+                    cursor.execute(
+                        sql=delete_words_query,
+                        params=[category_uuid, list(helper_words_to_remove)],
                     )
 
-                _helper_words_to_add = _entity_helper_words - _current_helper_words_in_db
-                if _helper_words_to_add:
-                    _insert_params = [
+                helper_words_to_add = entity_helper_words - current_helper_words_in_db
+                if helper_words_to_add:
+                    insert_params = [
                         (
-                            _category_uuid,
+                            category_uuid,
                             word,
                             _updated_category.get_updated_at(),
                             _updated_category.get_updated_at(),
                         )
-                        for word in _helper_words_to_add
+                        for word in helper_words_to_add
                     ]
-                    _cursor.executemany(
-                        sql=_insert_word_query,
-                        param_list=_insert_params,
+                    cursor.executemany(
+                        sql=insert_word_query,
+                        param_list=insert_params,
                     )
 
         return await sync_to_async(_sync_version)(updated_category)
@@ -209,32 +209,32 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 LEFT JOIN category_helper_words ch
                 ON c.category_uuid = ch.category_uuid
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(sql=select_all_query)
-                _rows: list[tuple[UUID, str, datetime, datetime, str | None]] = _cursor.fetchall()
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=select_all_query)
+                rows: list[tuple[UUID, str, datetime, datetime, str | None]] = cursor.fetchall()
 
-            _category_map: dict[UUID, tuple[CategoryName, datetime, datetime, list[HelperWord]]] = {}
-            for _row in _rows:
-                _category_uuid: UUID = _row[0]
-                _category_name: CategoryName = _row[1]
-                _created_at: datetime = _row[2]
-                _updated_at: datetime = _row[3]
-                _category_helper_word: HelperWord | None = _row[4]
-                if _category_uuid not in _category_map:
-                    _category_map[_category_uuid] = (_category_name, _created_at, _updated_at, [])
-                if _category_helper_word is not None:
-                    _category_map[_category_uuid][3].append(_category_helper_word)
+            category_map: dict[UUID, tuple[CategoryName, datetime, datetime, list[HelperWord]]] = {}
+            for row in rows:
+                category_uuid: UUID = row[0]
+                category_name: CategoryName = row[1]
+                created_at: datetime = row[2]
+                updated_at: datetime = row[3]
+                category_helper_word: HelperWord | None = row[4]
+                if category_uuid not in category_map:
+                    category_map[category_uuid] = (category_name, created_at, updated_at, [])
+                if category_helper_word is not None:
+                    category_map[category_uuid][3].append(category_helper_word)
 
             return [
                 Category(
-                    uuid_=_category_uid,
-                    name=_name_and_words[0],
-                    helper_words=frozenset(_name_and_words[3]),
-                    created_at=_name_and_words[1],
-                    updated_at=_name_and_words[2],
+                    uuid_=category_uid,
+                    name=name_and_words[0],
+                    helper_words=frozenset(name_and_words[3]),
+                    created_at=name_and_words[1],
+                    updated_at=name_and_words[2],
                 )
-                for _category_uid, _name_and_words in _category_map.items()
+                for category_uid, name_and_words in category_map.items()
             ]
 
         return await sync_to_async(_sync_version)()

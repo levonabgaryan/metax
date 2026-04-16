@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -27,7 +27,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
-        retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=timezone.utc)
+        retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=UTC)
     )
 
     async with unit_of_work as uow:

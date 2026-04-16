@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import override
 from uuid import UUID
 
@@ -28,7 +28,7 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
                 command.__class__.__name__,
                 command.category_uuid,
             )
-            now = datetime.now(tz=timezone.utc)
+            now = datetime.now(tz=UTC)
             category = Category(
                 uuid_=command.category_uuid,
                 name=command.name,

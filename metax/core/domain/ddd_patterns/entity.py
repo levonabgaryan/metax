@@ -42,5 +42,8 @@ class Entity:
 
         The UUID ensures the same entity keeps the same identity for its lifecycle
         and supports constraints (e.g. no two different entities with the same logical ID).
+
+        Returns:
+            Hash of the entity UUID.
         """
         return hash(self.get_uuid())

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http import HTTPStatus
 from typing import override
 
@@ -27,7 +27,7 @@ class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerial
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()
         category_classifier_service = patterns.category_classifier_service()
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
         await collect_discounted_products_from_all_retailers(
             start_date_of_collecting=now,
             event_bus=event_bus,

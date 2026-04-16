@@ -10,7 +10,11 @@ sys.path.insert(0, str(ROOT_DIR))
 
 
 def main() -> None:
-    """Run administrative tasks."""
+    """Run administrative tasks.
+
+    Raises:
+        ImportError: If Django cannot be imported.
+    """
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "django_framework.settings")
     try:
         from django.core.management import execute_from_command_line

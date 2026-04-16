@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from metax.core.application.ddd_patterns.services.category_classifier_service import CategoryClassifierService
 from metax.core.application.event_handlers.event_bus import EventBus
@@ -87,7 +87,7 @@ async def _celery_task_collect_discounted_products_from_all_retailers() -> None:
     category_classifier_service = patterns.category_classifier_service()
     event_bus = await patterns.event_bus.async_()
 
-    started_time = datetime.now(tz=timezone.utc)
+    started_time = datetime.now(tz=UTC)
 
     await collect_discounted_products_from_all_retailers(
         unit_of_work_provider=unit_of_work_provider,

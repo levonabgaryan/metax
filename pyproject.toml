@@ -83,6 +83,7 @@ init_typed = true
 warn_required_dynamic_aliases = true
 
 [tool.ruff]
+preview = true
 exclude = [
     ".bzr",
     ".direnv",
@@ -111,59 +112,104 @@ exclude = [
     "site-packages",
     "venv",
 ]
-
 line-length = 115
 indent-width = 4
 
-
 [tool.ruff.lint]
 ignore = [
-    "COM812", # check commas in collections
-    "RET504",  # see https://docs.astral.sh/ruff/rules/unnecessary-assign/
-    "PGH003"
+    "COM812",  # trailing commas (conflicts with formatter)
+    "RET504",  # https://docs.astral.sh/ruff/rules/unnecessary-assign/
+    "PGH003",
+]
+extend-select = [
+    "A",
+    "ARG",
+    "ASYNC",
+    "B",
+    "C4",
+    "COM",
+    "D2",
+    "D3",
+    "D4",
+    "DJ",
+    "DOC",
+    "DTZ",
+    "E",
+    "EM",
+    "F",
+    "FA",
+    "FLY",
+    "I",
+    "ICN",
+    "ISC",
+    "N",
+    "PERF101",
+    "PGH",
+    "PIE",
+    "PTH",
+    "RET",
+    "RSE",
+    "RUF",
+    "RUF007",
+    "RUF008",
+    "RUF049",
+    "S",
+    "SIM",
+    "SLF",
+    "T20",
+    "TID",
+    "UP006",
+    "W",
 ]
 
-extend-select = [
-    "RUF",     # Ruff-specific rules
-    "E",      # PyCodeStyle errors
-    "W",      # PyCodeStyle warnings
-    "I",      # Rules for sorting imports
-    "S",      # flake8-bandit
-    "B",      # flake8-bugbear
-    "A",      # flake8-builtins
-    "COM",    # flake8-commas
-    "C4",     # flake8-comprehensions
-    "PTH",    # Using Pathlib instead of os.path
-     "SLF",    # Access protected member
-    "ASYNC",  # flake8-async
-    "DJ",     # flake8-django
-    "DTZ",    # flake8-datetimez
-    "EM",     # flake8-errmsg
-    "FA",     # flake8-future-annotations
-    "ISC",    # flake8-implicit-str-concat
-    "ICN",    # flake8-import-conventions
-    "PIE",    # flake8-pie
-    "RSE",    # flake8-raise
-    "RET",    # flake8-return
-    "SIM",    # flake8-simplify
-    "TID",    # flake8-tidy-imports
-    "ARG",    # flake8-unused-arguments
-    "FLY",    # flynt
-    "N",      # pep8-naming
-    "PERF101",# Avoid creating list/tuple from iterable unnecessarily
-    "F",      # Pyflakes
-    "PGH",    # pygrep-hooks
-    "UP006",  # Use list/dict instead of typing.List/Dict
-    "RUF007", # Prefer itertools.pairwise() over zip()
-    "RUF008", # Avoid mutable default in dataclasses.field
-    "RUF049", # Enum should not be a dataclass
-]
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "D103", "PLR0913"]
-"*/test_*.py" = ["S101", "D103", "PLR0913"]
-"gunicorn.conf.py" = ["N999"]
-"metax/frameworks_and_drivers/django_framework/django_framework/metax/migrations/*" = ["E501","RUF015","RUF012", ]
+"gunicorn.conf.py" = [
+    "D101",
+    "D102",
+    "D103",
+    "D2",
+    "D3",
+    "D4",
+    "DOC102",
+    "N999",
+]
+"metax/frameworks_and_drivers/django_framework/django_framework/metax/migrations/*" = [
+    "D101",
+    "D102",
+    "D103",
+    "D2",
+    "D3",
+    "D4",
+    "DOC102",
+    "E501",
+    "RUF012",
+    "RUF015",
+]
+"*/test_*.py" = [
+    "D101",
+    "D102",
+    "D103",
+    "D2",
+    "D3",
+    "D4",
+    "DOC102",
+    "PLR0913",
+    "S101",
+]
+"tests/*" = [
+    "D101",
+    "D102",
+    "D103",
+    "D2",
+    "D3",
+    "D4",
+    "DOC102",
+    "PLR0913",
+    "S101",
+]
 
 [tool.ruff.format]
 docstring-code-format = true

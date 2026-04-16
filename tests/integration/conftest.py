@@ -1,5 +1,5 @@
 import contextlib
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 
 import pytest
 from opensearchpy import AsyncOpenSearch

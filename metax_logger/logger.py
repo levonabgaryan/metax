@@ -79,5 +79,3 @@ def init_logger(metax_configs: BaseConfigs) -> None:
     listener.start()
     _listener = listener
     atexit.register(listener.stop)
-
-    return

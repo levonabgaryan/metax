@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import AsyncIterator
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 

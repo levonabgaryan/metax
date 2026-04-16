@@ -46,7 +46,11 @@ class PriceDetails(ValueObject):
 
     @staticmethod
     def __normalize(value: Decimal) -> Decimal:
-        """Force 2 decimal places: 12 -> 12.00, 12.5 -> 12.50"""
+        """Force 2 decimal places: 12 -> 12.00, 12.5 -> 12.50.
+
+        Returns:
+            The value quantized to two decimal places.
+        """
         return value.quantize(
             Decimal("0.00"),
             rounding=ROUND_HALF_UP,

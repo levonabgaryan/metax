@@ -10,8 +10,7 @@ from metax_logger.logger import init_logger
 
 
 class MetaxAppLifespanManager:
-    """
-    Orchestrates the lifecycle of the Metax application components.
+    """Orchestrates the lifecycle of the Metax application components.
 
     This manager provides a centralized way to initialize and teardown resources
     required by different entrypoints (HTTP server, Celery workers, CLI tools etc.).

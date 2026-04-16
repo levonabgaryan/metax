@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import AsyncIterator, override
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime
+from typing import override
 from unittest.mock import AsyncMock
 
 import pytest
@@ -47,7 +48,7 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
     # given
     metax_container = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
-    started_at = datetime.now(tz=timezone.utc)
+    started_at = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
 
     async with unit_of_work as uow:

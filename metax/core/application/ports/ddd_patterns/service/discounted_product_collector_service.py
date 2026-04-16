@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import AsyncIterator
 
 from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
 from metax.core.domain.entities.retailer.entity import Retailer

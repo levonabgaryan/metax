@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -25,7 +25,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
-    creation_date = datetime.now(tz=timezone.utc)
+    creation_date = datetime.now(tz=UTC)
     category = make_category_entity(name="test_name")
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(

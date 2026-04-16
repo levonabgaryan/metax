@@ -1,6 +1,7 @@
 import asyncio
+from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import Any, AsyncIterator, override
+from typing import Any, override
 
 from opensearchpy import AsyncOpenSearch
 
@@ -117,19 +118,18 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         for discounted_product in discounted_products:
             doc_id = discounted_product["uuid_"]
 
-            formatted_to_dict.append(
-                {
-                    "index": {
-                        "_index": self.__alias_name,
-                        "_id": doc_id,
-                    }
+            formatted_to_dict.append({
+                "index": {
+                    "_index": self.__alias_name,
+                    "_id": doc_id,
                 }
-            )
+            })
             doc_body = {k: v for k, v in discounted_product.items() if k != "uuid_"}
             formatted_to_dict.append(doc_body)
         response = await self.__opensearch_async_client.bulk(body=formatted_to_dict)
         if response.get("errors"):
-            raise
+            msg = "OpenSearch bulk indexing reported errors"
+            raise RuntimeError(msg)
 
     @override
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:

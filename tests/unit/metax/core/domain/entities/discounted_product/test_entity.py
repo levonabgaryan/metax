@@ -11,8 +11,8 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 
 def test_negative_price() -> None:
     # given
-    real_price = Decimal("-1")
-    discounted_price = Decimal("-2")
+    real_price = Decimal(-1)
+    discounted_price = Decimal(-2)
 
     # when
     with pytest.raises(NegativePriceError) as err:
@@ -24,8 +24,8 @@ def test_negative_price() -> None:
 
 def test_discount_exceeds_real_price() -> None:
     # given
-    real_price = Decimal("1")
-    discounted_price = Decimal("2")
+    real_price = Decimal(1)
+    discounted_price = Decimal(2)
 
     # when
     with pytest.raises(DiscountExceedsRealPriceError) as err:

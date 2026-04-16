@@ -1,7 +1,7 @@
 import asyncio
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from datetime import datetime
-from typing import AsyncIterator
 
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,

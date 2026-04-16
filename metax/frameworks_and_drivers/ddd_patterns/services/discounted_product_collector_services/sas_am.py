@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import uuid
+from collections.abc import AsyncIterator
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncIterator, ClassVar, override
+from typing import ClassVar, override
 
 import httpx
 from bs4 import BeautifulSoup
@@ -57,7 +58,7 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                     logger.error(err)
                     InvalidUrlForScrappingError(invalid_url=url_)
                 except Exception as err:
-                    logger.error("Request to SAS AM Failed: %s", err, exc_info=True)
+                    logger.error("Request to SAS AM Failed", exc_info=err)
 
                 soup = BeautifulSoup(response.text, "lxml")
 

@@ -1,9 +1,10 @@
 import asyncio
 import logging
 import uuid
+from collections.abc import AsyncIterator
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, AsyncIterator, override
+from typing import Any, override
 
 import httpx
 
@@ -46,8 +47,8 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
             except httpx.InvalidURL as e:
                 logger.error(e)
                 raise InvalidUrlForScrappingError(invalid_url=self.__yerevan_city_data_source_url) from e
-            except Exception as err:
-                logger.error("Request to Yerevan city failed", err, exc_info=True)
+            except Exception:
+                logger.exception("Request to Yerevan city failed")
 
         data = response.json()
         raw_products: list[dict[str, Any]] = data.get("data", {}).get("list", [])

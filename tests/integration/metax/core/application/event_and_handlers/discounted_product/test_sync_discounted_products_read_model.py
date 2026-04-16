@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -26,7 +26,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
-    creation_data = datetime.now(tz=timezone.utc)
+    creation_data = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
     discounted_products = [
         make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=creation_data),

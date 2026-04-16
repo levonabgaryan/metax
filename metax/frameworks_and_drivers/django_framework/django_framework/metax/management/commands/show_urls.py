@@ -1,4 +1,4 @@
-from typing import Any, Union, override
+from typing import Any, override
 
 from django.core.management.base import BaseCommand
 from django.urls import URLPattern, URLResolver, get_resolver
@@ -13,7 +13,7 @@ class Command(BaseCommand):
         resolver = get_resolver()
         self.print_urls(resolver.url_patterns)
 
-    def print_urls(self, patterns: list[Union[URLResolver, URLPattern]], prefix: str = "") -> None:
+    def print_urls(self, patterns: list[URLResolver | URLPattern], prefix: str = "") -> None:
         for pattern in patterns:
             if isinstance(pattern, URLResolver):
                 new_prefix = prefix + str(pattern.pattern)

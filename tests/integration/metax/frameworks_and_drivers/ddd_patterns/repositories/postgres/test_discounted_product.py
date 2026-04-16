@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid7
 
@@ -30,7 +30,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    created_data = datetime.now(tz=timezone.utc)
+    created_data = datetime.now(tz=UTC)
     category_uuid = uuid7()
     helper_words = CategoryHelperWords.create(words=frozenset(["օղի", "գինի"]))
     category = Category(
@@ -144,7 +144,7 @@ async def test_delete_older_than_and_return_deleted_count(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
-    creation_date = datetime.now(tz=timezone.utc)
+    creation_date = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
         created_at=creation_date, retailer_uuid=retailer.get_uuid()
@@ -193,7 +193,7 @@ async def test_get_all_returns_all_products_ordered_by_uuid(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    created_at = datetime(2026, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 6, 15, 12, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     category = make_category_entity(name="CategoryForGetAll")
     uuid_high = uuid7()
@@ -249,7 +249,7 @@ async def test_get_all_chunk_size(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    created_at = datetime(2026, 7, 1, 8, 0, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 7, 1, 8, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     uuids = sorted([uuid7() for _ in range(5)], key=lambda u: u.bytes)
     products = [
@@ -284,7 +284,7 @@ async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    query_date = datetime(2026, 8, 1, 0, 0, 0, tzinfo=timezone.utc)
+    query_date = datetime(2026, 8, 1, 0, 0, 0, tzinfo=UTC)
 
     # when
     async with unit_of_work as uow:
@@ -302,7 +302,7 @@ async def test_get_all_by_date(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    created_at = datetime(2026, 9, 10, 15, 30, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 9, 10, 15, 30, 0, tzinfo=UTC)
     category = make_category_entity(name="JoinedCategoryName")
     retailer = make_retailer_entity()
     p1 = make_discounted_product_entity(
@@ -349,8 +349,8 @@ async def test_get_all_by_date_filters_by_created_at(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    date_a = datetime(2026, 10, 1, 10, 0, 0, tzinfo=timezone.utc)
-    date_b = datetime(2026, 10, 2, 10, 0, 0, tzinfo=timezone.utc)
+    date_a = datetime(2026, 10, 1, 10, 0, 0, tzinfo=UTC)
+    date_b = datetime(2026, 10, 2, 10, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     product_a = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=date_a, name="on_a")
     product_b = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=date_b, name="on_b")
@@ -380,7 +380,7 @@ async def test_get_all_by_date_without_category_returns_none_category_name(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    created_at = datetime(2026, 11, 5, 12, 0, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 11, 5, 12, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     product = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=created_at)
 
@@ -408,7 +408,7 @@ async def test_get_all_by_date_chunk_size(
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    created_at = datetime(2026, 12, 1, 0, 0, 0, tzinfo=timezone.utc)
+    created_at = datetime(2026, 12, 1, 0, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     products = [
         make_discounted_product_entity(

@@ -1,7 +1,8 @@
 import asyncio
-from datetime import datetime, timedelta, timezone
+from collections.abc import AsyncIterator, Iterable, Iterator
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from typing import Any, AsyncIterator, Iterable, Iterator
+from typing import Any
 from uuid import UUID, uuid7
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
@@ -20,7 +21,7 @@ def make_category_entity(
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> Category:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
 
@@ -41,7 +42,7 @@ def make_retailer_entity(
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> Retailer:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     created = created_at or now
     updated = updated_at or (created + timedelta(seconds=1))
     return Retailer(
@@ -60,8 +61,8 @@ def make_discounted_product_entity(
     category_uuid: UUID | None = None,
     discounted_product_uuid: UUID | None = None,
     name: str = "test_discounted_product_name",
-    real_price: Decimal = Decimal("100"),
-    discounted_price: Decimal = Decimal("50"),
+    real_price: Decimal = Decimal(100),
+    discounted_price: Decimal = Decimal(50),
     url: str = "test_discounted_product_url",
     updated_at: datetime | None = None,
 ) -> DiscountedProduct:
@@ -115,7 +116,7 @@ async def mock_create_many_discounted_products_from_retailer(
     discounted_products = []
     for _ in range(discounted_product_counts):
         discounted_product = make_discounted_product_entity(
-            retailer_uuid=retailer_uuid, created_at=datetime.now(tz=timezone.utc)
+            retailer_uuid=retailer_uuid, created_at=datetime.now(tz=UTC)
         )
         discounted_products.append(discounted_product)
 

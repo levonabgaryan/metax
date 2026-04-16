@@ -6,7 +6,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 """
 
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 from asgiref.typing import ASGIReceiveEvent, ASGISendEvent, LifespanScope, WWWScope
 from django_asgi_lifespan.asgi import get_asgi_application

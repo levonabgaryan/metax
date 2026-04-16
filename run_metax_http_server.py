@@ -18,12 +18,10 @@ _DJANGO_ASGI_APP = "django_framework.asgi:application"
 async def _run_django_gunicorn_server(_metax_app: MetaxAppLifespanManager, _metax_configs: BaseConfigs) -> None:
 
     env = os.environ.copy()
-    env["PYTHONPATH"] = os.pathsep.join(
-        [
-            str(_metax_configs.project_root_pythonpath),
-            str(_metax_configs.django_dir),
-        ]
-    )
+    env["PYTHONPATH"] = os.pathsep.join([
+        str(_metax_configs.project_root_pythonpath),
+        str(_metax_configs.django_dir),
+    ])
     env["DJANGO_SETTINGS_MODULE"] = "django_framework.settings"
 
     host = _metax_configs.django_host

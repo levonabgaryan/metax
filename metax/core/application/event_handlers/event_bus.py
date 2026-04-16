@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TypeVar
 
 from metax.core.application.event_handlers.category.events import CategoryUpdated
 from metax.core.application.event_handlers.discounted_product.events import (
@@ -24,10 +23,8 @@ from metax.core.application.read_models.discounted_product import DiscountedProd
 
 logger = logging.getLogger(__name__)
 
-_E = TypeVar("_E", bound=Event)
 
-
-def _expect_event(event: Event, typ: type[_E]) -> _E:
+def _expect_event[E: Event](event: Event, typ: type[E]) -> E:
     if isinstance(event, typ):
         return event
     msg = f"expected {typ.__name__}, got {type(event).__name__}"

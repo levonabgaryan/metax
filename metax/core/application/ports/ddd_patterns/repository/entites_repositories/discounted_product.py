@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import AsyncIterator
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError

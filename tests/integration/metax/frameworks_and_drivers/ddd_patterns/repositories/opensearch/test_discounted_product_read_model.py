@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -22,7 +22,7 @@ async def test_delete_older_than_and_return_deleted_count(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
-    creation_date = datetime.now(tz=timezone.utc)
+    creation_date = datetime.now(tz=UTC)
 
     discounted_products_read_models = [
         make_discounted_product_read_model(
@@ -57,7 +57,7 @@ async def test_update_category(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
-    created_at = datetime.now(tz=timezone.utc)
+    created_at = datetime.now(tz=UTC)
     category = make_category_entity()
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
@@ -91,7 +91,7 @@ async def test_update_retailer(
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     retailer = make_retailer_entity()
-    created_at = datetime.now(tz=timezone.utc)
+    created_at = datetime.now(tz=UTC)
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
         discounted_product_uuid=str(uuid.uuid7()),
@@ -124,7 +124,7 @@ async def test_get_all(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
-    created_at = datetime.now(tz=timezone.utc)
+    created_at = datetime.now(tz=UTC)
     discounted_product_read_models = [
         make_discounted_product_read_model(
             created_at=created_at,
@@ -160,7 +160,7 @@ async def test_get_by_name_page(
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
-    created_at = datetime.now(tz=timezone.utc)
+    created_at = datetime.now(tz=UTC)
     discounted_product_read_model_ = make_discounted_product_read_model(
         created_at=created_at,
         discounted_product_uuid=str(uuid.uuid7()),

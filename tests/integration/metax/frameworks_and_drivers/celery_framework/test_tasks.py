@@ -1,7 +1,7 @@
 import asyncio
-from datetime import datetime, timezone
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import AsyncIterator
 
 import pytest
 from celery.schedules import crontab
@@ -43,7 +43,7 @@ async def test_collect_discounted_products_from_all_retailers(
 ) -> None:
     # given
     metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
-    started_time = datetime.now(tz=timezone.utc)
+    started_time = datetime.now(tz=UTC)
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
@@ -57,14 +57,14 @@ async def test_collect_discounted_products_from_all_retailers(
             name="lays",
             created_at=started_time,
             real_price=Decimal("850.0"),
-            discounted_price=Decimal("650"),
+            discounted_price=Decimal(650),
         ),
         make_discounted_product_entity(
             retailer_uuid=retailer.get_uuid(),
             name="cola",
             created_at=started_time,
             real_price=Decimal(450),
-            discounted_price=Decimal("350"),
+            discounted_price=Decimal(350),
         ),
     ]
     discounted_product_names = {mock_data[0].get_name(), mock_data[1].get_name()}

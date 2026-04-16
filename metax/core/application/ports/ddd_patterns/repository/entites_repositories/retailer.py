@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import AsyncIterator
+from collections.abc import AsyncIterator
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError

@@ -1,6 +1,7 @@
+from collections.abc import AsyncIterator
 from datetime import datetime
 from decimal import Decimal
-from typing import AsyncIterator, override
+from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -25,7 +26,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     @override
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         def _sync_version(_discounted_products: list[DiscountedProduct]) -> None:
-            _insert_query = """
+            insert_query = """
                 INSERT INTO discounted_products (
                     discounted_product_uuid,
                     real_price,
@@ -39,25 +40,23 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 )
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.executemany(
-                    _insert_query,
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.executemany(
+                    insert_query,
                     [
                         (
-                            _discounted_product.get_uuid(),
-                            _discounted_product.get_real_price(),
-                            _discounted_product.get_discounted_price(),
-                            _discounted_product.get_name(),
-                            _discounted_product.get_url(),
-                            _discounted_product.get_category_uuid()
-                            if _discounted_product.has_category()
-                            else None,
-                            _discounted_product.get_retailer_uuid(),
-                            _discounted_product.get_created_at(),
-                            _discounted_product.get_updated_at(),
+                            discounted_product.get_uuid(),
+                            discounted_product.get_real_price(),
+                            discounted_product.get_discounted_price(),
+                            discounted_product.get_name(),
+                            discounted_product.get_url(),
+                            discounted_product.get_category_uuid() if discounted_product.has_category() else None,
+                            discounted_product.get_retailer_uuid(),
+                            discounted_product.get_created_at(),
+                            discounted_product.get_updated_at(),
                         )
-                        for _discounted_product in _discounted_products
+                        for discounted_product in _discounted_products
                     ],
                 )
 
@@ -66,7 +65,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     @override
     async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
         def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
-            _select_query = """
+            select_query = """
                 SELECT
                     real_price,
                     discounted_price,
@@ -79,10 +78,10 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 FROM discounted_products dp
                 WHERE dp.discounted_product_uuid = %s;
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(_select_query, [_discounted_product_uuid])
-                row = _cursor.fetchone()
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(select_query, [_discounted_product_uuid])
+                row = cursor.fetchone()
                 if row is not None:
                     return DiscountedProduct(
                         uuid_=_discounted_product_uuid,
@@ -102,15 +101,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
         def _sync_version(_date_limit: datetime) -> int:
-            _delete_query = """
+            delete_query = """
                 DELETE FROM discounted_products
                 WHERE created_at < %s
             """
-            _cursor: CursorWrapper
-            with connection.cursor() as _cursor:
-                _cursor.execute(_delete_query, [date_limit])
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(delete_query, [date_limit])
 
-                return int(_cursor.rowcount)
+                return int(cursor.rowcount)
 
         return await sync_to_async(_sync_version)(date_limit)
 
@@ -146,9 +145,9 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     def __fetch_chunk_by_created_at(
         created_at: datetime, offset: int, limit: int
     ) -> list[DiscountedProductWithDetails]:
-        _cursor: CursorWrapper
-        with connection.cursor() as _cursor:
-            _cursor.execute(
+        cursor: CursorWrapper
+        with connection.cursor() as cursor:
+            cursor.execute(
                 """
                 SELECT
                     dp.discounted_product_uuid,
@@ -185,7 +184,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     CategoryName,
                     RetailerName,
                 ]
-            ] = _cursor.fetchall()
+            ] = cursor.fetchall()
             return [
                 DiscountedProductWithDetails(
                     category_name=row[9],
@@ -207,9 +206,9 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
 
     @staticmethod
     def __fetch_chunk(offset: int, limit: int) -> list[DiscountedProduct]:
-        _cursor: CursorWrapper
-        with connection.cursor() as _cursor:
-            _cursor.execute(
+        cursor: CursorWrapper
+        with connection.cursor() as cursor:
+            cursor.execute(
                 """
                 SELECT
                     discounted_product_uuid,
@@ -228,7 +227,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 [limit, offset],
             )
             rows: list[tuple[UUID, Decimal, Decimal, str, str, CategoryUUID, RetailerUUID, datetime, datetime]] = (
-                _cursor.fetchall()
+                cursor.fetchall()
             )
             return [
                 DiscountedProduct(

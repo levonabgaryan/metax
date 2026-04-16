@@ -17,7 +17,7 @@ def validate_env_structure() -> None:
             error_code="ENV_VALIDATION_ERROR",
             title=f".env does not match to env_template. Missing variables: {missing}. \n",
         )
-    print("✅ .env matches to env_template.")
+    print("✅ .env matches to env_template.")  # noqa: T201
 
 
 if __name__ == "__main__":

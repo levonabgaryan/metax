@@ -5,11 +5,16 @@ from typing import overload
 class DiscountedProductFieldsCleanerMixin:
     @staticmethod
     def clean_discounted_product_name(text: str) -> str:
-        """Normalize product name:
+        """Normalizes product name.
+
+        Performs this options on text
         - lowercase
         - remove special symbols
         - keep latin, cyrillic, armenian letters and digits
-        - normalize spaces
+        - normalize spaces.
+
+        Returns:
+            Cleaned, normalized name string.
         """
         text = text.lower()
         text = re.sub(
@@ -35,7 +40,7 @@ class DiscountedProductFieldsCleanerMixin:
     def clean_discounted_product_price(price_: float) -> str: ...
 
     @staticmethod
-    def clean_discounted_product_price(price_: str | int | float) -> str:
+    def clean_discounted_product_price(price_: str | float) -> str:
         if isinstance(price_, (int, float)):
             return str(price_)
         if isinstance(price_, str):
