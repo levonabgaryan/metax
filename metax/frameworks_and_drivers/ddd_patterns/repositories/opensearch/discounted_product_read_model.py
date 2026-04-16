@@ -127,11 +127,9 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             raise
 
     @override
-    async def get_by_uuid(self, discounted_product_read_model_uuid: str) -> DiscountedProductReadModel:
+    async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         # https://docs.opensearch.org/latest/api-reference/document-apis/get-documents/#example-request
-        response = await self.__opensearch_async_client.get(
-            id=discounted_product_read_model_uuid, index=self.__alias_name
-        )
+        response = await self.__opensearch_async_client.get(id=uuid_, index=self.__alias_name)
         document: dict[str, Any] = response["_source"]
 
         return DiscountedProductReadModel(

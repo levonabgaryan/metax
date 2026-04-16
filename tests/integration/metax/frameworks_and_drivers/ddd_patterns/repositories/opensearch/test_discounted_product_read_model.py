@@ -76,7 +76,7 @@ async def test_update_category(
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(
-        discounted_product_read_model_uuid=discounted_product_read_model_["discounted_product_uuid"]
+        uuid_=discounted_product_read_model_["discounted_product_uuid"]
     )
     assert updated_discounted_product_read_model["category_name"] == "category_new_name"
 
@@ -109,7 +109,7 @@ async def test_update_retailer(
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(
-        discounted_product_read_model_uuid=discounted_product_read_model_["discounted_product_uuid"]
+        uuid_=discounted_product_read_model_["discounted_product_uuid"]
     )
     assert updated_discounted_product_read_model["retailer_name"] == RetailersNames.SAS_AM.value
 

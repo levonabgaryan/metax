@@ -9,12 +9,12 @@ from .value_objects import CategoryHelperWords
 class Category(AggregateRootEntity):
     def __init__(
         self,
-        category_uuid: UUIDValueObject,
+        uuid_: UUIDValueObject,
         helper_words: CategoryHelperWords,
         datetime_details: EntityDateTimeDetails,
         name: str,
     ) -> None:
-        super().__init__(uuid_value_object=category_uuid, datetime_details=datetime_details)
+        super().__init__(uuid_value_object=uuid_, datetime_details=datetime_details)
         self.__name = name
         self.__helper_words = helper_words
 

@@ -6,23 +6,23 @@ from metax.core.domain.entities.category.entity import Category
 
 
 class CategoryRepository(ABC):
-    async def get_by_uuid(self, category_uuid: UUID) -> Category:
-        category = await self._get_by_uuid(category_uuid=category_uuid)
+    async def get_by_uuid(self, uuid_: UUID) -> Category:
+        category = await self._get_by_uuid(uuid_=uuid_)
         if category is None:
             raise EntityIsNotFoundError(
                 entity_name="category",
                 searched_field_name="uuid",
-                searched_field_value=str(category_uuid),
+                searched_field_value=str(uuid_),
             )
         return category
 
-    async def get_by_name(self, category_name: str) -> Category:
-        category = await self._get_by_name(category_name=category_name)
+    async def get_by_name(self, name: str) -> Category:
+        category = await self._get_by_name(name=name)
         if category is None:
             raise EntityIsNotFoundError(
                 entity_name="category",
                 searched_field_name="name",
-                searched_field_value=category_name,
+                searched_field_value=name,
             )
         return category
 
@@ -37,7 +37,7 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         pass
 
     @abstractmethod
@@ -45,7 +45,7 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_name(self, category_name: str) -> Category | None:
+    async def _get_by_name(self, name: str) -> Category | None:
         pass
 
     @abstractmethod

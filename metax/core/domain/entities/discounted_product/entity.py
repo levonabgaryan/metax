@@ -11,7 +11,7 @@ from metax.core.domain.entities.discounted_product.value_objects import PriceDet
 class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
-        discounted_product_uuid: UUIDValueObject,
+        uuid_: UUIDValueObject,
         category_uuid: UUIDValueObject | None,
         retailer_uuid: UUIDValueObject,
         price_details: PriceDetails,
@@ -19,7 +19,7 @@ class DiscountedProduct(AggregateRootEntity):
         name: str,
         url: str,
     ) -> None:
-        super().__init__(uuid_value_object=discounted_product_uuid, datetime_details=datetime_details)
+        super().__init__(uuid_value_object=uuid_, datetime_details=datetime_details)
         self.__category_uuid = category_uuid
         self.__retailer_uuid = retailer_uuid
         self.__price_details = price_details

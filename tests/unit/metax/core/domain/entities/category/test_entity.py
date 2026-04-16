@@ -17,7 +17,7 @@ def test_add_new_helper_words() -> None:
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     helper_words = CategoryHelperWords.create(words=frozenset(("a", "b", "c")))
     category = Category(
-        category_uuid=UUIDValueObject.create(uuid7()),
+        uuid_=UUIDValueObject.create(uuid7()),
         name="test_name",
         helper_words=helper_words,
         datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),
@@ -40,7 +40,7 @@ def test_delete_helper_words() -> None:
     ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
     helper_words = CategoryHelperWords.create(words=frozenset(("a", "b", "c")))
     category = Category(
-        category_uuid=UUIDValueObject.create(uuid7()),
+        uuid_=UUIDValueObject.create(uuid7()),
         name="test_name",
         helper_words=helper_words,
         datetime_details=EntityDateTimeDetails.create(created_at=ts, updated_at=ts),

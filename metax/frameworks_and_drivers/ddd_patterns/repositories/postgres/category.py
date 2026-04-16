@@ -62,7 +62,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         await sync_to_async(_sync_version)(category)
 
     @override
-    async def _get_by_uuid(self, category_uuid: UUID) -> Category | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         def _sync_version(_category_uuid: UUID) -> Category | None:
             _category_select_query = """
                 SELECT
@@ -91,7 +91,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
 
                     return Category(
-                        category_uuid=UUIDValueObject.create(_category_uuid),
+                        uuid_=UUIDValueObject.create(_category_uuid),
                         name=_category_name,
                         helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
                         datetime_details=EntityDateTimeDetails.create(
@@ -100,10 +100,10 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     )
                 return None
 
-        return await sync_to_async(_sync_version)(category_uuid)
+        return await sync_to_async(_sync_version)(uuid_)
 
     @override
-    async def _get_by_name(self, category_name: str) -> Category | None:
+    async def _get_by_name(self, name: str) -> Category | None:
         def _sync_version(category_name_: str) -> Category | None:
             _category_select_query = """
                 SELECT
@@ -129,7 +129,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     _updated_at = _first_row[3]
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
                     return Category(
-                        category_uuid=UUIDValueObject.create(_category_uuid),
+                        uuid_=UUIDValueObject.create(_category_uuid),
                         name=_category_name,
                         helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
                         datetime_details=EntityDateTimeDetails.create(
@@ -138,7 +138,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     )
                 return None
 
-        return await sync_to_async(_sync_version)(category_name)
+        return await sync_to_async(_sync_version)(name)
 
     @override
     async def _update(self, updated_category: Category) -> None:
@@ -232,7 +232,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
             return [
                 Category(
-                    category_uuid=UUIDValueObject.create(_category_uid),
+                    uuid_=UUIDValueObject.create(_category_uid),
                     name=_name_and_words[0],
                     helper_words=CategoryHelperWords.create(words=frozenset(_name_and_words[3])),
                     datetime_details=EntityDateTimeDetails.create(

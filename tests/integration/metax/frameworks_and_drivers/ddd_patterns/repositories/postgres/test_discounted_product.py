@@ -36,7 +36,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
     category_uuid = uuid7()
     helper_words = CategoryHelperWords.create(words=frozenset(["օղի", "գինի"]))
     category = Category(
-        category_uuid=UUIDValueObject.create(category_uuid),
+        uuid_=UUIDValueObject.create(category_uuid),
         name="Ալկոհոլ",
         helper_words=helper_words,
         datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
@@ -44,7 +44,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
 
     sas_supermarket_uuid = uuid7()
     retailer = Retailer(
-        retailer_uuid=UUIDValueObject.create(sas_supermarket_uuid),
+        uuid_=UUIDValueObject.create(sas_supermarket_uuid),
         name=RetailersNames.SAS_AM,
         phone_number="test_phone_number",
         home_page_url="test_url",
@@ -58,7 +58,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
         retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
         url="test_url_1",
         price_details=PriceDetails.create(discounted_price=Decimal("7500.00"), real_price=Decimal("8390.00")),
-        discounted_product_uuid=UUIDValueObject.create(discounted_product_1_uuid),
+        uuid_=UUIDValueObject.create(discounted_product_1_uuid),
         datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 
@@ -69,7 +69,7 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
         retailer_uuid=UUIDValueObject.create(retailer.get_uuid()),
         url="test_url_2",
         price_details=PriceDetails.create(discounted_price=Decimal("4950.00"), real_price=Decimal("5680.00")),
-        discounted_product_uuid=UUIDValueObject.create(discounted_product_2_uuid),
+        uuid_=UUIDValueObject.create(discounted_product_2_uuid),
         datetime_details=EntityDateTimeDetails.create(created_at=created_data, updated_at=created_data),
     )
 

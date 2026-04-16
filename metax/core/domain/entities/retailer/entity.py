@@ -9,13 +9,13 @@ from .value_objects import RetailersNames
 class Retailer(AggregateRootEntity):
     def __init__(
         self,
-        retailer_uuid: UUIDValueObject,
+        uuid_: UUIDValueObject,
         datetime_details: EntityDateTimeDetails,
         name: RetailersNames,
         home_page_url: str,
         phone_number: str,
     ) -> None:
-        super().__init__(uuid_value_object=retailer_uuid, datetime_details=datetime_details)
+        super().__init__(uuid_value_object=uuid_, datetime_details=datetime_details)
         self.__name = name
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number

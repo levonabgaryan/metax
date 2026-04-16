@@ -66,7 +66,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     # then
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
     updated_category_in_read_model = await discounted_product_read_model_repository.get_by_uuid(
-        discounted_product_read_model_uuid=str(discounted_product.get_uuid())
+        uuid_=str(discounted_product.get_uuid())
     )
 
     assert updated_category_in_read_model["category_name"] == "test_new_name"

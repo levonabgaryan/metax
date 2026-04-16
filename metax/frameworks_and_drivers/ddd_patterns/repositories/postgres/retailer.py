@@ -38,7 +38,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         await sync_to_async(_sync_version)(retailer)
 
     @override
-    async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
         def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
             _select_query = """
                 SELECT
@@ -53,22 +53,22 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_select_query, params=[retailer_uuid])
+                _cursor.execute(sql=_select_query, params=[uuid_])
                 row = _cursor.fetchone()
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=UUIDValueObject.create(row[0]),
+                    uuid_=UUIDValueObject.create(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
                     datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
                 )
 
-        return await sync_to_async(_sync_version)(retailer_uuid)
+        return await sync_to_async(_sync_version)(uuid_)
 
     @override
-    async def _get_by_name(self, retailer_name: RetailersNames) -> Retailer | None:
+    async def _get_by_name(self, name: RetailersNames) -> Retailer | None:
         def _sync_version(_retailer_name: RetailersNames) -> Retailer | None:
             _select_query = """
                 SELECT
@@ -88,14 +88,14 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 if row is None:
                     return None
                 return Retailer(
-                    retailer_uuid=UUIDValueObject.create(row[0]),
+                    uuid_=UUIDValueObject.create(row[0]),
                     name=RetailersNames(row[1]),
                     home_page_url=row[2],
                     phone_number=row[3],
                     datetime_details=EntityDateTimeDetails.create(created_at=row[4], updated_at=row[5]),
                 )
 
-        return await sync_to_async(_sync_version)(retailer_name)
+        return await sync_to_async(_sync_version)(name)
 
     @override
     async def _update(self, updated_retailer: Retailer) -> None:
@@ -140,7 +140,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 _rows = _cursor.fetchall()
             return (
                 Retailer(
-                    retailer_uuid=UUIDValueObject.create(_row[0]),
+                    uuid_=UUIDValueObject.create(_row[0]),
                     name=RetailersNames(_row[1]),
                     home_page_url=_row[2],
                     phone_number=_row[3],

@@ -16,22 +16,18 @@ class DiscountedProductWithDetails(NamedTuple):
 
 
 class DiscountedProductRepository(ABC):
-    async def get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct:
-        discounted_product = await self._get_by_uuid(discounted_product_uuid)
+    async def get_by_uuid(self, uuid_: UUID) -> DiscountedProduct:
+        discounted_product = await self._get_by_uuid(uuid_)
         if discounted_product is None:
             raise EntityIsNotFoundError(
                 entity_name="discounted_product",
                 searched_field_name="uuid",
-                searched_field_value=str(discounted_product_uuid),
+                searched_field_value=str(uuid_),
             )
         return discounted_product
 
     @abstractmethod
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
-        pass
-
-    @abstractmethod
-    async def _get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct | None:
         pass
 
     @abstractmethod
@@ -47,4 +43,8 @@ class DiscountedProductRepository(ABC):
     def get_all_by_date(
         self, date_: datetime, chunk_size: int = 500
     ) -> AsyncIterator[DiscountedProductWithDetails]:
+        pass
+
+    @abstractmethod
+    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
         pass

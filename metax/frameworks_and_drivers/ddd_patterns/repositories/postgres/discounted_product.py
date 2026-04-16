@@ -66,7 +66,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(discounted_products)
 
     @override
-    async def _get_by_uuid(self, discounted_product_uuid: UUID) -> DiscountedProduct | None:
+    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
         def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
             _select_query = """
                 SELECT
@@ -83,11 +83,11 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(_select_query, [discounted_product_uuid])
+                _cursor.execute(_select_query, [uuid_])
                 row = _cursor.fetchone()
                 if row is not None:
                     return DiscountedProduct(
-                        discounted_product_uuid=UUIDValueObject.create(_discounted_product_uuid),
+                        uuid_=UUIDValueObject.create(_discounted_product_uuid),
                         price_details=PriceDetails.create(
                             real_price=row[0],
                             discounted_price=row[1],
@@ -100,7 +100,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     )
             return None
 
-        return await sync_to_async(_sync_version)(discounted_product_uuid)
+        return await sync_to_async(_sync_version)(uuid_)
 
     @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
@@ -194,7 +194,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     category_name=row[9],
                     retailer_name=row[10],
                     entity=DiscountedProduct(
-                        discounted_product_uuid=UUIDValueObject.create(row[0]),
+                        uuid_=UUIDValueObject.create(row[0]),
                         price_details=PriceDetails.create(
                             real_price=row[1],
                             discounted_price=row[2],
@@ -236,7 +236,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             )
             return [
                 DiscountedProduct(
-                    discounted_product_uuid=UUIDValueObject.create(row[0]),
+                    uuid_=UUIDValueObject.create(row[0]),
                     price_details=PriceDetails.create(
                         real_price=row[1],
                         discounted_price=row[2],

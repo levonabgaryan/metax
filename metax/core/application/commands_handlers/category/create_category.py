@@ -33,7 +33,7 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
             helper_words = CategoryHelperWords.create(command.helper_words)
             now = datetime.now(tz=timezone.utc)
             category = Category(
-                category_uuid=UUIDValueObject.create(command.category_uuid),
+                uuid_=UUIDValueObject.create(command.category_uuid),
                 name=command.name,
                 helper_words=helper_words,
                 datetime_details=EntityDateTimeDetails.create(created_at=now, updated_at=now),

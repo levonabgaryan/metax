@@ -37,7 +37,7 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_uuid(self, discounted_product_read_model_uuid: str) -> DiscountedProductReadModel:
+    async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         pass
 
     @abstractmethod

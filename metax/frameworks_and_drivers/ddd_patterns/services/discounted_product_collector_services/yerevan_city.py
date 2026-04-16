@@ -56,7 +56,7 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
 
         for raw_product in raw_products:
             yield DiscountedProduct(
-                discounted_product_uuid=UUIDValueObject.create(uuid.uuid7()),
+                uuid_=UUIDValueObject.create(uuid.uuid7()),
                 name=self.clean_discounted_product_name(text=raw_product["name"]),
                 price_details=PriceDetails.create(
                     real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),

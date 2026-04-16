@@ -8,24 +8,23 @@ from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 class RetailerRepository(ABC):
-    async def get_by_uuid(self, retailer_uuid: UUID) -> Retailer:
-        retailer = await self._get_by_uuid(retailer_uuid=retailer_uuid)
+    async def get_by_uuid(self, uuid_: UUID) -> Retailer:
+        retailer = await self._get_by_uuid(uuid_=uuid_)
         if retailer is None:
             raise EntityIsNotFoundError(
                 entity_name="retailer",
                 searched_field_name="uuid",
-                searched_field_value=str(retailer_uuid),
+                searched_field_value=str(uuid_),
             )
         return retailer
 
-    async def get_by_name(self, retailer_name: RetailersNames) -> Retailer:
-        lookup = retailer_name.value if isinstance(retailer_name, RetailersNames) else retailer_name
-        retailer = await self._get_by_name(retailer_name=retailer_name)
+    async def get_by_name(self, name: RetailersNames) -> Retailer:
+        retailer = await self._get_by_name(name=name)
         if retailer is None:
             raise EntityIsNotFoundError(
                 entity_name="retailer",
                 searched_field_name="name",
-                searched_field_value=lookup,
+                searched_field_value=name,
             )
         return retailer
 
@@ -36,7 +35,11 @@ class RetailerRepository(ABC):
         await self._update(updated_retailer)
 
     @abstractmethod
-    async def _get_by_uuid(self, retailer_uuid: UUID) -> Retailer | None:
+    def get_all(self) -> AsyncIterator[Retailer]:
+        pass
+
+    @abstractmethod
+    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
         pass
 
     @abstractmethod
@@ -44,13 +47,9 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_name(self, retailer_name: RetailersNames) -> Retailer | None:
+    async def _get_by_name(self, name: RetailersNames) -> Retailer | None:
         pass
 
     @abstractmethod
     async def _update(self, updated_retailer: Retailer) -> None:
-        pass
-
-    @abstractmethod
-    def get_all(self) -> AsyncIterator[Retailer]:
         pass
