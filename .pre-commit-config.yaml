@@ -30,7 +30,7 @@ repos:
     hooks:
       - id: dotenv-check
         name: dotenv-check
-        entry: ./.venv/bin/python env_structure_validator.py
+        entry: ./.venv/bin/python env_file_validator.py
         language: system
         always_run: true
         pass_filenames: false
