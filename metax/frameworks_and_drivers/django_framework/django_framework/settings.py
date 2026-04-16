@@ -13,7 +13,7 @@ from pathlib import Path
 
 from django.db.backends.postgresql.psycopg_any import IsolationLevel
 
-from metax_configs import METAX_CONFIGS
+from metax_bootstrap import METAX_CONFIGS
 
 DEBUG = METAX_CONFIGS.debug
 

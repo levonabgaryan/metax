@@ -28,6 +28,7 @@ dependencies = [
     "ruff>=0.15.10",
     "types-gunicorn>=25.3.0.20260408",
     "types-psycopg2>=2.9.21.20260408",
+    "uv-audit>=0.1.9",
     "uvicorn>=0.44.0",
     "uvloop>=0.22.1",
     "whitenoise>=6.12.0",

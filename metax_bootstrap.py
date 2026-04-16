@@ -1,8 +1,10 @@
 from functools import lru_cache
 
 from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
-from metax_configs import METAX_CONFIGS
+from metax_configs import configuration_factory
 from metax_lifespan import MetaxAppLifespanManager
+
+METAX_CONFIGS = configuration_factory()
 
 
 @lru_cache(maxsize=1)

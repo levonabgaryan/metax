@@ -6,8 +6,8 @@ from pathlib import Path
 
 import uvicorn
 
-from metax_bootstrap import get_metax_lifespan_manager
-from metax_configs import METAX_CONFIGS, BaseConfigs, DevConfigs
+from metax_bootstrap import METAX_CONFIGS, get_metax_lifespan_manager
+from metax_configs import BaseConfigs, DevConfigs
 from metax_lifespan import MetaxAppLifespanManager
 
 logger = logging.getLogger(__name__)

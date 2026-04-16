@@ -1,6 +1,6 @@
 # https://gunicorn.org/asgi/?h=gunicorn.conf.py#recommended-settings
 # https://gunicorn.org/reference/settings/?h=gunicorn.conf.py#config
-from metax_configs import METAX_CONFIGS
+from metax_bootstrap import METAX_CONFIGS
 
 _configs = METAX_CONFIGS
 

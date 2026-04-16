@@ -64,7 +64,8 @@ class BaseConfigs(BaseSettings):
 
 
 class DevConfigs(BaseConfigs):
-    # When you run locally, make sure that variables from env are same here
+    # When you run locally, make sure that variables in .env are same as here,
+    # because docker containers are using these configs.
     debug: bool = True
 
     postgres_host: str = "localhost"
@@ -78,7 +79,6 @@ class DevConfigs(BaseConfigs):
 
     django_secret_key: str = "django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"  # noqa: S105
 
-    # Local dev uses uvicorn --reload (run_metax); gunicorn reload is off here.
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
@@ -162,6 +162,3 @@ def configuration_factory() -> BaseConfigs:
         case _:
             msg = f"Invalid ENV: {env_name}"
             raise RuntimeError(msg)
-
-
-METAX_CONFIGS = configuration_factory()

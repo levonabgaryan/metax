@@ -5,8 +5,7 @@ from celery import Celery
 from celery.schedules import crontab
 from celery.signals import setup_logging, worker_process_init, worker_process_shutdown
 
-from metax_bootstrap import get_metax_lifespan_manager
-from metax_configs import METAX_CONFIGS
+from metax_bootstrap import METAX_CONFIGS, get_metax_lifespan_manager
 
 celery_app = Celery(
     main="metax",

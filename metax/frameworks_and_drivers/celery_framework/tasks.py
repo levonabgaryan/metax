@@ -18,8 +18,7 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
-from metax_bootstrap import get_metax_lifespan_manager
-from metax_configs import METAX_CONFIGS
+from metax_bootstrap import METAX_CONFIGS, get_metax_lifespan_manager
 
 from .celery_application import celery_app
 from .errors import NoRetailersError
