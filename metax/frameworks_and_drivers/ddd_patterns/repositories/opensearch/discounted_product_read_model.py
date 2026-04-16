@@ -11,6 +11,26 @@ from metax.core.application.read_models.discounted_product import DiscountedProd
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
+def _opensearch_source_to_read_model(uuid_: str, source: dict[str, Any]) -> DiscountedProductReadModel:
+    item: DiscountedProductReadModel = {
+        "uuid_": uuid_,
+        "name": source["name"],
+        "real_price": source["real_price"],
+        "discounted_price": source["discounted_price"],
+        "retailer_uuid": source["retailer_uuid"],
+        "retailer_name": source["retailer_name"],
+        "url": source["url"],
+        "created_at": source["created_at"],
+    }
+    category_uuid: str | None = source.get("category_uuid")
+    if category_uuid is not None:
+        item["category_uuid"] = category_uuid
+    category_name: str | None = source.get("category_name")
+    if category_name is not None:
+        item["category_name"] = category_name
+    return item
+
+
 class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModelRepository):
     def __init__(self, opensearch_async_client: AsyncOpenSearch) -> None:
         self.__opensearch_async_client = opensearch_async_client
@@ -70,20 +90,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         )
         hits = response["hits"]["hits"]
         for hit in hits:
-            source = hit["_source"]
-            source["discounted_product_uuid"] = hit["_id"]
-            yield DiscountedProductReadModel(
-                uuid_=source["discounted_product_uuid"],
-                name=source["name"],
-                real_price=source["real_price"],
-                discounted_price=source["discounted_price"],
-                category_uuid=source.get("category_uuid"),
-                category_name=source.get("category_name"),
-                retailer_uuid=source["retailer_uuid"],
-                retailer_name=source["retailer_name"],
-                url=source.get("url"),
-                created_at=source["created_at"],
-            )
+            yield _opensearch_source_to_read_model(hit["_id"], hit["_source"])
             await asyncio.sleep(0)
 
     @override
@@ -129,26 +136,10 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         # https://docs.opensearch.org/latest/api-reference/document-apis/get-documents/#example-request
         response = await self.__opensearch_async_client.get(id=uuid_, index=self.__alias_name)
         document: dict[str, Any] = response["_source"]
-
-        result = DiscountedProductReadModel(
-            uuid_=response["_id"],
-            name=document["name"],
-            real_price=document["real_price"],
-            discounted_price=document["discounted_price"],
-            retailer_uuid=document["retailer_uuid"],
-            retailer_name=document["retailer_name"],
-            url=document["url"],
-            created_at=document["created_at"],
-        )
-
-        if document.get("category_uuid"):
-            result["category_uuid"] = document["category_uuid"]
-        if document.get("category_name"):
-            result["category_name"] = document["category_name"]
-        return result
+        return _opensearch_source_to_read_model(response["_id"], document)
 
     @override
-    async def get_by_name_page(
+    async def get_by_name(
         self,
         name: str,
         cursor_: str | None = None,  # page id
@@ -201,21 +192,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         new_scroll_id = response.get("_scroll_id")
         hits = response["hits"]["hits"]
 
-        items = [
-            DiscountedProductReadModel(
-                name=hit["_source"]["name"],
-                real_price=hit["_source"]["real_price"],
-                discounted_price=hit["_source"]["discounted_price"],
-                retailer_uuid=hit["_source"]["retailer_uuid"],
-                retailer_name=hit["_source"]["retailer_name"],
-                created_at=hit["_source"]["created_at"],
-                uuid_=hit["_id"],
-                category_uuid=hit["_source"].get("category_uuid"),
-                category_name=hit["_source"].get("category_name"),
-                url=hit["_source"].get("url"),
-            )
-            for hit in hits
-        ]
+        items = [_opensearch_source_to_read_model(hit["_id"], hit["_source"]) for hit in hits]
 
         # No more data → cleanup
         if not hits and new_scroll_id:

@@ -178,7 +178,7 @@ async def test_get_by_name_page(
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # when
-    found_products, scroll_id = await repo.get_by_name_page(name=query, chunk_size=1)
+    found_products, scroll_id = await repo.get_by_name(name=query, chunk_size=1)
 
     # then
     # first_page
@@ -189,6 +189,6 @@ async def test_get_by_name_page(
     assert found_product["name"] == discounted_product_read_model_["name"]
 
     # second page
-    found_products, scroll_id = await repo.get_by_name_page(name=query, cursor_=scroll_id)
+    found_products, scroll_id = await repo.get_by_name(name=query, cursor_=scroll_id)
     assert scroll_id is None
     assert len(found_products) == 0

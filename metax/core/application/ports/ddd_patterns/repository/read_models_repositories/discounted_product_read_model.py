@@ -39,7 +39,7 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_by_name_page(
+    async def get_by_name(
         self,
         name: str,
         cursor_: str | None = None,
