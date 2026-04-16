@@ -147,10 +147,11 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
     async def get_by_name_page(
         self,
         name: str,
-        scroll_id: str | None = None,
-        size: int = 50,
+        cursor_: str | None = None,  # page id
+        chunk_size: int = 100,
     ) -> tuple[list[DiscountedProductReadModel], str | None]:
         # First request
+        scroll_id = cursor_
         if scroll_id is None:
             translit_res = await self.__opensearch_async_client.indices.analyze(
                 body={
@@ -183,7 +184,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
                 index=self.__alias_name,
                 body=search_body,
                 scroll="5m",
-                size=size,
+                size=chunk_size,
             )
 
         # Next pages

@@ -42,7 +42,7 @@ class IDiscountedProductReadModelRepository(ABC):
     async def get_by_name_page(
         self,
         name: str,
-        scroll_id: str | None = None,
-        size: int = 50,
+        cursor_: str | None = None,
+        chunk_size: int = 50,
     ) -> tuple[list[DiscountedProductReadModel], str | None]:
         pass
