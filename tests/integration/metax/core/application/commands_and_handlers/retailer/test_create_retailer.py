@@ -6,6 +6,7 @@ from metax.core.application.commands_handlers.retailer import (
     CreateRetailerCommand,
     CreateRetailerCommandHandler,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
 
@@ -35,7 +36,7 @@ async def test_create_retailer_command_handler(
     # then
     uow = await unit_of_work_provider.create()
     async with uow:
-        retailer = await uow.retailer_repo.get_by_uuid(cmd.retailer_uuid)
+        retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(cmd.retailer_uuid))
 
     assert retailer.get_name() == RetailersNames.YEREVAN_CITY
     assert retailer.get_home_page_url() == "https://example.com"

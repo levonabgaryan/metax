@@ -6,6 +6,7 @@ from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_discounted_product_entity, make_retailer_entity
 
@@ -31,7 +32,9 @@ async def test_event_handler_shall_delete_old_data(
         await uow.commit()
 
     async with unit_of_work as uow:
-        discounted_product = await uow.discounted_product_repo.get_by_uuid(old_discounted_product.get_uuid())
+        discounted_product = await uow.discounted_product_repo.get_by_uuid(
+            UUIDValueObject.create(old_discounted_product.get_uuid())
+        )
         await uow.commit()
         assert discounted_product.get_uuid() == old_discounted_product.get_uuid()
 
@@ -44,5 +47,7 @@ async def test_event_handler_shall_delete_old_data(
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError):
-            await uow.discounted_product_repo.get_by_uuid(old_discounted_product.get_uuid())
+            await uow.discounted_product_repo.get_by_uuid(
+                UUIDValueObject.create(old_discounted_product.get_uuid())
+            )
         await uow.commit()

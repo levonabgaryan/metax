@@ -87,8 +87,12 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
 
     # then
     async with unit_of_work as uow:
-        added_absolut_vodka = await uow.discounted_product_repo.get_by_uuid(discounted_product_1_uuid)
-        added_karas_whine = await uow.discounted_product_repo.get_by_uuid(discounted_product_2_uuid)
+        added_absolut_vodka = await uow.discounted_product_repo.get_by_uuid(
+            UUIDValueObject.create(discounted_product_1_uuid)
+        )
+        added_karas_whine = await uow.discounted_product_repo.get_by_uuid(
+            UUIDValueObject.create(discounted_product_2_uuid)
+        )
         await uow.commit()
 
     assert added_absolut_vodka.get_uuid() == discounted_product_1_uuid
@@ -121,7 +125,7 @@ async def test_discounted_products_is_not_found_by_uuid(
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError) as err:
-            await uow.discounted_product_repo.get_by_uuid(random_uuid)
+            await uow.discounted_product_repo.get_by_uuid(UUIDValueObject.create(random_uuid))
 
     # then
     assert (

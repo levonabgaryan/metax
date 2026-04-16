@@ -66,8 +66,8 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(discounted_products)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
-        def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
+    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> DiscountedProduct | None:
+        def _sync_version(_discounted_product_uuid: UUIDValueObject) -> DiscountedProduct | None:
             _select_query = """
                 SELECT
                     real_price,
@@ -83,11 +83,11 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(_select_query, [uuid_])
+                _cursor.execute(_select_query, [_discounted_product_uuid.value])
                 row = _cursor.fetchone()
                 if row is not None:
                     return DiscountedProduct(
-                        uuid_=UUIDValueObject.create(_discounted_product_uuid),
+                        uuid_=UUIDValueObject.create(_discounted_product_uuid.value),
                         price_details=PriceDetails.create(
                             real_price=row[0],
                             discounted_price=row[1],

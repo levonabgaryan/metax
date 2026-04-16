@@ -4,6 +4,7 @@ import pytest
 
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from metax_lifespan import MetaxAppLifespanManager
@@ -48,7 +49,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     async with unit_of_work as uow:
-        found_retailer = await uow.retailer_repo.get_by_uuid(uuid_=retailer.get_uuid())
+        found_retailer = await uow.retailer_repo.get_by_uuid(uuid_=UUIDValueObject.create(retailer.get_uuid()))
         found_retailer.set_name(RetailersNames.SAS_AM)
         await uow.retailer_repo.update(updated_retailer=found_retailer)
         await uow.commit()

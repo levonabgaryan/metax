@@ -4,6 +4,7 @@ from metax.core.application.commands_handlers.category import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.category.value_objects import CategoryHelperWords
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
@@ -38,6 +39,6 @@ async def test_delete_helper_words_command(
     await handler.handle_command(command)
 
     async with unit_of_work as uow:
-        updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
+        updated_category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
 
     assert updated_category.get_helper_words() == expected_helper_words.words

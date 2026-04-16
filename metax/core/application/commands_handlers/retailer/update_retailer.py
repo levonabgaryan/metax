@@ -6,6 +6,7 @@ from uuid import UUID
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
 from metax.core.application.event_handlers.retailer.events import RetailerUpdated
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class UpdateRetailerCommandHandler(CommandHandler[UpdateRetailerCommand]):
         uow = await self._unit_of_work_provider.create()
         async with uow:
             repo = uow.retailer_repo
-            retailer = await repo.get_by_uuid(command.retailer_uuid)
+            retailer = await repo.get_by_uuid(UUIDValueObject.create(command.retailer_uuid))
             if command.new_name is not None:
                 retailer.set_name(RetailersNames(command.new_name))
             if command.new_url is not None:

@@ -8,7 +8,7 @@ ENV UV_SYSTEM_PYTHON=1
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LOCKED=1
 
-WORKDIR /discount-system
+WORKDIR /metax
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -22,4 +22,4 @@ RUN uv lock --check && uv pip install -r pyproject.toml && rm -rf /root/.cache/u
 
 COPY . .
 
-ENTRYPOINT ["python", "run_metax.py"]
+ENTRYPOINT ["python", "run_metax_http_server.py"]

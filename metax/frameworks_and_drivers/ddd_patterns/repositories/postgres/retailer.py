@@ -1,5 +1,4 @@
 from typing import AsyncIterator, Iterator, override
-from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from django.db import connection
@@ -38,8 +37,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         await sync_to_async(_sync_version)(retailer)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
-        def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
+    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Retailer | None:
+        def _sync_version(_retailer_uuid: UUIDValueObject) -> Retailer | None:
             _select_query = """
                 SELECT
                     retailer_uuid,
@@ -53,7 +52,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             """
             _cursor: CursorWrapper
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_select_query, params=[uuid_])
+                _cursor.execute(sql=_select_query, params=[_retailer_uuid.value])
                 row = _cursor.fetchone()
                 if row is None:
                     return None

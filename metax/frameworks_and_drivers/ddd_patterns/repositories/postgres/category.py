@@ -62,8 +62,8 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         await sync_to_async(_sync_version)(category)
 
     @override
-    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
-        def _sync_version(_category_uuid: UUID) -> Category | None:
+    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> Category | None:
+        def _sync_version(_category_uuid: UUIDValueObject) -> Category | None:
             _category_select_query = """
                 SELECT
                     c.category_uuid,
@@ -79,19 +79,19 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             _cursor: CursorWrapper
 
             with connection.cursor() as _cursor:
-                _cursor.execute(sql=_category_select_query, params=[_category_uuid])
+                _cursor.execute(sql=_category_select_query, params=[_category_uuid.value])
                 _rows: list[tuple[UUID, str, datetime, datetime, str | None]] = _cursor.fetchall()
 
                 if _rows:
                     _first_row = _rows[0]
-                    _category_uuid = _first_row[0]
+                    _db_category_uuid = _first_row[0]
                     _category_name = _first_row[1]
                     _created_at = _first_row[2]
                     _updated_at = _first_row[3]
                     _helper_words: frozenset[str] = frozenset(_row[4] for _row in _rows if _row[4] is not None)
 
                     return Category(
-                        uuid_=UUIDValueObject.create(_category_uuid),
+                        uuid_=UUIDValueObject.create(_db_category_uuid),
                         name=_category_name,
                         helper_words=CategoryHelperWords.create(words=frozenset(_helper_words)),
                         datetime_details=EntityDateTimeDetails.create(

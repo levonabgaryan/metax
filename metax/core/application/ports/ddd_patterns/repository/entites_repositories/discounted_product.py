@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import AsyncIterator, NamedTuple
-from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.discounted_product.entity import (
     DiscountedProduct,
 )
@@ -16,13 +16,13 @@ class DiscountedProductWithDetails(NamedTuple):
 
 
 class DiscountedProductRepository(ABC):
-    async def get_by_uuid(self, uuid_: UUID) -> DiscountedProduct:
+    async def get_by_uuid(self, uuid_: UUIDValueObject) -> DiscountedProduct:
         discounted_product = await self._get_by_uuid(uuid_)
         if discounted_product is None:
             raise EntityIsNotFoundError(
                 entity_name="discounted_product",
                 searched_field_name="uuid",
-                searched_field_value=str(uuid_),
+                searched_field_value=str(uuid_.value),
             )
         return discounted_product
 
@@ -46,5 +46,5 @@ class DiscountedProductRepository(ABC):
         pass
 
     @abstractmethod
-    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
+    async def _get_by_uuid(self, uuid_: UUIDValueObject) -> DiscountedProduct | None:
         pass

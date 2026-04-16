@@ -3,6 +3,7 @@ from uuid import uuid7
 import pytest
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_retailer_entity
@@ -23,7 +24,9 @@ async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxA
         await uow.commit()
 
     # then
-    got_retailer_by_uuid = await unit_of_work.retailer_repo.get_by_uuid(retailer.get_uuid())
+    got_retailer_by_uuid = await unit_of_work.retailer_repo.get_by_uuid(
+        UUIDValueObject.create(retailer.get_uuid())
+    )
     got_retailer_by_name = await unit_of_work.retailer_repo.get_by_name(retailer.get_name())
 
     assert got_retailer_by_uuid.get_uuid() == retailer.get_uuid()
@@ -57,7 +60,7 @@ async def test_retailer_repo_update(
         await uow.commit()
 
     # then
-    retailer = await unit_of_work.retailer_repo.get_by_uuid(retailer.get_uuid())
+    retailer = await unit_of_work.retailer_repo.get_by_uuid(UUIDValueObject.create(retailer.get_uuid()))
 
     assert retailer.get_name() == RetailersNames.SAS_AM
     assert retailer.get_home_page_url() == "new_url"
@@ -75,7 +78,7 @@ async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: Me
     # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError) as err:
-            await uow.retailer_repo.get_by_uuid(random_uuid)
+            await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(random_uuid))
 
     # then
     assert err.value.title == f"There is no retailer entity found by field 'uuid' with value '{random_uuid}'."

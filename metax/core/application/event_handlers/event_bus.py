@@ -21,6 +21,7 @@ from metax.core.application.ports.ddd_patterns.repository.read_models_repositori
     IDiscountedProductReadModelRepository,
 )
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class EventBus:
         )
         uow = await self.__unit_of_work_provider.create()
         async with uow:
-            updated_category = await uow.category_repo.get_by_uuid(event.category_uuid)
+            updated_category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(event.category_uuid))
             await self.__discounted_product_read_model_repo.update_category(updated_category)
             await uow.commit()
         logger.info(
@@ -88,7 +89,7 @@ class EventBus:
         )
         uow = await self.__unit_of_work_provider.create()
         async with uow:
-            updated_retailer = await uow.retailer_repo.get_by_uuid(event.retailer_uuid)
+            updated_retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(event.retailer_uuid))
             await self.__discounted_product_read_model_repo.update_retailer(updated_retailer)
             await uow.commit()
         logger.info(

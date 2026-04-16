@@ -4,6 +4,7 @@ from metax.core.application.commands_handlers.retailer import (
     UpdateRetailerCommand,
     UpdateRetailerCommandHandler,
 )
+from metax.core.domain.ddd_patterns.general_value_objects import UUIDValueObject
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_retailer_entity
@@ -42,7 +43,7 @@ async def test_update_retailer_command_handler(
     # then
     uow = await unit_of_work_provider.create()
     async with uow:
-        updated_retailer = await uow.retailer_repo.get_by_uuid(retailer.get_uuid())
+        updated_retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(retailer.get_uuid()))
         await uow.commit()
 
     assert updated_retailer.get_name() == RetailersNames.SAS_AM
