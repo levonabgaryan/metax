@@ -29,7 +29,7 @@ class CreateRetailerCommandHandler(CommandHandler[CreateRetailerCommand]):
             command.__class__.__name__,
             command.retailer_uuid,
         )
-        uow = await self._unit_of_work_provider.create()
+        uow = await self._unit_of_work_provider.provide()
         async with uow:
             now = datetime.now(tz=timezone.utc)
             retailer = Retailer(

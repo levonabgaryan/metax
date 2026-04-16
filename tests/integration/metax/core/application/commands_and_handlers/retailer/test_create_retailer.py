@@ -34,7 +34,7 @@ async def test_create_retailer_command_handler(
     await cmd_handler.handle_command(cmd)
 
     # then
-    uow = await unit_of_work_provider.create()
+    uow = await unit_of_work_provider.provide()
     async with uow:
         retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(cmd.retailer_uuid))
 

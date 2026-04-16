@@ -75,7 +75,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
             source = hit["_source"]
             source["discounted_product_uuid"] = hit["_id"]
             yield DiscountedProductReadModel(
-                discounted_product_uuid=source["discounted_product_uuid"],
+                uuid_=source["discounted_product_uuid"],
                 name=source["name"],
                 real_price=source["real_price"],
                 discounted_price=source["discounted_price"],
@@ -100,8 +100,8 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
     @override
     async def add_one(self, discounted_product: DiscountedProductReadModel) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/guides/async.md#index-documents
-        doc_id = discounted_product["discounted_product_uuid"]
-        doc_body = {k: v for k, v in discounted_product.items() if k != "discounted_product_uuid"}
+        doc_id = discounted_product["uuid_"]
+        doc_body = {k: v for k, v in discounted_product.items() if k != "uuid_"}
 
         await self.__opensearch_async_client.index(index=self.__alias_name, id=doc_id, body=doc_body)
 
@@ -110,7 +110,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         # https://github.com/opensearch-project/opensearch-py/blob/main/samples/bulk/bulk_array.py
         formatted_to_dict: list[dict[str, Any] | DiscountedProductReadModel] = []
         for discounted_product in discounted_products:
-            doc_id = discounted_product["discounted_product_uuid"]
+            doc_id = discounted_product["uuid_"]
 
             formatted_to_dict.append(
                 {
@@ -120,7 +120,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
                     }
                 }
             )
-            doc_body = {k: v for k, v in discounted_product.items() if k != "discounted_product_uuid"}
+            doc_body = {k: v for k, v in discounted_product.items() if k != "uuid_"}
             formatted_to_dict.append(doc_body)
         response = await self.__opensearch_async_client.bulk(body=formatted_to_dict)
         if response.get("errors"):
@@ -133,7 +133,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         document: dict[str, Any] = response["_source"]
 
         return DiscountedProductReadModel(
-            discounted_product_uuid=response["_id"],
+            uuid_=response["_id"],
             name=document["name"],
             real_price=document["real_price"],
             discounted_price=document["discounted_price"],
@@ -206,7 +206,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
                 retailer_uuid=hit["_source"]["retailer_uuid"],
                 retailer_name=hit["_source"]["retailer_name"],
                 created_at=hit["_source"]["created_at"],
-                discounted_product_uuid=hit["_id"],
+                uuid_=hit["_id"],
                 category_uuid=hit["_source"].get("category_uuid"),
                 category_name=hit["_source"].get("category_name"),
                 url=hit["_source"].get("url"),

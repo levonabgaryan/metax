@@ -33,7 +33,7 @@ async def test_create_category_command_handler(
     await cmd_handler_.handle_command(cmd)
 
     # then
-    uow = await unit_of_work_provider.create()
+    uow = await unit_of_work_provider.provide()
     async with uow:
         category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category_uuid))
     assert category.get_uuid() == category_uuid

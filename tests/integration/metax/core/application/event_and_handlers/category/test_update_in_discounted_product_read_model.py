@@ -40,7 +40,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         await uow.commit()
 
     discounted_product_read_model_ = DiscountedProductReadModel(
-        discounted_product_uuid=str(discounted_product.get_uuid()),
+        uuid_=str(discounted_product.get_uuid()),
         name=discounted_product.get_name(),
         real_price=float(discounted_product.get_real_price()),
         discounted_price=float(discounted_product.get_discounted_price()),

@@ -75,9 +75,7 @@ async def test_update_category(
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
-    updated_discounted_product_read_model = await repo.get_by_uuid(
-        uuid_=discounted_product_read_model_["discounted_product_uuid"]
-    )
+    updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
     assert updated_discounted_product_read_model["category_name"] == "category_new_name"
 
 
@@ -108,9 +106,7 @@ async def test_update_retailer(
     await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
 
     # then
-    updated_discounted_product_read_model = await repo.get_by_uuid(
-        uuid_=discounted_product_read_model_["discounted_product_uuid"]
-    )
+    updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
     assert updated_discounted_product_read_model["retailer_name"] == RetailersNames.SAS_AM.value
 
 
@@ -138,9 +134,7 @@ async def test_get_all(
 
     # then
     async for product in got_discounted_product_read_models:
-        assert product["discounted_product_uuid"] in {
-            given_product["discounted_product_uuid"] for given_product in discounted_product_read_models
-        }
+        assert product["uuid_"] in {given_product["uuid_"] for given_product in discounted_product_read_models}
         assert product["name"] in {given_product["name"] for given_product in discounted_product_read_models}
         assert product["real_price"] in {
             given_product["real_price"] for given_product in discounted_product_read_models
@@ -185,7 +179,7 @@ async def test_get_by_name_page(
     assert scroll_id is not None
     assert len(found_products) == 1
     found_product = found_products[0]
-    assert found_product["discounted_product_uuid"] == discounted_product_read_model_["discounted_product_uuid"]
+    assert found_product["uuid_"] == discounted_product_read_model_["uuid_"]
     assert found_product["name"] == discounted_product_read_model_["name"]
 
     # second page

@@ -2,7 +2,7 @@ from typing import NotRequired, Required, TypedDict
 
 
 class DiscountedProductReadModel(TypedDict):
-    discounted_product_uuid: NotRequired[str]
+    uuid_: NotRequired[str]
     name: Required[str]
     real_price: Required[float]
     discounted_price: Required[float]

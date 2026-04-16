@@ -69,7 +69,7 @@ class EventBus:
             event.__class__.__name__,
             event.category_uuid,
         )
-        uow = await self.__unit_of_work_provider.create()
+        uow = await self.__unit_of_work_provider.provide()
         async with uow:
             updated_category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(event.category_uuid))
             await self.__discounted_product_read_model_repo.update_category(updated_category)
@@ -87,7 +87,7 @@ class EventBus:
             event.__class__.__name__,
             event.retailer_uuid,
         )
-        uow = await self.__unit_of_work_provider.create()
+        uow = await self.__unit_of_work_provider.provide()
         async with uow:
             updated_retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(event.retailer_uuid))
             await self.__discounted_product_read_model_repo.update_retailer(updated_retailer)
@@ -104,7 +104,7 @@ class EventBus:
             "[Event: %s] | Handler: Delete old discount products from repo | Status: STARTED",
             event.__class__.__name__,
         )
-        uow = await self.__unit_of_work_provider.create()
+        uow = await self.__unit_of_work_provider.provide()
         async with uow:
             await uow.discounted_product_repo.delete_older_than_and_return_deleted_count(
                 date_limit=event.new_products_created_date
@@ -128,7 +128,7 @@ class EventBus:
         current_batch = []
         date_limit = event.new_discounted_products_creation_date
 
-        uow = await self.__unit_of_work_provider.create()
+        uow = await self.__unit_of_work_provider.provide()
         async with uow:
             repo: DiscountedProductRepository = uow.discounted_product_repo
             read_model_repo: IDiscountedProductReadModelRepository = self.__discounted_product_read_model_repo
@@ -154,7 +154,7 @@ class EventBus:
 
 def to_read_model(discounted_product_with_details: DiscountedProductWithDetails) -> DiscountedProductReadModel:
     return DiscountedProductReadModel(
-        discounted_product_uuid=str(discounted_product_with_details.entity.get_uuid()),
+        uuid_=str(discounted_product_with_details.entity.get_uuid()),
         name=discounted_product_with_details.entity.get_name(),
         real_price=float(discounted_product_with_details.entity.get_real_price()),
         discounted_price=float(discounted_product_with_details.entity.get_discounted_price()),

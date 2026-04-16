@@ -96,7 +96,7 @@ def make_discounted_product_read_model(
     url: str | None = None,
 ) -> DiscountedProductReadModel:
     return DiscountedProductReadModel(
-        discounted_product_uuid=discounted_product_uuid,
+        uuid_=discounted_product_uuid,
         name=name,
         real_price=real_price,
         discounted_price=discounted_price,

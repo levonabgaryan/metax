@@ -11,7 +11,7 @@ class CategoryClassifierService:
     async def __load_category_map(self) -> None:
         if self.__category_map_loaded:
             return
-        uow = await self.__unit_of_work_provider.create()
+        uow = await self.__unit_of_work_provider.provide()
         async with uow:
             all_categories = await uow.category_repo.get_all()
         self.__category_map = {

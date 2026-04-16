@@ -25,7 +25,7 @@ class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):
             command.__class__.__name__,
             command.category_uuid,
         )
-        uow = await self._unit_of_work_provider.create()
+        uow = await self._unit_of_work_provider.provide()
         async with uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(UUIDValueObject.create(command.category_uuid))

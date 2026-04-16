@@ -35,7 +35,7 @@ async def test_update_category_command_handler(
     await cmd_handler.handle_command(cmd)
 
     # then
-    uow = await unit_of_work_provider.create()
+    uow = await unit_of_work_provider.provide()
     async with uow:
         updated_category = await uow.category_repo.get_by_uuid(UUIDValueObject.create(category.get_uuid()))
         assert updated_category.get_name() == cmd.new_name

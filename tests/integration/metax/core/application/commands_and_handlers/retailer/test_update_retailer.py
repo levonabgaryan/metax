@@ -41,7 +41,7 @@ async def test_update_retailer_command_handler(
     await cmd_handler.handle_command(cmd)
 
     # then
-    uow = await unit_of_work_provider.create()
+    uow = await unit_of_work_provider.provide()
     async with uow:
         updated_retailer = await uow.retailer_repo.get_by_uuid(UUIDValueObject.create(retailer.get_uuid()))
         await uow.commit()

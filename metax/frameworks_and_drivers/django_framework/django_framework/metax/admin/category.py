@@ -97,7 +97,7 @@ class CategoryAdminHandler:
         unit_of_work_provider = container.unit_of_work_provider()
         event_bus = await container.event_bus.async_()
 
-        uow = await unit_of_work_provider.create()
+        uow = await unit_of_work_provider.provide()
         async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
@@ -114,7 +114,7 @@ class CategoryAdminHandler:
         unit_of_work_provider = container.unit_of_work_provider()
         event_bus = await container.event_bus.async_()
 
-        uow = await unit_of_work_provider.create()
+        uow = await unit_of_work_provider.provide()
         async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
@@ -129,7 +129,7 @@ class CategoryAdminHandler:
     async def __get__all_categories() -> list[Category]:
         container = get_current_metax_app().get_di_container().patterns_container.container
         unit_of_work_provider = container.unit_of_work_provider()
-        uow = await unit_of_work_provider.create()
+        uow = await unit_of_work_provider.provide()
         async with uow:
             all_categories = await uow.category_repo.get_all()
         return all_categories

@@ -41,7 +41,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     for product in discounted_products:
         discounted_product_read_models_.append(
             DiscountedProductReadModel(
-                discounted_product_uuid=str(product.get_uuid()),
+                uuid_=str(product.get_uuid()),
                 name=product.get_name(),
                 real_price=float(product.get_real_price()),
                 discounted_price=float(product.get_discounted_price()),
@@ -66,7 +66,5 @@ async def test_event_handler_shall_save_in_empty_read_model(
     assert await discounted_product_read_model_repository.get_all_count() == 2
     read_model: DiscountedProductReadModel
     async for read_model in discounted_product_read_model_repository.get_all():
-        assert read_model["discounted_product_uuid"] in {
-            str(product.get_uuid()) for product in discounted_products
-        }
+        assert read_model["uuid_"] in {str(product.get_uuid()) for product in discounted_products}
         assert read_model["created_at"] == creation_data.isoformat()

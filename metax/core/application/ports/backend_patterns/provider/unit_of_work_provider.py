@@ -7,5 +7,5 @@ from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work imp
 
 class IUnitOfWorkProvider(ABC):
     @abstractmethod
-    async def create(self) -> AbstractUnitOfWork:
+    async def provide(self) -> AbstractUnitOfWork:
         pass

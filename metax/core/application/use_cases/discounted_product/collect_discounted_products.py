@@ -77,7 +77,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         return CollectDiscountedProductsResponse(added_count=total_count)
 
     async def __save_batch(self, batch: list[DiscountedProduct]) -> None:
-        uow = await self._unit_of_work_provider.create()
+        uow = await self._unit_of_work_provider.provide()
         async with uow:
             await uow.discounted_product_repo.add_many(batch)
             await uow.commit()
