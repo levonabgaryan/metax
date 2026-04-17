@@ -64,75 +64,31 @@ class BaseConfigs(BaseSettings):
 
 
 class DevConfigs(BaseConfigs):
-    # When you run locally, make sure that variables in .env are same as here,
-    # because docker containers are using these configs.
     debug: bool = True
 
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_user: str = "p_user"
-    postgres_password: str = "pass111"  # noqa: S105
-    postgres_db: str = "discount-system"
-
-    opensearch_host: str = "localhost"
     opensearch_verify_certs: bool = False
 
-    django_secret_key: str = "django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"  # noqa: S105
+    django_secret_key: str = "mock"  # noqa: S105
 
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
-    redis_port: int = 6379
-    redis_password: str = "R_Super_Secret_Pass_2026!"  # noqa: S105
-
     fluent_bit_host: str = "mock"
     fluent_bit_port: int = 0
-
-    opensearch_user: str = "admin"
-    opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
-    opensearch_port: int = 9200
-
-    django_host: str = "localhost"
-    django_port: int = 8000
-    redis_host: str = "localhost"
 
 
 class TestConfigs(BaseConfigs):
     debug: bool = True
 
-    postgres_host: str = "localhost"
-    postgres_port: int = 5432
-    postgres_user: str = "p_user"
-    postgres_password: str = "pass111"  # noqa: S105
-    postgres_db: str = "metax"
-
-    opensearch_host: str = "localhost"
     opensearch_verify_certs: bool = False
 
-    django_secret_key: str = "django-insecure-bp^ztjw1urwqz4+=(+!k=k^zzdz8c2+qwr7z1_!1mo-%j5^)0s"  # noqa: S105
+    django_secret_key: str = "mock"  # noqa: S105
 
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
-    redis_port: int = 6379
-    redis_password: str = "R_Super_Secret_Pass_2026!"  # noqa: S105
-
     fluent_bit_host: str = "mock"
     fluent_bit_port: int = 0
-
-    opensearch_user: str = "admin"
-    opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
-    opensearch_port: int = 9200
-
-    django_host: str = "localhost"
-    django_port: int = 8000
-    redis_host: str = "localhost"
-
-    model_config = SettingsConfigDict(
-        env_file=None,
-        extra="ignore",
-        env_prefix="TEST_FORCE_IGNORE_",
-    )
 
 
 class ProdConfigs(BaseConfigs):

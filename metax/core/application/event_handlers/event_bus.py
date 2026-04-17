@@ -173,3 +173,6 @@ def to_read_model(discounted_product_with_details: DiscountedProductWithDetails)
         result["category_name"] = discounted_product_with_details.entity.get_name()
 
     return result
+
+
+# Pagination in entity and read model repo.
