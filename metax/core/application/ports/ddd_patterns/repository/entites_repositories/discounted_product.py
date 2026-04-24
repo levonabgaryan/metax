@@ -42,8 +42,8 @@ class DiscountedProductRepository(ABC):
         pass
 
     @abstractmethod
-    def get_all_by_date(
-        self, date_: datetime, chunk_size: int = 500
+    def get_by_created_at(
+        self, created_at: datetime, chunk_size: int = 500
     ) -> AsyncIterator[DiscountedProductWithDetails]:
         pass
 

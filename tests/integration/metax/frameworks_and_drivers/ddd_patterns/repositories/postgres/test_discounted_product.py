@@ -278,7 +278,7 @@ async def test_get_all_chunk_size(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
+async def test_get_by_created_at_returns_empty_when_no_rows_for_date(
     metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -288,7 +288,7 @@ async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
 
     # when
     async with unit_of_work as uow:
-        rows = [r async for r in uow.discounted_product_repo.get_all_by_date(date_=query_date)]
+        rows = [r async for r in uow.discounted_product_repo.get_by_created_at(created_at=query_date)]
 
     # then
     assert rows == []
@@ -296,7 +296,7 @@ async def test_get_all_by_date_returns_empty_when_no_rows_for_date(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_all_by_date(
+async def test_get_by_created_at(
     metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -327,7 +327,7 @@ async def test_get_all_by_date(
     # when
     async with unit_of_work as uow:
         rows: list[DiscountedProductWithDetails] = [
-            r async for r in uow.discounted_product_repo.get_all_by_date(date_=created_at)
+            r async for r in uow.discounted_product_repo.get_by_created_at(created_at=created_at)
         ]
 
     # then
@@ -343,7 +343,7 @@ async def test_get_all_by_date(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_all_by_date_filters_by_created_at(
+async def test_get_by_created_at_filters_by_created_at(
     metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -362,8 +362,8 @@ async def test_get_all_by_date_filters_by_created_at(
 
     # when
     async with unit_of_work as uow:
-        rows_a = [r async for r in uow.discounted_product_repo.get_all_by_date(date_=date_a)]
-        rows_b = [r async for r in uow.discounted_product_repo.get_all_by_date(date_=date_b)]
+        rows_a = [r async for r in uow.discounted_product_repo.get_by_created_at(created_at=date_a)]
+        rows_b = [r async for r in uow.discounted_product_repo.get_by_created_at(created_at=date_b)]
 
     # then
     assert len(rows_a) == 1
@@ -374,7 +374,7 @@ async def test_get_all_by_date_filters_by_created_at(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_all_by_date_without_category_returns_none_category_name(
+async def test_get_by_created_at_without_category_returns_none_category_name(
     metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -391,7 +391,7 @@ async def test_get_all_by_date_without_category_returns_none_category_name(
 
     # when
     async with unit_of_work as uow:
-        rows = [r async for r in uow.discounted_product_repo.get_all_by_date(date_=created_at)]
+        rows = [r async for r in uow.discounted_product_repo.get_by_created_at(created_at=created_at)]
 
     # then
     assert len(rows) == 1
@@ -402,7 +402,7 @@ async def test_get_all_by_date_without_category_returns_none_category_name(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_get_all_by_date_chunk_size(
+async def test_by_created_at_chunk_size(
     metax_app_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -426,7 +426,9 @@ async def test_get_all_by_date_chunk_size(
 
     # when
     async with unit_of_work as uow:
-        rows = [r async for r in uow.discounted_product_repo.get_all_by_date(date_=created_at, chunk_size=2)]
+        rows = [
+            r async for r in uow.discounted_product_repo.get_by_created_at(created_at=created_at, chunk_size=2)
+        ]
 
     # then
     assert len(rows) == 5

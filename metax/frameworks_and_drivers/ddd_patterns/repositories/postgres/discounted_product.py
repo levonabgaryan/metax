@@ -63,6 +63,49 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(discounted_products)
 
     @override
+    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
+        def _sync_version(_date_limit: datetime) -> int:
+            delete_query = """
+                DELETE FROM discounted_products
+                WHERE created_at < %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(delete_query, [date_limit])
+
+                return int(cursor.rowcount)
+
+        return await sync_to_async(_sync_version)(date_limit)
+
+    @override
+    async def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
+        offset = 0
+        while True:
+            discounted_products: list[DiscountedProduct] = await sync_to_async(self.__fetch_chunk)(
+                offset, chunk_size
+            )
+            for discounted_product in discounted_products:
+                yield discounted_product
+            if len(discounted_products) < chunk_size:
+                break
+            offset += chunk_size
+
+    @override
+    async def get_by_created_at(
+        self, created_at: datetime, chunk_size: int = 500
+    ) -> AsyncIterator[DiscountedProductWithDetails]:
+        offset = 0
+        while True:
+            discounted_products: list[DiscountedProductWithDetails] = await sync_to_async(
+                self.__fetch_chunk_by_created_at
+            )(created_at, offset, chunk_size)
+            for discounted_product in discounted_products:
+                yield discounted_product
+            if len(discounted_products) < chunk_size:
+                break
+            offset += chunk_size
+
+    @override
     async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
         def _sync_version(_discounted_product_uuid: UUID) -> DiscountedProduct | None:
             select_query = """
@@ -97,49 +140,6 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             return None
 
         return await sync_to_async(_sync_version)(uuid_)
-
-    @override
-    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
-        def _sync_version(_date_limit: datetime) -> int:
-            delete_query = """
-                DELETE FROM discounted_products
-                WHERE created_at < %s
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(delete_query, [date_limit])
-
-                return int(cursor.rowcount)
-
-        return await sync_to_async(_sync_version)(date_limit)
-
-    @override
-    async def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
-        offset = 0
-        while True:
-            discounted_products: list[DiscountedProduct] = await sync_to_async(self.__fetch_chunk)(
-                offset, chunk_size
-            )
-            for discounted_product in discounted_products:
-                yield discounted_product
-            if len(discounted_products) < chunk_size:
-                break
-            offset += chunk_size
-
-    @override
-    async def get_all_by_date(
-        self, date_: datetime, chunk_size: int = 500
-    ) -> AsyncIterator[DiscountedProductWithDetails]:
-        offset = 0
-        while True:
-            discounted_products_with_details = await sync_to_async(self.__fetch_chunk_by_created_at)(
-                date_, offset, chunk_size
-            )
-            for discounted_product_with_details in discounted_products_with_details:
-                yield discounted_product_with_details
-            if len(discounted_products_with_details) < chunk_size:
-                break
-            offset += chunk_size
 
     @staticmethod
     def __fetch_chunk_by_created_at(

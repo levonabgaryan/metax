@@ -43,10 +43,10 @@ class EventBus:
         self.__unit_of_work_provider = unit_of_work_provider
         self.__discounted_product_read_model_repo = discounted_product_read_model_repo
         self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
-            CategoryUpdated: (self._handle_category_updated,),
-            RetailerUpdated: (self._handle_retailer_updated,),
-            NewDiscountedProductsFromRetailerCollected: (self._handle_new_discounted_products_collected,),
-            OldDiscountedProductsDeleted: (self._handle_old_discounted_products_deleted,),
+            CategoryUpdated: (self._update_categories_names_in_discounted_product_read_model,),
+            RetailerUpdated: (self._update_retailers_names_in_discounted_product_read_model,),
+            NewDiscountedProductsFromRetailerCollected: (self._delete_old_discounted_products,),
+            OldDiscountedProductsDeleted: (self._add_new_discounted_products_read_models,),
         }
 
     async def handle(self, event: Event) -> None:
@@ -58,7 +58,7 @@ class EventBus:
         # each should use its own UoW and not rely on peer order.
         await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 
-    async def _handle_category_updated(self, event: Event) -> None:
+    async def _update_categories_names_in_discounted_product_read_model(self, event: Event) -> None:
         event_: CategoryUpdated = _expect_event(event, CategoryUpdated)
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
@@ -79,8 +79,8 @@ class EventBus:
             event_.category_uuid,
         )
 
-    async def _handle_retailer_updated(self, event: Event) -> None:
-        event_ = _expect_event(event, RetailerUpdated)
+    async def _update_retailers_names_in_discounted_product_read_model(self, event: Event) -> None:
+        event_: RetailerUpdated = _expect_event(event, RetailerUpdated)
         logger.info(
             "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
             event_.__class__.__name__,
@@ -101,8 +101,10 @@ class EventBus:
             event_.retailer_uuid,
         )
 
-    async def _handle_new_discounted_products_collected(self, event: Event) -> None:
-        event_ = _expect_event(event, NewDiscountedProductsFromRetailerCollected)
+    async def _delete_old_discounted_products(self, event: Event) -> None:
+        event_: NewDiscountedProductsFromRetailerCollected = _expect_event(
+            event, NewDiscountedProductsFromRetailerCollected
+        )
         logger.info(
             "[Event: %s] | Handler: Delete old discount products from repo | Status: STARTED",
             event_.__class__.__name__,
@@ -121,37 +123,27 @@ class EventBus:
             OldDiscountedProductsDeleted(new_discounted_products_creation_date=event_.new_products_created_date)
         )
 
-    async def _handle_old_discounted_products_deleted(self, event: Event) -> None:
-        event_ = _expect_event(event, OldDiscountedProductsDeleted)
+    async def _add_new_discounted_products_read_models(self, event: Event) -> None:
+        event_: OldDiscountedProductsDeleted = _expect_event(event, OldDiscountedProductsDeleted)
         logger.info(
             "[Event: %s] | Handler: Sync discount products from repo to read model | Status: STARTED",
             event_.__class__.__name__,
         )
-        batch_size = 500
-        current_batch = []
         date_limit = event_.new_discounted_products_creation_date
 
         uow = await self.__unit_of_work_provider.provide()
+        repo: DiscountedProductRepository = uow.discounted_product_repo
         read_model_repo: IDiscountedProductReadModelRepository = self.__discounted_product_read_model_repo
 
         async with uow:
-            repo: DiscountedProductRepository = uow.discounted_product_repo
-
-            discounted_product: DiscountedProductWithDetails
-            async for discounted_product in repo.get_all_by_date(date_=date_limit):
-                current_batch.append(discounted_product)
-
-                if len(current_batch) >= batch_size:
-                    await read_model_repo.add_many([to_read_model(p) for p in current_batch])
-                    current_batch.clear()
-
-            if current_batch:
-                await read_model_repo.add_many([to_read_model(p) for p in current_batch])
-
-            await read_model_repo.delete_older_than_and_return_deleted_count(date_limit=date_limit)
+            discounted_products = repo.get_by_created_at(created_at=date_limit)
             await uow.commit()
+
+        await read_model_repo.add_many([to_read_model(p) async for p in discounted_products])
+
+        await read_model_repo.delete_older_than_and_return_deleted_count(date_limit=date_limit)
         logger.info(
-            "[Event: %s] | Handler: Sync discount products from repo to read model | Status: SUCCESS",
+            "[Event: %s] | Handler: Sync discount products from entity repo to read model repo | Status: SUCCESS",
             event_.__class__.__name__,
         )
 
