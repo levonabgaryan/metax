@@ -1,13 +1,13 @@
 import uuid
 from http import HTTPStatus
 
-from django_framework.metax.metax_app_context import get_current_metax_app
 from django_framework.metax.views.retailer.request_body_models import CreateRetailerRequestBodyModel
 from django_framework.metax.views.retailer.response_body_models import CreateRetailerResponseBodyModel
 from dmr import Body, Controller, modify
 from dmr.plugins.pydantic import PydanticSerializer
 
 from metax.core.application.commands_handlers.retailer import CreateRetailerCommand, CreateRetailerCommandHandler
+from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CreateRetailerController(Controller[PydanticSerializer]):
@@ -16,7 +16,7 @@ class CreateRetailerController(Controller[PydanticSerializer]):
         tags=["Retailer"],
     )
     async def post(self, parsed_body: Body[CreateRetailerRequestBodyModel]) -> CreateRetailerResponseBodyModel:
-        container = get_current_metax_app().get_di_container()
+        container = get_metax_lifespan_manager().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()

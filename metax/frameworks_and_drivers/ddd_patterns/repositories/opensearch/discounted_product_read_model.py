@@ -42,9 +42,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         # https://docs.opensearch.org/latest/api-reference/document-apis/delete-by-query/#example-request
         body = {"query": {"range": {"created_at": {"lt": date_limit.isoformat()}}}}
         response = await self.__opensearch_async_client.delete_by_query(
-            index=self.__alias_name,
-            body=body,
-            conflicts="proceed",
+            index=self.__alias_name, body=body, params={"conflicts": "proceed"}
         )
 
         return int(response.get("deleted", 0))

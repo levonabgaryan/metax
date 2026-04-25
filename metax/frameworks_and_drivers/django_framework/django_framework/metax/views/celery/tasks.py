@@ -3,7 +3,6 @@ from http import HTTPStatus
 from typing import override
 
 from django.http import HttpResponse
-from django_framework.metax.metax_app_context import get_current_metax_app
 from dmr import Controller, ResponseSpec, modify
 from dmr.endpoint import Endpoint
 from dmr.errors import ErrorModel
@@ -11,6 +10,7 @@ from dmr.plugins.pydantic import PydanticSerializer
 
 from metax.frameworks_and_drivers.celery_framework.errors import NoRetailersError
 from metax.frameworks_and_drivers.celery_framework.tasks import collect_discounted_products_from_all_retailers
+from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerializer]):
@@ -22,7 +22,7 @@ class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerial
         ],
     )
     async def post(self) -> None:
-        container = get_current_metax_app().get_di_container()
+        container = get_metax_lifespan_manager().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await patterns.event_bus.async_()

@@ -56,9 +56,7 @@ async def clear_os_each_test(
             await client.delete_by_query(
                 index="*,-.*",
                 body={"query": {"match_all": {}}},
-                refresh=True,
-                ignore_unavailable=True,
-                wait_for_completion=True,
+                params={"refresh": True, "ignore_unavailable": True, "wait_for_completion": True},
             )
 
     await cleanup()
