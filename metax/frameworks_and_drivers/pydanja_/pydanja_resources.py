@@ -11,18 +11,15 @@ from pydantic.functional_validators import ModelWrapValidatorHandler
 
 
 class MetaxDANJAResource[ResourceT](DANJAResource[ResourceT]):
-    """Like ``DANJAResource``, but ``ignore_included`` returns ``handler(copy)`` (pydanja returns ``data``)."""
-
     @model_validator(mode="wrap")
     @classmethod
     @override
     def ignore_included(cls, data: Any, handler: ModelWrapValidatorHandler[Self]) -> Self:
-        # Only strip top-level ``included``; shallow copy avoids ``deepcopy`` of large trees.
-        if isinstance(data, dict) and "included" in data:
-            payload = deepcopy(data)
-            payload.pop("included")
-            return handler(payload)
-        return handler(data)
+        data_copy = deepcopy(data)
+        if hasattr(data_copy, "included"):
+            del data_copy.included
+
+        return handler(data_copy)
 
     @classmethod
     @override

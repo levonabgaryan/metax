@@ -16,10 +16,10 @@ from tests.utils import (
 
 @pytest.mark.asyncio
 async def test_delete_older_than_and_return_deleted_count(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     creation_date = datetime.now(tz=UTC)
@@ -36,13 +36,17 @@ async def test_delete_older_than_and_return_deleted_count(
 
     await repo.add_many(discounted_products_read_models)
 
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # when
     deleted_count = await repo.delete_older_than_and_return_deleted_count(
         date_limit=creation_date + timedelta(days=1)
     )
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # then
     assert deleted_count == 5
@@ -51,10 +55,10 @@ async def test_delete_older_than_and_return_deleted_count(
 
 @pytest.mark.asyncio
 async def test_update_category(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     created_at = datetime.now(tz=UTC)
@@ -67,7 +71,9 @@ async def test_update_category(
     )
 
     await repo.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # when
     category.set_name("category_new_name")
@@ -75,7 +81,9 @@ async def test_update_category(
         category_uuid=str(category.get_uuid()),
         new_category_name=category.get_name(),
     )
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
@@ -84,10 +92,10 @@ async def test_update_category(
 
 @pytest.mark.asyncio
 async def test_update_retailer(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     retailer = make_retailer_entity()
@@ -99,7 +107,9 @@ async def test_update_retailer(
         retailer_name=retailer.get_name(),
     )
     await repo.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # when
     retailer.set_name(RetailersNames.SAS_AM.value)
@@ -109,7 +119,9 @@ async def test_update_retailer(
         retailer_uuid=str(retailer.get_uuid()),
         new_retailer_name=retailer.get_name(),
     )
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
@@ -118,10 +130,10 @@ async def test_update_retailer(
 
 @pytest.mark.asyncio
 async def test_get_all(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     created_at = datetime.now(tz=UTC)
@@ -133,7 +145,9 @@ async def test_get_all(
         for _ in range(5)
     ]
     await repo.add_many(discounted_product_read_models)
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # when
     got_discounted_product_read_models = repo.get_all()
@@ -154,10 +168,10 @@ async def test_get_all(
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
 async def test_get_by_name_page(
     query: str,
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     created_at = datetime.now(tz=UTC)
@@ -175,7 +189,9 @@ async def test_get_by_name_page(
     ]
     discounted_product_read_models.append(discounted_product_read_model_)
     await repo.add_many(discounted_product_read_models)
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
 
     # when
     found_products, scroll_id = await repo.get_by_name(name=query, chunk_size=1)

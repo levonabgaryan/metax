@@ -1,8 +1,9 @@
 import pytest
 
-from metax.core.application.commands_handlers.category import (
-    UpdateHelperWordTextCommand,
-    UpdateHelperWordTextCommandHandler,
+from metax.core.application.cud_services.category import (
+    UpdateHelperWordTextRequestDTO,
+    UpdateHelperWordTextResponseDTO,
+    UpdateHelperWordTextService,
 )
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
@@ -10,11 +11,11 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_update_helper_word_text_command_handler(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+async def test_update_helper_word_text_service(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
@@ -28,17 +29,25 @@ async def test_update_helper_word_text_command_handler(
 
     helper_word_to_update = category.get_helper_words()[0]
     helper_word_to_keep = category.get_helper_words()[1]
-    cmd = UpdateHelperWordTextCommand(
+    request_dto = UpdateHelperWordTextRequestDTO(
         category_uuid=category.get_uuid(),
         helper_word_uuid=helper_word_to_update.get_uuid(),
         new_text="updated_helper_word_text",
     )
 
     # when
-    handler = UpdateHelperWordTextCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-    await handler.handle_command(cmd)
+    service = UpdateHelperWordTextService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+    response_dto = await service.execute(request_dto)
 
     # then
+    assert isinstance(response_dto, UpdateHelperWordTextResponseDTO)
+    assert response_dto.category_uuid == category.get_uuid()
+    assert response_dto.name == category.get_name()
+    assert {word.text for word in response_dto.helper_words_payload} == {
+        "updated_helper_word_text",
+        helper_word_to_keep.get_text(),
+    }
+
     uow = await unit_of_work_provider.provide()
     async with uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())

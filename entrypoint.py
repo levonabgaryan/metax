@@ -23,7 +23,7 @@ async def _run_postgres_db_migrations(metax_configs: BaseConfigs) -> None:
         )
         await process.wait()
         if process.returncode != 0:
-            logger.error("STARTUP | Task: Postgres Migrations | Status: FAILED | Command: %s", command)
+            logger.error("STARTUP | Task: Postgres Migrations | Status: FAILED | Step: %s", command)
             msg = f"Django {command} failed with exit code {process.returncode}"
             raise RuntimeError(msg)
 

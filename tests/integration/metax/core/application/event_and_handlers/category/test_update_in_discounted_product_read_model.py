@@ -17,10 +17,10 @@ from tests.utils import (
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_event_handler_shall_update_category_in_read_model(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
@@ -51,7 +51,9 @@ async def test_event_handler_shall_update_category_in_read_model(
         url=discounted_product.get_url(),
     )
     await discounted_product_read_model_repository.add_many([discounted_product_read_model_])
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
     async with unit_of_work as uow:
         found_category = await uow.category_repo.get_by_uuid(category.get_uuid())
         found_category.set_name("test_new_name")
@@ -65,7 +67,9 @@ async def test_event_handler_shall_update_category_in_read_model(
     await event_bus.handle(event)
 
     # then
-    await refresh_opensearch_index(metax_app_for_integration_tests, discounted_product_read_model.ALIAS_NAME)
+    await refresh_opensearch_index(
+        metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
+    )
     updated_category_in_read_model = await discounted_product_read_model_repository.get_by_uuid(
         uuid_=str(discounted_product.get_uuid())
     )

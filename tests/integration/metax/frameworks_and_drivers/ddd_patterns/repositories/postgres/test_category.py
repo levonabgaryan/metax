@@ -21,8 +21,10 @@ def _make_helper_word(text: str) -> CategoryHelperWord:
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_add_and_get(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
-    metax_container = metax_app_for_integration_tests.get_di_container()
+async def test_category_repo_add_and_get(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     category = make_category_entity()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
 
@@ -43,8 +45,10 @@ async def test_category_repo_add_and_get(metax_app_for_integration_tests: MetaxA
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_repo_update_name(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
-    metax_container = metax_app_for_integration_tests.get_di_container()
+async def test_category_repo_update_name(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     category = make_category_entity()
 
@@ -64,9 +68,9 @@ async def test_category_repo_update_name(metax_app_for_integration_tests: MetaxA
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_category_repo_update_helper_words_via_diff(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
-    metax_container = metax_app_for_integration_tests.get_di_container()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     category = make_category_entity()
 
@@ -98,8 +102,10 @@ async def test_category_repo_update_helper_words_via_diff(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_uuid(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
-    metax_container = metax_app_for_integration_tests.get_di_container()
+async def test_category_is_not_found_by_uuid(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     random_uuid = uuid7()
 
@@ -110,8 +116,10 @@ async def test_category_is_not_found_by_uuid(metax_app_for_integration_tests: Me
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_category_is_not_found_by_name(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
-    metax_container = metax_app_for_integration_tests.get_di_container()
+async def test_category_is_not_found_by_name(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
 
     async with unit_of_work as uow:

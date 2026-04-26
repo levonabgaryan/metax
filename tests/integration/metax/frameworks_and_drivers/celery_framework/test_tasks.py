@@ -38,11 +38,11 @@ def test_collect_products_task_schedule() -> None:
 @pytest.mark.asyncio
 @pytest.mark.django_db(transaction=True)
 async def test_collect_discounted_products_from_all_retailers(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     started_time = datetime.now(tz=UTC)
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()

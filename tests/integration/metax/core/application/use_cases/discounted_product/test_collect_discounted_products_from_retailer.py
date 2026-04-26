@@ -42,11 +42,11 @@ class _FakeDiscountedProductsCreator(DiscountedProductCollectorServiceCreator):
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_collect_discounted_products_use_case_saves_products_in_db(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
-    metax_container = metax_app_for_integration_tests.get_di_container()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     started_at = datetime.now(tz=UTC)
     retailer = make_retailer_entity()

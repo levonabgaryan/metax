@@ -6,7 +6,7 @@ from django_framework.metax.views.retailer.response_body_models import CreateRet
 from dmr import Body, Controller, modify
 from dmr.plugins.pydantic import PydanticSerializer
 
-from metax.core.application.commands_handlers.retailer import CreateRetailerCommand, CreateRetailerCommandHandler
+from metax.core.application.cud_services.retailer import CreateRetailerRequestDTO, CreateRetailerService
 from metax_bootstrap import get_metax_lifespan_manager
 
 
@@ -22,17 +22,17 @@ class CreateRetailerController(Controller[PydanticSerializer]):
         event_bus = await patterns.event_bus.async_()
 
         retailer_uuid = uuid.uuid7()
-        cmd = CreateRetailerCommand(
+        request_dto = CreateRetailerRequestDTO(
             retailer_uuid=retailer_uuid,
             name=parsed_body.name,
             url=parsed_body.url,
             phone_number=parsed_body.phone_number,
         )
 
-        command_handler = CreateRetailerCommandHandler(
+        service = CreateRetailerService(
             unit_of_work_provider=unit_of_work_provider,
             event_bus=event_bus,
         )
-        await command_handler.handle_command(cmd)
+        await service.execute(request_dto)
 
         return CreateRetailerResponseBodyModel(retailer_uuid=retailer_uuid)

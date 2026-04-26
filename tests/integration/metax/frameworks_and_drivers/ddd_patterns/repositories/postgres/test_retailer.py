@@ -10,9 +10,11 @@ from tests.utils import make_retailer_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
+async def test_retailer_repo_add_and_get(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     retailer = make_retailer_entity()
@@ -36,10 +38,10 @@ async def test_retailer_repo_add_and_get(metax_app_for_integration_tests: MetaxA
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_retailer_repo_update(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     retailer = make_retailer_entity()
@@ -66,9 +68,11 @@ async def test_retailer_repo_update(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
+async def test_retailer_is_not_found_by_uuid(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     random_uuid = uuid7()
@@ -84,9 +88,11 @@ async def test_retailer_is_not_found_by_uuid(metax_app_for_integration_tests: Me
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_is_not_found_by_name(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
+async def test_retailer_is_not_found_by_name(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
 
     test_name = RetailersNames.SAS_AM.value
@@ -103,9 +109,11 @@ async def test_retailer_is_not_found_by_name(metax_app_for_integration_tests: Me
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_retailer_repo_get_all(metax_app_for_integration_tests: MetaxAppLifespanManager) -> None:
+async def test_retailer_repo_get_all(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
     # given
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     r_sas = make_retailer_entity(
         name=RetailersNames.SAS_AM.value,

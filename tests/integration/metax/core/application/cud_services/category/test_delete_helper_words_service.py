@@ -1,8 +1,9 @@
 import pytest
 
-from metax.core.application.commands_handlers.category import (
-    DeleteHelperWordsCommand,
-    DeleteHelperWordsCommandHandler,
+from metax.core.application.cud_services.category import (
+    DeleteHelperWordsRequestDTO,
+    DeleteHelperWordsResponseDTO,
+    DeleteHelperWordsService,
 )
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
@@ -10,10 +11,11 @@ from tests.utils import make_category_entity
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_delete_helper_words_command(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+async def test_delete_helper_words_service(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
-    metax_container_for_integration_tests = metax_app_for_integration_tests.get_di_container()
+    # given
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
@@ -29,13 +31,19 @@ async def test_delete_helper_words_command(
         for helper_word in category.get_helper_words()
         if helper_word.get_text() in {"test_word1"}
     ]
-    command = DeleteHelperWordsCommand(
+    request_dto = DeleteHelperWordsRequestDTO(
         category_uuid=category.get_uuid(),
         helper_words_uuid=words_to_delete_uuids,
     )
 
-    handler = DeleteHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-    await handler.handle_command(command)
+    # when
+    service = DeleteHelperWordsService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+    response_dto = await service.execute(request_dto)
+
+    # then
+    assert isinstance(response_dto, DeleteHelperWordsResponseDTO)
+    assert response_dto.category_uuid == category.get_uuid()
+    assert {word.text for word in response_dto.helper_words_payload} == {"test_word2"}
 
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())

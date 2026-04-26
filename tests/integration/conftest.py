@@ -9,7 +9,7 @@ from metax_lifespan import MetaxAppLifespanManager
 
 
 @pytest.fixture(scope="session")
-async def metax_app_for_integration_tests() -> AsyncIterator[MetaxAppLifespanManager]:
+async def metax_lifespan_manager_for_integration_tests() -> AsyncIterator[MetaxAppLifespanManager]:
     metax_application_manager = get_metax_lifespan_manager()
     await metax_application_manager.init_di_container_resources()
     metax_application_manager.configure_logger()
@@ -23,11 +23,11 @@ async def metax_app_for_integration_tests() -> AsyncIterator[MetaxAppLifespanMan
 
 @pytest.fixture(scope="session", autouse=True)
 async def delete_opensearch_indices(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> AsyncIterator[None]:
     from metax.frameworks_and_drivers.opensearch.migration import delete_all_indices
 
-    di_container = metax_app_for_integration_tests.get_di_container()
+    di_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     opensearch_async_client_ = await di_container.opensearch_async_client.async_()
     yield None
     await delete_all_indices(opensearch_async_client_)
@@ -46,9 +46,9 @@ async def refresh_opensearch_index(
 
 @pytest.fixture(autouse=True)
 async def clear_os_each_test(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> AsyncIterator[None]:
-    di_container = metax_app_for_integration_tests.get_di_container()
+    di_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     client: AsyncOpenSearch = await di_container.opensearch_async_client.async_()
 
     async def cleanup() -> None:
