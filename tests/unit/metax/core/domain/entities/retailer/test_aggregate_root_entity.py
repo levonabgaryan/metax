@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid7
 
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 

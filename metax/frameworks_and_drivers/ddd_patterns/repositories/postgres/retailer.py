@@ -9,7 +9,7 @@ from django.db.backends.utils import CursorWrapper
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import (
     RetailerRepository,
 )
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):

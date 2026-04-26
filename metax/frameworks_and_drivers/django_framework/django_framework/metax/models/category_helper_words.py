@@ -9,8 +9,8 @@ from .base_model import BaseDbModel
 
 
 class CategoryHelperWordsModel(BaseDbModel):
-    id = models.AutoField(primary_key=True)
-    word = models.CharField(max_length=64, unique=True)
+    helper_word_uuid = models.UUIDField(primary_key=True, editable=False)
+    helper_word_text = models.CharField(max_length=128, unique=True, null=False)
     category = models.ForeignKey("CategoryModel", on_delete=models.CASCADE, db_column="category_uuid", null=False)
 
     class Meta(TypedModelMeta):
@@ -20,4 +20,4 @@ class CategoryHelperWordsModel(BaseDbModel):
 
     @override
     def __str__(self) -> str:
-        return self.word
+        return self.helper_word_text

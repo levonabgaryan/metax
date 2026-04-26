@@ -6,6 +6,7 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
+from metax.core.application.commands_handlers.category.create_category import HelperWordPayload
 from metax_lifespan import MetaxAppLifespanManager
 
 
@@ -24,7 +25,10 @@ async def test_create_category_command_handler(
     cmd = CreateCategoryCommand(
         category_uuid=category_uuid,
         name="Test Category",
-        helper_words=frozenset(["A", "B"]),
+        helper_words_payload=[
+            HelperWordPayload(text="A"),
+            HelperWordPayload(text="B"),
+        ],
     )
 
     # when
@@ -37,4 +41,4 @@ async def test_create_category_command_handler(
         category = await uow.category_repo.get_by_uuid(category_uuid)
     assert category.get_uuid() == category_uuid
     assert category.get_name() == cmd.name
-    assert category.get_helper_words() == {"B", "A"}
+    assert {word.get_text() for word in category.get_helper_words()} == {"B", "A"}

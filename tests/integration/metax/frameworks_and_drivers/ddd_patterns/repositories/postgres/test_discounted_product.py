@@ -8,12 +8,12 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductWithDetails,
 )
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.category.value_objects import CategoryHelperWords
-from metax.core.domain.entities.discounted_product.entity import (
+from metax.core.domain.entities.category.aggregate_root_entity import Category
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import (
@@ -32,11 +32,24 @@ async def test_add_many_discounted_products(metax_app_for_integration_tests: Met
 
     created_data = datetime.now(tz=UTC)
     category_uuid = uuid7()
-    helper_words = CategoryHelperWords.create(words=frozenset(["օղի", "գինի"]))
+    helper_words = [
+        CategoryHelperWord(
+            uuid_=uuid7(),
+            text="օղի",
+            created_at=created_data,
+            updated_at=created_data,
+        ),
+        CategoryHelperWord(
+            uuid_=uuid7(),
+            text="գինի",
+            created_at=created_data,
+            updated_at=created_data,
+        ),
+    ]
     category = Category(
         uuid_=category_uuid,
         name="Ալկոհոլ",
-        helper_words=helper_words.words,
+        helper_words=helper_words,
         created_at=created_data,
         updated_at=created_data,
     )

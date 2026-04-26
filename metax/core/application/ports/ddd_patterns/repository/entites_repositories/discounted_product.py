@@ -5,7 +5,7 @@ from datetime import datetime
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.entities.discounted_product.entity import (
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )
 

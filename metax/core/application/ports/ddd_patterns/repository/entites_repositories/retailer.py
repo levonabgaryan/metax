@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
 class RetailerRepository(ABC):

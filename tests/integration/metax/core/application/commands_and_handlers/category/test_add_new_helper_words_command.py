@@ -4,7 +4,7 @@ from metax.core.application.commands_handlers.category import (
     AddNewHelperWordsCommand,
     AddNewHelperWordsCommandHandler,
 )
-from metax.core.domain.entities.category.value_objects import CategoryHelperWords
+from metax.core.application.commands_handlers.category.add_new_helper_words import HelperWordPayload
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
 
@@ -16,21 +16,24 @@ async def test_add_new_helper_words_command(metax_app_for_integration_tests: Met
     unit_of_work_provider = di_container.patterns_container.container.unit_of_work_provider()
     event_bus = await di_container.patterns_container.container.event_bus.async_()
     unit_of_work = di_container.patterns_container.container.unit_of_work()
-    helper_words = CategoryHelperWords.create(words=frozenset(["a", "b"]))
-    category = make_category_entity(
-        helper_words=helper_words.words,
-    )
+    category = make_category_entity()
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
         await uow.commit()
 
-    command = AddNewHelperWordsCommand(category_uuid=category.get_uuid(), new_helper_words=frozenset(["c", "d"]))
-
-    expected_helper_words = CategoryHelperWords.create(words=frozenset(["a", "b", "c", "d"]))
+    command = AddNewHelperWordsCommand(
+        category_uuid=category.get_uuid(),
+        new_helper_words=[HelperWordPayload(text="c"), HelperWordPayload(text="d")],
+    )
     handler = AddNewHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
     await handler.handle_command(command)
 
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
 
-    assert updated_category.get_helper_words() == expected_helper_words.words
+    assert {word.get_text() for word in updated_category.get_helper_words()} == {
+        "test_word1",
+        "test_word2",
+        "c",
+        "d",
+    }

@@ -1,4 +1,5 @@
 import logging
+import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import override
@@ -6,16 +7,22 @@ from uuid import UUID
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
 from metax.core.application.commands_handlers.command import Command
-from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.aggregate_root_entity import Category
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class HelperWordPayload:
+    text: str
 
 
 @dataclass(frozen=True)
 class CreateCategoryCommand(Command):
     category_uuid: UUID
     name: str
-    helper_words: frozenset[str]
+    helper_words_payload: list[HelperWordPayload]
 
 
 class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
@@ -29,10 +36,19 @@ class CreateCategoryCommandHandler(CommandHandler[CreateCategoryCommand]):
                 command.category_uuid,
             )
             now = datetime.now(tz=UTC)
+            helper_words = [
+                CategoryHelperWord(
+                    uuid_=uuid.uuid7(),
+                    created_at=now,
+                    updated_at=now,
+                    text=helper_word_payload.text,
+                )
+                for helper_word_payload in command.helper_words_payload
+            ]
             category = Category(
                 uuid_=command.category_uuid,
                 name=command.name,
-                helper_words=command.helper_words,
+                helper_words=helper_words,
                 created_at=now,
                 updated_at=now,
             )

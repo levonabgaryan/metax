@@ -12,29 +12,33 @@ class Entity:
 
     Entities are defined by a unique identifier (UUID) that establishes their
     identity and equality across the system.
+
+    Note:
+        Use public methods from Entity only in AggregateRootEntity.
+        But if public methods are only for reading, you can use those everywhere (e.g. getters).
     """
 
     def __init__(self, uuid_value_object: UUIDValueObject, datetime_details: EntityDateTimeDetails) -> None:
-        self.__uuid_value_object: Final[UUIDValueObject] = uuid_value_object
-        self.__datetime_details = datetime_details
+        self._uuid_value_object: Final[UUIDValueObject] = uuid_value_object
+        self._datetime_details = datetime_details
 
     def get_uuid(self) -> UUID:
-        return self.__uuid_value_object.value
+        return self._uuid_value_object.value
 
     def get_created_at(self) -> datetime:
-        return self.__datetime_details.created_at
+        return self._datetime_details.created_at
 
     def get_updated_at(self) -> datetime:
-        return self.__datetime_details.updated_at
+        return self._datetime_details.updated_at
 
     def _touch(self) -> None:
-        self.__datetime_details = self.__datetime_details.renew_update_at(self.__datetime_details)
+        self._datetime_details = self._datetime_details.renew_update_at(self._datetime_details)
 
     @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self.get_uuid() == other.get_uuid()
+        return self._uuid_value_object.value == other._uuid_value_object.value
 
     @override
     def __hash__(self) -> int:
@@ -46,4 +50,4 @@ class Entity:
         Returns:
             Hash of the entity UUID.
         """
-        return hash(self.get_uuid())
+        return hash(self._uuid_value_object.value)

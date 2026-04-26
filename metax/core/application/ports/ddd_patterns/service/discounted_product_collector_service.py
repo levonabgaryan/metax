@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from datetime import datetime
 
-from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
 class DiscountedProductCollectorService(ABC):

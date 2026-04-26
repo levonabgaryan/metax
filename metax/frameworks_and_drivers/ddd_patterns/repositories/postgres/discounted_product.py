@@ -12,7 +12,7 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
-from metax.core.domain.entities.discounted_product.entity import (
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )
 

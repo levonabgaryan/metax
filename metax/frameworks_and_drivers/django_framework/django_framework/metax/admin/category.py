@@ -14,7 +14,13 @@ from metax.core.application.commands_handlers.category import (
     DeleteHelperWordsCommand,
     DeleteHelperWordsCommandHandler,
 )
-from metax.core.domain.entities.category.entity import Category
+from metax.core.application.commands_handlers.category.add_new_helper_words import (
+    HelperWordPayload as AddHelperWordPayload,
+)
+from metax.core.application.commands_handlers.category.create_category import (
+    HelperWordPayload as CreateHelperWordPayload,
+)
+from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax_bootstrap import get_metax_lifespan_manager
 
 
@@ -84,7 +90,9 @@ class CategoryAdminHandler:
         event_bus = await container.event_bus.async_()
 
         command = CreateCategoryCommand(
-            category_uuid=uuid.uuid7(), name=category_name, helper_words=frozenset(helper_words)
+            category_uuid=uuid.uuid7(),
+            name=category_name,
+            helper_words_payload=[CreateHelperWordPayload(text=helper_word) for helper_word in helper_words],
         )
         command_handler = CreateCategoryCommandHandler(
             unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
@@ -103,7 +111,7 @@ class CategoryAdminHandler:
 
         command = AddNewHelperWordsCommand(
             category_uuid=category.get_uuid(),
-            new_helper_words=frozenset(new_helper_words),
+            new_helper_words=[AddHelperWordPayload(text=helper_word) for helper_word in new_helper_words],
         )
         handler = AddNewHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         await handler.handle_command(command)
@@ -120,7 +128,11 @@ class CategoryAdminHandler:
 
         command = DeleteHelperWordsCommand(
             category_uuid=category.get_uuid(),
-            words_to_delete=frozenset(words_to_delete),
+            helper_words_uuid=[
+                helper_word.get_uuid()
+                for helper_word in category.get_helper_words()
+                if helper_word.get_text() in words_to_delete
+            ],
         )
         handler = DeleteHelperWordsCommandHandler(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         await handler.handle_command(command)
@@ -139,5 +151,5 @@ class CategoryAdminHandler:
         return {
             "category_uuid": str(category.get_uuid()),
             "category_name": category.get_name(),
-            "helper_words": list(category.get_helper_words()),
+            "helper_words": [helper_word.get_text() for helper_word in category.get_helper_words()],
         }

@@ -1,5 +1,5 @@
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
-from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.aggregate_root_entity import Category
 
 
 class CategoryClassifierService:
@@ -14,14 +14,19 @@ class CategoryClassifierService:
         uow = await self.__unit_of_work_provider.provide()
         async with uow:
             all_categories = await uow.category_repo.get_all()
+            await uow.commit()
+
         self.__category_map = {
-            word.lower(): category for category in all_categories for word in category.get_helper_words()
+            helper_word.get_text(): category
+            for category in all_categories
+            for helper_word in category.get_helper_words()
         }
+
         self.__category_map_loaded = True
 
     async def classify_category(self, discounted_product_name: str) -> Category | None:
         await self.__load_category_map()
-        for word in discounted_product_name.split():
+        for word in discounted_product_name.lower().split():
             if word in self.__category_map:
                 return self.__category_map[word]
         return None

@@ -6,18 +6,19 @@ from typing import Any
 from uuid import UUID, uuid7
 
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
-from metax.core.domain.entities.category.entity import Category
-from metax.core.domain.entities.discounted_product.entity import (
+from metax.core.domain.entities.category.aggregate_root_entity import Category
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 
 
 def make_category_entity(
     category_uuid: UUID | None = None,
     name: str = "test_category_name",
-    helper_words: frozenset[str] | None = None,
+    helper_words: list[CategoryHelperWord] | None = None,
     created_at: datetime | None = None,
     updated_at: datetime | None = None,
 ) -> Category:
@@ -28,7 +29,22 @@ def make_category_entity(
     return Category(
         name=name,
         uuid_=category_uuid or uuid7(),
-        helper_words=helper_words if helper_words is not None else frozenset(["test_word1", "test_word2"]),
+        helper_words=helper_words
+        if helper_words is not None
+        else [
+            CategoryHelperWord(
+                uuid_=uuid7(),
+                created_at=created,
+                updated_at=updated,
+                text="test_word1",
+            ),
+            CategoryHelperWord(
+                uuid_=uuid7(),
+                created_at=created,
+                updated_at=updated,
+                text="test_word2",
+            ),
+        ],
         created_at=created,
         updated_at=updated,
     )

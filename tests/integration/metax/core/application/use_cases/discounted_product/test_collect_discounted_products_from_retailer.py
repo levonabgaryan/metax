@@ -19,7 +19,7 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
 from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
 )
-from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_discounted_product_entity, make_retailer_entity
 

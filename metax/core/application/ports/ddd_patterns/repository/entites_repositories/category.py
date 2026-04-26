@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
-from metax.core.domain.entities.category.entity import Category
+from metax.core.domain.entities.category.aggregate_root_entity import Category
 
 
 class CategoryRepository(ABC):

@@ -6,7 +6,7 @@ from decimal import Decimal
 import pytest
 from celery.schedules import crontab
 
-from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.celery_framework.tasks import (
     collect_discounted_products_from_all_retailers,

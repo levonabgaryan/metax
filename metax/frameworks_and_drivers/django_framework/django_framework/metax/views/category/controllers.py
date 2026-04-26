@@ -17,6 +17,9 @@ from metax.core.application.commands_handlers.category import (
     CreateCategoryCommand,
     CreateCategoryCommandHandler,
 )
+from metax.core.application.commands_handlers.category.create_category import (
+    HelperWordPayload as CreateCategoryHelperWordPayload,
+)
 from metax.frameworks_and_drivers.pydanja_.pydanja_resources import MetaxDANJAResource
 from metax_bootstrap import get_metax_lifespan_manager
 
@@ -77,7 +80,9 @@ class CategoryController(Controller[PydanticSerializer]):
         cmd = CreateCategoryCommand(
             category_uuid=category_uuid,
             name=resource_data.category_name,
-            helper_words=frozenset(resource_data.helper_words),
+            helper_words_payload=[
+                CreateCategoryHelperWordPayload(text=helper_word) for helper_word in resource_data.helper_words
+            ],
         )
         command_handler = CreateCategoryCommandHandler(
             unit_of_work_provider=unit_of_work_provider, event_bus=event_bus
@@ -86,7 +91,7 @@ class CategoryController(Controller[PydanticSerializer]):
         created = CategoryDANJAResource.from_basemodel(
             resource=CategoryResource(
                 category_name=cmd.name,
-                helper_words=list(cmd.helper_words),
+                helper_words=[payload.text for payload in cmd.helper_words_payload],
                 category_uuid=cmd.category_uuid,
             ),
         )

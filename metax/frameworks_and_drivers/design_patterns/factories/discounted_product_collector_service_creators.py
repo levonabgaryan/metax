@@ -4,7 +4,7 @@ from typing import override
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
     DiscountedProductCollectorServiceCreator,
 )
-from metax.core.domain.entities.retailer.entity import Retailer
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.sas_am import (
     SasAmCollectorService,
 )

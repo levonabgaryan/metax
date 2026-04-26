@@ -6,7 +6,7 @@ from datetime import datetime
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,
 )
-from metax.core.domain.entities.discounted_product.entity import DiscountedProduct
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
 
 
 class DiscountedProductCollectorServiceCreator(ABC):

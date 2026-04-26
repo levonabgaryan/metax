@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass, field
-from typing import override
+from typing import Annotated, override
 from uuid import UUID
 
 from metax.core.application.commands_handlers.base_command_handler import CommandHandler
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 @dataclass(frozen=True)
 class UpdateCategoryCommand(Command):
     category_uuid: UUID
-    new_name: str | None = field(default=None)
+    new_name: Annotated[str | None, field(default=None)]
 
 
 class UpdateCategoryCommandHandler(CommandHandler[UpdateCategoryCommand]):

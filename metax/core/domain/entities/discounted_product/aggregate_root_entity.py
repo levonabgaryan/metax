@@ -13,12 +13,12 @@ class DiscountedProduct(AggregateRootEntity):
     def __init__(
         self,
         uuid_: UUID,
+        created_at: datetime,
+        updated_at: datetime,
         category_uuid: UUID | None,
         retailer_uuid: UUID,
         real_price: Decimal,
         discounted_price: Decimal,
-        created_at: datetime,
-        updated_at: datetime,
         name: str,
         url: str,
     ) -> None:
