@@ -23,7 +23,6 @@ class CreateRetailerController(Controller[PydanticSerializer]):
 
         retailer_uuid = uuid.uuid7()
         request_dto = CreateRetailerRequestDTO(
-            retailer_uuid=retailer_uuid,
             name=parsed_body.name,
             url=parsed_body.url,
             phone_number=parsed_body.phone_number,

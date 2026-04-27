@@ -1,4 +1,3 @@
-import uuid
 from http import HTTPStatus
 from typing import Annotated, Any, ClassVar
 from uuid import UUID
@@ -17,22 +16,18 @@ from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
     CreateCategoryService,
 )
-from metax.core.application.cud_services.category import (
-    HelperWordPayload as CreateCategoryHelperWordPayload,
-)
-from metax.frameworks_and_drivers.pydanja_.pydanja_resources import MetaxDANJAResource
+from metax.frameworks_and_drivers.pydanja_.pydanja_resource import MetaxDANJAResource
 from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CategoryResource(BaseModel):
-    category_name: str
+    name: str
     category_uuid: Annotated[
         UUID | None,
         SkipJsonSchema(),
         Field(
             default=None,
             json_schema_extra={"resource_id": True},
-            exclude=True,
         ),
     ]
 
@@ -43,23 +38,11 @@ class CategoryDANJAResource(MetaxDANJAResource[CategoryResource]):
 
 _CATEGORY_POST_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
-        "type": "category",
+        "type": "categoryresource",
         "attributes": {
             "name": "Electronics",
         },
-        "relationships": {
-            "categoryHelperWord": {
-                "data": [
-                    {"type": "categoryHelperWord", "lid": "word-1"},
-                    {"type": "categoryHelperWord", "lid": "word-2"},
-                ]
-            }
-        },
     },
-    "included": [
-        {"type": "categoryHelperWord", "lid": "word-1", "attributes": {"word": "alpen gold"}},
-        {"type": "helper-words", "lid": "word-2", "attributes": {"word": "chocolate"}},
-    ],
 }
 
 
@@ -75,7 +58,7 @@ class CategoryController(Controller[PydanticSerializer]):
     async def post(
         self,
         parsed_body: Annotated[
-            Body[CategoryDANJAResource],
+            Annotated[Body[CategoryDANJAResource], ...],
             MediaTypeMetadata(example=_CATEGORY_POST_OPENAPI_EXAMPLE),
         ],
     ) -> CategoryDANJAResource:
@@ -84,28 +67,15 @@ class CategoryController(Controller[PydanticSerializer]):
         unit_of_work_provider = patterns.unit_of_work_provider()
         event_bus = await container.resources_container.container.event_bus.async_()
 
-        category_uuid = uuid.uuid7()
+        category_name = parsed_body.resource.name
 
-        category_name = parsed_body.resource.category_name
-        helper_words_texts = []
-        if parsed_body.included is not None:
-            for resource_object in parsed_body.included:
-                if resource_object.type == "categoryHelperWord":
-                    helper_words_texts.append(resource_object.attributes["word"])
-
-        request_dto = CreateCategoryRequestDTO(
-            category_uuid=category_uuid,
-            name=category_name,
-            helper_words_payload=[
-                CreateCategoryHelperWordPayload(text=helper_word_text) for helper_word_text in helper_words_texts
-            ],
-        )
+        request_dto = CreateCategoryRequestDTO(name=category_name, helper_words_payload=[])
         service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await service.execute(request_dto)
+        response_dto = await service.execute(request_dto)
         created = CategoryDANJAResource.from_basemodel(
             resource=CategoryResource(
-                category_name=request_dto.name,
-                category_uuid=request_dto.category_uuid,
+                name=response_dto.name,
+                category_uuid=response_dto.category_uuid,
             ),
         )
         return created

@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from uuid import UUID
 
@@ -30,9 +30,8 @@ class AddNewHelperWordsResponseDTO(ResponseDTO):
 
 @dataclass(frozen=True)
 class CreateCategoryRequestDTO(RequestDTO):
-    category_uuid: UUID
     name: str
-    helper_words_payload: list[HelperWordPayload]
+    helper_words_payload: list[HelperWordPayload] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

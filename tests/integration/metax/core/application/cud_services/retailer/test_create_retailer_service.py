@@ -1,5 +1,3 @@
-from uuid import uuid7
-
 import pytest
 
 from metax.core.application.cud_services.retailer import (
@@ -23,7 +21,6 @@ async def test_create_retailer_service(
     )
     event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     request_dto = CreateRetailerRequestDTO(
-        retailer_uuid=uuid7(),
         name=RetailersNames.YEREVAN_CITY,
         url="https://example.com",
         phone_number="test_phone_number",
@@ -35,14 +32,14 @@ async def test_create_retailer_service(
 
     # then
     assert isinstance(response_dto, CreateRetailerResponseDTO)
-    assert response_dto.retailer_uuid == request_dto.retailer_uuid
+    assert response_dto.retailer_uuid
     assert response_dto.name == RetailersNames.YEREVAN_CITY.value
     assert response_dto.home_page_url == "https://example.com"
     assert response_dto.phone_number == "test_phone_number"
 
     uow = await unit_of_work_provider.provide()
     async with uow:
-        retailer = await uow.retailer_repo.get_by_uuid(request_dto.retailer_uuid)
+        retailer = await uow.retailer_repo.get_by_uuid(response_dto.retailer_uuid)
 
     assert retailer.get_name() == RetailersNames.YEREVAN_CITY.value
     assert retailer.get_home_page_url() == "https://example.com"

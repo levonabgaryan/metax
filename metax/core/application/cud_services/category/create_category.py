@@ -20,10 +20,11 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
     async def execute(self, request: CreateCategoryRequestDTO) -> CreateCategoryResponseDTO:
         uow = await self._unit_of_work_provider.provide()
         async with uow:
+            category_uuid = uuid.uuid7()
             logger.info(
                 "[RequestDTO: %s] | Status: STARTED | Target UUID: [%s]",
                 request.__class__.__name__,
-                request.category_uuid,
+                category_uuid,
             )
             now = datetime.now(tz=UTC)
             helper_words = [
@@ -36,7 +37,7 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
                 for helper_word_payload in request.helper_words_payload
             ]
             category = Category(
-                uuid_=request.category_uuid,
+                uuid_=category_uuid,
                 name=request.name,
                 helper_words=helper_words,
                 created_at=now,

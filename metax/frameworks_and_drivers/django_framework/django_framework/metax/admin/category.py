@@ -1,5 +1,3 @@
-import uuid
-
 from asgiref.sync import async_to_sync
 from django.contrib.admin import AdminSite
 from django.http import HttpRequest
@@ -87,7 +85,6 @@ class CategoryAdminHandler:
         event_bus = await di_container.resources_container.container.event_bus.async_()
 
         request_dto = CreateCategoryRequestDTO(
-            category_uuid=uuid.uuid7(),
             name=category_name,
             helper_words_payload=[CreateHelperWordPayload(text=helper_word) for helper_word in helper_words],
         )

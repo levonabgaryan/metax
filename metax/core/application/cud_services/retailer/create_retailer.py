@@ -1,4 +1,5 @@
 import logging
+import uuid
 from datetime import UTC, datetime
 from typing import override
 
@@ -12,16 +13,17 @@ logger = logging.getLogger(__name__)
 class CreateRetailerService(CUDService[CreateRetailerRequestDTO]):
     @override
     async def execute(self, request: CreateRetailerRequestDTO) -> CreateRetailerResponseDTO:
+        retailer_uuid = uuid.uuid7()
         logger.info(
             "[RequestDTO: %s] | Status: STARTED | Target UUID: [%s]",
             request.__class__.__name__,
-            request.retailer_uuid,
+            retailer_uuid,
         )
         uow = await self._unit_of_work_provider.provide()
         async with uow:
             now = datetime.now(tz=UTC)
             retailer = Retailer(
-                uuid_=request.retailer_uuid,
+                uuid_=retailer_uuid,
                 name=request.name,
                 phone_number=request.phone_number,
                 home_page_url=request.url,

@@ -8,7 +8,6 @@ from metax.core.application.base_dtos.base_dtos import RequestDTO, ResponseDTO
 
 @dataclass(frozen=True)
 class CreateRetailerRequestDTO(RequestDTO):
-    retailer_uuid: UUID
     name: str
     url: str
     phone_number: str

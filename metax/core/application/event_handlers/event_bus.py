@@ -63,7 +63,7 @@ class EventBus:
         self.__worker_task: asyncio.Task[None] | None = None
 
     def register(self) -> None:
-        """Start the background task that reads events from the queue and runs ``handle``."""
+        """Start the background task which reads events from the queue and runs ``handle``."""
         if self.__worker_task is not None and not self.__worker_task.done():
             return
         self.__worker_task = asyncio.create_task(self.__consume_queue(), name="metax-event-bus")
@@ -78,7 +78,7 @@ class EventBus:
         await asyncio.wait_for(self.__queue.join(), timeout=timeout_seconds)
 
     async def shutdown(self) -> None:
-        """Drain the queue, then stop the background worker."""
+        """Stops the queue, then stops the background worker."""
         if self.__worker_task is None:
             return
         await self.__queue.join()
