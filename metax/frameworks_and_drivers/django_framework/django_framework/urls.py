@@ -19,6 +19,7 @@ Including another URLconf
 from django.urls import include
 from django_framework.metax.admin.site import admin_site
 from django_framework.metax.views.category.controllers import CategoryController
+from django_framework.metax.views.category_helper_word.controller import CategoryHelperWordController
 from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
 from django_framework.metax.views.health.controllers import HealthCheckView
 from django_framework.metax.views.retailer.controllers import CreateRetailerController
@@ -26,12 +27,19 @@ from dmr.openapi import build_schema
 from dmr.openapi.views import OpenAPIJsonView, RedocView, SwaggerView
 from dmr.routing import Router, path
 
+from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
+    RESOURCE_TYPE_CATEGORY,
+    RESOURCE_TYPE_CATEGORY_HELPER_WORD,
+    RESOURCE_TYPE_RETAILER,
+)
+
 api_router = Router(
     prefix="api/",
     urls=[
         path("health-check/", HealthCheckView.as_view()),
-        path("category/", CategoryController.as_view()),
-        path("retailer/", CreateRetailerController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryController.as_view()),
+        path(RESOURCE_TYPE_CATEGORY_HELPER_WORD, CategoryHelperWordController.as_view()),
+        path(f"{RESOURCE_TYPE_RETAILER}/", CreateRetailerController.as_view()),
         path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )

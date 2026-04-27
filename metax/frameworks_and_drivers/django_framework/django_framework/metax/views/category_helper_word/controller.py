@@ -1,0 +1,115 @@
+from datetime import datetime
+from typing import Annotated, Any, ClassVar
+from uuid import UUID
+
+from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
+from dmr import Body, Controller
+from dmr.exceptions import RequestSerializationError
+from dmr.openapi.objects import MediaTypeMetadata
+from dmr.plugins.pydantic import PydanticSerializer
+from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_camel
+from pydantic.json_schema import SkipJsonSchema
+
+from metax.core.application.cud_services.category import (
+    AddNewHelperWordsRequestDTO,
+    AddNewHelperWordsService,
+    HelperWordPayload,
+)
+from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
+    RESOURCE_TYPE_CATEGORY,
+    RESOURCE_TYPE_CATEGORY_HELPER_WORD,
+    MetaxDANJAResource,
+)
+from metax_bootstrap import get_metax_lifespan_manager
+
+_CATEGORY_HELPER_WORD_POST_OPENAPI_EXAMPLE: dict[str, Any] = {
+    "data": {
+        "type": "categoryHelperWord",
+        "attributes": {"helperWord": "Marshall Emberton III"},
+        "relationships": {
+            "category": {"data": {"type": "category", "id": "019dd091-7968-75a8-ba01-2db4f33aa63f"}}
+        },
+    }
+}
+
+
+class CategoryHelperWordResource(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={"resource_name": RESOURCE_TYPE_CATEGORY_HELPER_WORD},
+        populate_by_name=True,
+        alias_generator=to_camel,
+    )
+
+    helper_word_uuid: Annotated[
+        UUID | None,
+        SkipJsonSchema(),
+        Field(default=None, json_schema_extra={"resource_id": True}, exclude=True),
+    ]
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+    helper_word: str
+
+
+class CategoryHelperWordDANJAResource(MetaxDANJAResource[CategoryHelperWordResource]):
+    pass
+
+
+class CategoryHelperWordController(Controller[PydanticSerializer]):
+    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
+    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
+
+    async def post(
+        self,
+        parsed_body: Annotated[
+            Body[CategoryHelperWordDANJAResource],
+            MediaTypeMetadata(example=_CATEGORY_HELPER_WORD_POST_OPENAPI_EXAMPLE),
+        ],
+    ) -> CategoryHelperWordDANJAResource:
+        container = get_metax_lifespan_manager().get_di_container()
+        patterns = container.patterns_container.container
+        unit_of_work_provider = patterns.unit_of_work_provider()
+        event_bus = await container.resources_container.container.event_bus.async_()
+
+        unit_of_work = await unit_of_work_provider.provide()
+
+        relationships = parsed_body.data.relationships
+        if relationships is None:
+            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
+            raise RequestSerializationError(msg)
+
+        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
+        if category_relationship is None:
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
+            raise RequestSerializationError(msg)
+
+        relationship_data = category_relationship.data
+        if relationship_data is None or isinstance(relationship_data, list):
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
+            raise RequestSerializationError(msg)
+
+        category_identifier = relationship_data
+        category_uuid = category_identifier.id
+        helper_word = parsed_body.data.attributes.helper_word
+
+        async with unit_of_work as uow:
+            category = await uow.category_repo.get_by_uuid(uuid_=UUID(category_uuid))
+            await uow.commit()
+
+        request_dto = AddNewHelperWordsRequestDTO(
+            category_uuid=category.get_uuid(),
+            new_helper_word_payload=HelperWordPayload(text=helper_word),
+        )
+        cud_service = AddNewHelperWordsService(
+            unit_of_work_provider=unit_of_work_provider,
+            event_bus=event_bus,
+        )
+        response_dto = await cud_service.execute(request_dto)
+        return CategoryHelperWordDANJAResource.from_basemodel(
+            CategoryHelperWordResource(
+                helper_word=response_dto.new_helper_word_payload.text,
+                helper_word_uuid=response_dto.new_helper_word_payload.helper_word_uuid,
+                created_at=response_dto.new_helper_word_payload.created_at,
+                updated_at=response_dto.new_helper_word_payload.updated_at,
+            )
+        )

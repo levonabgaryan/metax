@@ -16,7 +16,7 @@ class HelperWordPayload:
 @dataclass(frozen=True)
 class AddNewHelperWordsRequestDTO(RequestDTO):
     category_uuid: UUID
-    new_helper_words_payload: list[HelperWordPayload]
+    new_helper_word_payload: HelperWordPayload
 
 
 @dataclass(frozen=True)
@@ -25,7 +25,7 @@ class AddNewHelperWordsResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    new_helper_words_payload: list[HelperWordPayload]
+    new_helper_word_payload: HelperWordPayload
 
 
 @dataclass(frozen=True)

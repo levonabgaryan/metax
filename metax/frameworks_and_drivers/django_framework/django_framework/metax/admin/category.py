@@ -102,12 +102,13 @@ class CategoryAdminHandler:
         async with uow:
             category = await uow.category_repo.get_by_name(category_name)
 
-        command = AddNewHelperWordsRequestDTO(
-            category_uuid=category.get_uuid(),
-            new_helper_words_payload=[AddHelperWordPayload(text=helper_word) for helper_word in new_helper_words],
-        )
         service = AddNewHelperWordsService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await service.execute(command)
+        for helper_word in new_helper_words:
+            command = AddNewHelperWordsRequestDTO(
+                category_uuid=category.get_uuid(),
+                new_helper_word_payload=AddHelperWordPayload(text=helper_word),
+            )
+            await service.execute(command)
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:

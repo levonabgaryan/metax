@@ -33,9 +33,8 @@ class AddNewHelperWordsService(CUDService[AddNewHelperWordsRequestDTO]):
                     uuid_=uuid.uuid7(),
                     created_at=now,
                     updated_at=now,
-                    text=helper_word.text,
+                    text=request.new_helper_word_payload.text,
                 )
-                for helper_word in request.new_helper_words_payload
             ]
             category.add_new_helper_words(new_helper_words_entities)
             await repo.update(updated_category=category)
@@ -45,17 +44,15 @@ class AddNewHelperWordsService(CUDService[AddNewHelperWordsRequestDTO]):
             request.__class__.__name__,
             category.get_uuid(),
         )
+        added_helper_word = new_helper_words_entities[0]
         return AddNewHelperWordsResponseDTO(
             category_uuid=category.get_uuid(),
-            new_helper_words_payload=[
-                HelperWordPayload(
-                    text=helper_word.get_text(),
-                    helper_word_uuid=helper_word.get_uuid(),
-                    created_at=helper_word.get_created_at(),
-                    updated_at=helper_word.get_updated_at(),
-                )
-                for helper_word in category.get_helper_words()
-            ],
+            new_helper_word_payload=HelperWordPayload(
+                text=added_helper_word.get_text(),
+                helper_word_uuid=added_helper_word.get_uuid(),
+                created_at=added_helper_word.get_created_at(),
+                updated_at=added_helper_word.get_updated_at(),
+            ),
             created_at=category.get_created_at(),
             updated_at=category.get_updated_at(),
             name=category.get_name(),

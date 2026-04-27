@@ -27,7 +27,7 @@ async def test_add_new_helper_words_service(
 
     request_dto = AddNewHelperWordsRequestDTO(
         category_uuid=category.get_uuid(),
-        new_helper_words_payload=[HelperWordPayload(text="c"), HelperWordPayload(text="d")],
+        new_helper_word_payload=HelperWordPayload(text="c"),
     )
     # when
     service = AddNewHelperWordsService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
@@ -36,12 +36,8 @@ async def test_add_new_helper_words_service(
     # then
     assert isinstance(response_dto, AddNewHelperWordsResponseDTO)
     assert response_dto.category_uuid == category.get_uuid()
-    assert {word.text for word in response_dto.new_helper_words_payload} == {
-        "test_word1",
-        "test_word2",
-        "c",
-        "d",
-    }
+    assert response_dto.new_helper_word_payload.text == "c"
+    assert response_dto.new_helper_word_payload.helper_word_uuid is not None
 
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
@@ -50,5 +46,4 @@ async def test_add_new_helper_words_service(
         "test_word1",
         "test_word2",
         "c",
-        "d",
     }
