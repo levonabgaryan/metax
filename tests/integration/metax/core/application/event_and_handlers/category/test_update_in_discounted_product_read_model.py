@@ -64,7 +64,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         category_uuid=found_category.get_uuid(),
     )
     # when
-    await event_bus.emit(event)
+    await event_bus.emit_and_wait(event)
 
     # then
     await refresh_opensearch_index(

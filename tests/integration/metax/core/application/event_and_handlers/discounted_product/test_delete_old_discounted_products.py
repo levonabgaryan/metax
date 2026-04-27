@@ -39,7 +39,7 @@ async def test_event_handler_shall_delete_old_data(
     event = NewDiscountedProductsFromRetailerCollected(new_products_created_date)
 
     # when
-    await event_bus.emit(event)
+    await event_bus.emit_and_wait(event)
 
     # expect
     async with unit_of_work as uow:

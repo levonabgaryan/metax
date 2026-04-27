@@ -72,6 +72,11 @@ class EventBus:
         self.register()
         await self.__queue.put(event)
 
+    async def emit_and_wait(self, event: Event, timeout_seconds: float = 5.0) -> None:
+        # Use this method only for tests.
+        await self.emit(event)
+        await asyncio.wait_for(self.__queue.join(), timeout=timeout_seconds)
+
     async def shutdown(self) -> None:
         """Drain the queue, then stop the background worker."""
         if self.__worker_task is None:
@@ -186,11 +191,13 @@ class EventBus:
         read_models_batch: list[DiscountedProductReadModel] = []
         batch_size = 500
         async for dp in discounted_products:
+            read_models_batch.append(to_read_model(dp))
             if len(read_models_batch) == batch_size:
                 await read_model_repo.add_many(read_models_batch)
                 read_models_batch = []
-            else:
-                read_models_batch.append(to_read_model(dp))
+
+        if read_models_batch:
+            await read_model_repo.add_many(read_models_batch)
 
         await read_model_repo.delete_older_than_and_return_deleted_count(date_limit=date_limit)
         logger.info(
@@ -212,7 +219,10 @@ def to_read_model(discounted_product_with_details: DiscountedProductWithDetails)
     )
     if discounted_product_with_details.entity.has_category():
         result["category_uuid"] = str(discounted_product_with_details.entity.get_category_uuid())
-    if discounted_product_with_details.entity.has_category():
-        result["category_name"] = discounted_product_with_details.entity.get_name()
+    if (
+        discounted_product_with_details.entity.has_category()
+        and discounted_product_with_details.category_name is not None
+    ):
+        result["category_name"] = str(discounted_product_with_details.category_name)
 
     return result

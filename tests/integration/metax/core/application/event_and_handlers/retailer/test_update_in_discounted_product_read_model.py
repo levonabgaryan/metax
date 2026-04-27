@@ -59,7 +59,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     event = RetailerUpdated(found_retailer.get_uuid())
 
     # when
-    await event_bus.emit(event)
+    await event_bus.emit_and_wait(event)
     await refresh_opensearch_index(
         metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
     )

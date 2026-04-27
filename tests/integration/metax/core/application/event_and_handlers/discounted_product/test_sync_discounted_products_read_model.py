@@ -62,7 +62,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     )
 
     # when
-    await event_bus.emit(event)
+    await event_bus.emit_and_wait(event)
 
     # then
     await refresh_opensearch_index(
