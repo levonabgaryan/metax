@@ -38,7 +38,7 @@ class CategoryDANJAResource(MetaxDANJAResource[CategoryResource]):
 
 _CATEGORY_POST_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
-        "type": "categoryresource",
+        "type": "categoryResource",
         "attributes": {
             "name": "Electronics",
         },
