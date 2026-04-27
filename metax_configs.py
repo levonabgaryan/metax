@@ -66,8 +66,12 @@ class BaseConfigs(BaseSettings):
 class DevConfigs(BaseConfigs):
     debug: bool = True
 
+    postgres_host: str = "localhost"
+
+    opensearch_host: str = "localhost"
     opensearch_verify_certs: bool = False
 
+    django_host: str = "localhost"
     django_secret_key: str = "mock"  # noqa: S105
 
     gunicorn_reload: bool = False

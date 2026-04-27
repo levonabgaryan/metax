@@ -18,7 +18,7 @@ async def test_event_handler_shall_delete_old_data(
     # given
     metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     old_discounted_product_created_date = datetime.now(UTC)
     old_discounted_product = make_discounted_product_entity(
@@ -39,7 +39,7 @@ async def test_event_handler_shall_delete_old_data(
     event = NewDiscountedProductsFromRetailerCollected(new_products_created_date)
 
     # when
-    await event_bus.handle(event)
+    await event_bus.emit(event)
 
     # expect
     async with unit_of_work as uow:

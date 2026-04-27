@@ -21,7 +21,7 @@ async def test_create_retailer_service(
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     request_dto = CreateRetailerRequestDTO(
         retailer_uuid=uuid7(),
         name=RetailersNames.YEREVAN_CITY,

@@ -21,7 +21,7 @@ async def test_create_category_service(
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     category_uuid = uuid7()
     request_dto = CreateCategoryRequestDTO(
         category_uuid=category_uuid,

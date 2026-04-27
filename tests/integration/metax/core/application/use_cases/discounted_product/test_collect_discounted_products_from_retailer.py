@@ -73,7 +73,7 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
 
     category_classifier = metax_container.patterns_container.container.category_classifier_service()
     monkeypatch.setattr(category_classifier, "classify_category", AsyncMock(return_value=None))
-    event_bus = await metax_container.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container.resources_container.container.event_bus.async_()
 
     use_case = CollectDiscountedProducts(
         unit_of_work_provider=metax_container.patterns_container.container.unit_of_work_provider(),

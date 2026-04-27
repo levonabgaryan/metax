@@ -5,7 +5,6 @@ from dependency_injector import containers, providers
 from metax.core.application.ddd_patterns.services.category_classifier_service import (
     CategoryClassifierService,
 )
-from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from metax.frameworks_and_drivers.backend_patterns.providers.django_unit_of_work_provider import (
@@ -16,6 +15,7 @@ from metax.frameworks_and_drivers.backend_patterns.unit_of_work.unit_of_work imp
 
 class PatternsContainer(containers.DeclarativeContainer):
     repositories_container: providers.DependenciesContainer = providers.DependenciesContainer()
+
     unit_of_work: providers.Factory[AbstractUnitOfWork] = providers.Factory(
         UnitOfWork,
         discounted_product_repo=repositories_container.discounted_product_repository,
@@ -28,9 +28,4 @@ class PatternsContainer(containers.DeclarativeContainer):
     )
     category_classifier_service: providers.Factory[CategoryClassifierService] = providers.Factory(
         CategoryClassifierService, unit_of_work_provider=unit_of_work_provider
-    )
-    event_bus: providers.ThreadSafeSingleton[EventBus] = providers.ThreadSafeSingleton(
-        EventBus,
-        unit_of_work_provider=unit_of_work_provider,
-        discounted_product_read_model_repo=repositories_container.discounted_product_read_model_repository,
     )

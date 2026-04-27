@@ -24,7 +24,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     retailer = make_retailer_entity()
     discounted_product = make_discounted_product_entity(
         retailer_uuid=retailer.get_uuid(), created_at=datetime.now(tz=UTC)
@@ -59,7 +59,7 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     event = RetailerUpdated(found_retailer.get_uuid())
 
     # when
-    await event_bus.handle(event)
+    await event_bus.emit(event)
     await refresh_opensearch_index(
         metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
     )

@@ -34,7 +34,18 @@ def _expect_event[E: Event](event: Event, typ: type[E]) -> E:
 EventHandler = Callable[[Event], Awaitable[None]]
 
 
+class _EventBusStop:
+    """Sentinel value queued to stop the in-process event worker."""
+
+
+_EVENT_BUS_STOP = _EventBusStop()
+
+type _EventBusQueueItem = Event | _EventBusStop
+
+
 class EventBus:
+    """Dispatches domain ``Event`` instances to registered async handlers."""
+
     def __init__(
         self,
         unit_of_work_provider: IUnitOfWorkProvider,
@@ -43,22 +54,55 @@ class EventBus:
         self.__unit_of_work_provider = unit_of_work_provider
         self.__discounted_product_read_model_repo = discounted_product_read_model_repo
         self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
-            CategoryUpdated: (self._update_categories_names_in_discounted_product_read_model,),
-            RetailerUpdated: (self._update_retailers_names_in_discounted_product_read_model,),
-            NewDiscountedProductsFromRetailerCollected: (self._delete_old_discounted_products,),
-            OldDiscountedProductsDeleted: (self._add_new_discounted_products_read_models,),
+            CategoryUpdated: (self.__update_categories_names_in_discounted_product_read_model,),
+            RetailerUpdated: (self.__update_retailers_names_in_discounted_product_read_model,),
+            NewDiscountedProductsFromRetailerCollected: (self.__delete_old_discounted_products,),
+            OldDiscountedProductsDeleted: (self.__add_new_discounted_products_read_models,),
         }
+        self.__queue: asyncio.Queue[_EventBusQueueItem] = asyncio.Queue()
+        self.__worker_task: asyncio.Task[None] | None = None
 
-    async def handle(self, event: Event) -> None:
+    def register(self) -> None:
+        """Start the background task that reads events from the queue and runs ``handle``."""
+        if self.__worker_task is not None and not self.__worker_task.done():
+            return
+        self.__worker_task = asyncio.create_task(self.__consume_queue(), name="metax-event-bus")
+
+    async def emit(self, event: Event) -> None:
+        self.register()
+        await self.__queue.put(event)
+
+    async def shutdown(self) -> None:
+        """Drain the queue, then stop the background worker."""
+        if self.__worker_task is None:
+            return
+        await self.__queue.join()
+        await self.__queue.put(_EVENT_BUS_STOP)
+        await self.__worker_task
+        self.__worker_task = None
+
+    async def __consume_queue(self) -> None:
+        while True:
+            item = await self.__queue.get()
+            try:
+                if item is _EVENT_BUS_STOP:
+                    break
+                if isinstance(item, Event):
+                    await self.__handle(item)
+            except Exception:
+                logger.exception("Unhandled error in event bus worker while processing an event")
+            finally:
+                self.__queue.task_done()
+
+    async def __handle(self, event: Event) -> None:
+        """Run all handlers for this event in the current task (tests, in-handler chaining, worker)."""
         handlers = self.__handlers.get(type(event))
         if not handlers:
             msg = f"No handler for event type {type(event).__name__!r}"
             raise NotImplementedError(msg)
-        # Handlers for the same event type run concurrently,
-        # each should use its own UoW and not rely on peer order.
         await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 
-    async def _update_categories_names_in_discounted_product_read_model(self, event: Event) -> None:
+    async def __update_categories_names_in_discounted_product_read_model(self, event: Event) -> None:
         event_: CategoryUpdated = _expect_event(event, CategoryUpdated)
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
@@ -79,7 +123,7 @@ class EventBus:
             event_.category_uuid,
         )
 
-    async def _update_retailers_names_in_discounted_product_read_model(self, event: Event) -> None:
+    async def __update_retailers_names_in_discounted_product_read_model(self, event: Event) -> None:
         event_: RetailerUpdated = _expect_event(event, RetailerUpdated)
         logger.info(
             "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
@@ -101,7 +145,7 @@ class EventBus:
             event_.retailer_uuid,
         )
 
-    async def _delete_old_discounted_products(self, event: Event) -> None:
+    async def __delete_old_discounted_products(self, event: Event) -> None:
         event_: NewDiscountedProductsFromRetailerCollected = _expect_event(
             event, NewDiscountedProductsFromRetailerCollected
         )
@@ -119,11 +163,11 @@ class EventBus:
             "[Event: %s] | Handler: Delete old discount products from repo | Status: SUCCESS",
             event_.__class__.__name__,
         )
-        await self.handle(
+        await self.emit(
             OldDiscountedProductsDeleted(new_discounted_products_creation_date=event_.new_products_created_date)
         )
 
-    async def _add_new_discounted_products_read_models(self, event: Event) -> None:
+    async def __add_new_discounted_products_read_models(self, event: Event) -> None:
         event_: OldDiscountedProductsDeleted = _expect_event(event, OldDiscountedProductsDeleted)
         logger.info(
             "[Event: %s] | Handler: Sync discount products from repo to read model | Status: STARTED",

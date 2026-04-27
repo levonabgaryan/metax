@@ -26,7 +26,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     c.created_at,
                     c.updated_at,
                     ch.helper_word_uuid,
-                    ch.helper_word,
+                    ch.helper_word_text,
                     ch.created_at,
                     ch.updated_at
                 FROM categories c
@@ -115,7 +115,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 WHERE category_uuid = %s
             """
             helper_words_select_query = """
-                SELECT helper_word_uuid, helper_word, created_at, updated_at
+                SELECT helper_word_uuid, helper_word_text, created_at, updated_at
                 FROM category_helper_words
                 WHERE category_uuid = %s
             """
@@ -125,12 +125,12 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             """
             helper_words_insert_query = """
                 INSERT INTO category_helper_words
-                    (helper_word_uuid, helper_word, category_uuid, created_at, updated_at)
+                    (helper_word_uuid, helper_word_text, category_uuid, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s)
             """
             helper_words_update_query = """
                 UPDATE category_helper_words
-                SET helper_word = %s, updated_at = %s
+                SET helper_word_text = %s, updated_at = %s
                 WHERE helper_word_uuid = %s
             """
 
@@ -230,7 +230,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 if _category.get_helper_words():
                     helper_words_insert_query = """
                         INSERT INTO category_helper_words
-                            (helper_word_uuid, helper_word, category_uuid, created_at, updated_at)
+                            (helper_word_uuid, helper_word_text, category_uuid, created_at, updated_at)
                         VALUES (%s, %s, %s, %s, %s)
                     """
                     cursor.executemany(
@@ -259,7 +259,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     c.created_at,
                     c.updated_at,
                     ch.helper_word_uuid,
-                    ch.helper_word,
+                    ch.helper_word_text,
                     ch.created_at,
                     ch.updated_at
                 FROM categories c
@@ -317,7 +317,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     c.created_at,
                     c.updated_at,
                     ch.helper_word_uuid,
-                    ch.helper_word,
+                    ch.helper_word_text,
                     ch.created_at,
                     ch.updated_at
                 FROM categories c

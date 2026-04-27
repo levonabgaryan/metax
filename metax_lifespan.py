@@ -60,7 +60,9 @@ class MetaxAppLifespanManager:
         init_logger(metax_configs=self.__metax_configs)
 
     async def run_entrypoints(self) -> None:
-        opensearch_async_client = await self.get_di_container().opensearch_async_client.async_()
+        opensearch_async_client = (
+            await self.get_di_container().resources_container.container.opensearch_async_client.async_()
+        )
         await run_entrypoint(client=opensearch_async_client, metax_configs=self.__metax_configs)
 
     def configure_django_app(self) -> None:

@@ -94,10 +94,10 @@ add this `vm.max_map_count=262144` in conf file
 ```commandline
 cd metax/frameworks_and_drivers/django_framework
 ```
-#### SqlLite
+#### Migrations
 ```commandline
 python manage.py makemigrations metax
 ```
 ```commandline
-python manage.py migrate
+python manage.py migrate metax
 ```

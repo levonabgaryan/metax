@@ -35,7 +35,7 @@ class UpdateRetailerService(CUDService[UpdateRetailerRequestDTO]):
             retailer.get_uuid(),
         )
         event = RetailerUpdated(retailer_uuid=retailer.get_uuid())
-        await self._event_bus.handle(event)
+        await self._event_bus.emit(event)
         return UpdateRetailerResponseDTO(
             retailer_uuid=retailer.get_uuid(),
             new_name=retailer.get_name(),

@@ -19,7 +19,7 @@ async def test_delete_helper_words_service(
     unit_of_work_provider = (
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     category = make_category_entity()
     async with unit_of_work as uow:

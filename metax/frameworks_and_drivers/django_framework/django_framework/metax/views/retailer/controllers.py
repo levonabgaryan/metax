@@ -19,7 +19,7 @@ class CreateRetailerController(Controller[PydanticSerializer]):
         container = get_metax_lifespan_manager().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await patterns.event_bus.async_()
+        event_bus = await container.resources_container.container.event_bus.async_()
 
         retailer_uuid = uuid.uuid7()
         request_dto = CreateRetailerRequestDTO(

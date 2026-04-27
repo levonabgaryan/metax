@@ -28,7 +28,7 @@ async def delete_opensearch_indices(
     from metax.frameworks_and_drivers.opensearch.migration import delete_all_indices
 
     di_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    opensearch_async_client_ = await di_container.opensearch_async_client.async_()
+    opensearch_async_client_ = await di_container.resources_container.container.opensearch_async_client.async_()
     yield None
     await delete_all_indices(opensearch_async_client_)
 
@@ -38,7 +38,7 @@ async def refresh_opensearch_index(
     index_or_alias_name: str,
 ) -> None:
     metax_container = metax_app_for_integration_tests.get_di_container()
-    opensearch_async_client_ = await metax_container.opensearch_async_client.async_()
+    opensearch_async_client_ = await metax_container.resources_container.container.opensearch_async_client.async_()
     response = await opensearch_async_client_.indices.refresh(index=index_or_alias_name)
     is_refreshed = int(response["_shards"]["successful"]) != 0
     assert is_refreshed
@@ -49,7 +49,7 @@ async def clear_os_each_test(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> AsyncIterator[None]:
     di_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    client: AsyncOpenSearch = await di_container.opensearch_async_client.async_()
+    client: AsyncOpenSearch = await di_container.resources_container.container.opensearch_async_client.async_()
 
     async def cleanup() -> None:
         with contextlib.suppress(Exception):

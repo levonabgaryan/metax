@@ -67,7 +67,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         event = NewDiscountedProductsFromRetailerCollected(
             new_products_created_date=request.start_date_of_collecting
         )
-        await self._event_bus.handle(event)
+        await self._event_bus.emit(event)
 
         logger.info(
             "Use Case: %s | Status: SUCCESS",

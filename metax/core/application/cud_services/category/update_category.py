@@ -24,6 +24,7 @@ class UpdateCategoryService(CUDService[UpdateCategoryRequestDTO]):
         async with uow:
             repo = uow.category_repo
             category = await repo.get_by_uuid(request.category_uuid)
+
             if request.new_name is not None:
                 category.set_name(request.new_name)
 
@@ -35,7 +36,7 @@ class UpdateCategoryService(CUDService[UpdateCategoryRequestDTO]):
             category.get_uuid(),
         )
         event = CategoryUpdated(category_uuid=category.get_uuid())
-        await self._event_bus.handle(event)
+        await self._event_bus.emit(event)
         return UpdateCategoryResponseDTO(
             category_uuid=category.get_uuid(),
             created_at=category.get_created_at(),

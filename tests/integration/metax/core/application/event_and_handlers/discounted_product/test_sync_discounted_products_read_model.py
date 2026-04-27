@@ -25,7 +25,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     creation_data = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
     discounted_products = [
@@ -62,7 +62,7 @@ async def test_event_handler_shall_save_in_empty_read_model(
     )
 
     # when
-    await event_bus.handle(event)
+    await event_bus.emit(event)
 
     # then
     await refresh_opensearch_index(

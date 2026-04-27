@@ -1,5 +1,4 @@
 from dependency_injector import containers, providers
-from opensearchpy import AsyncOpenSearch
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import CategoryRepository
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
@@ -24,9 +23,8 @@ from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.retailer im
 
 
 class RepositoriesContainer(containers.DeclarativeContainer):
-    opensearch_async_client: providers.Dependency[AsyncOpenSearch] = providers.Dependency(
-        instance_of=AsyncOpenSearch
-    )
+    resources_container: providers.DependenciesContainer = providers.DependenciesContainer()
+
     discounted_product_repository: providers.Provider[DiscountedProductRepository] = providers.Factory(
         DjangoPostgresqlDiscountedProductRepository
     )
@@ -39,6 +37,6 @@ class RepositoriesContainer(containers.DeclarativeContainer):
     discounted_product_read_model_repository: providers.Provider[IDiscountedProductReadModelRepository] = (
         providers.Factory(
             OpenSearchDiscountedProductReadModelRepository,
-            opensearch_async_client=opensearch_async_client,
+            opensearch_async_client=resources_container.opensearch_async_client,
         )
     )

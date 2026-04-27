@@ -24,7 +24,7 @@ async def test_event_handler_shall_update_category_in_read_model(
     unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
     repos = metax_container_for_integration_tests.repositories_container.container
     discounted_product_read_model_repository = await repos.discounted_product_read_model_repository.async_()
-    event_bus = await metax_container_for_integration_tests.patterns_container.container.event_bus.async_()
+    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
     creation_date = datetime.now(tz=UTC)
     category = make_category_entity(name="test_name")
     retailer = make_retailer_entity()
@@ -64,7 +64,7 @@ async def test_event_handler_shall_update_category_in_read_model(
         category_uuid=found_category.get_uuid(),
     )
     # when
-    await event_bus.handle(event)
+    await event_bus.emit(event)
 
     # then
     await refresh_opensearch_index(
