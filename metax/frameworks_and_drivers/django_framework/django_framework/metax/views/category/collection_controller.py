@@ -2,16 +2,16 @@ from http import HTTPStatus
 from typing import Annotated, ClassVar
 
 from django_framework.metax.views.category.resources import (
-    _CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE,
+    CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE,
     CategoryListResponseBody,
     CategoryPostRequestBody,
     CategoryResource,
     CategoryResponseBody,
 )
+from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
-from dmr import Body, Controller, modify
+from dmr import Body, modify
 from dmr.openapi.objects import MediaTypeMetadata
-from dmr.plugins.pydantic import PydanticSerializer
 
 from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
@@ -20,7 +20,7 @@ from metax.core.application.cud_services.category import (
 from metax_bootstrap import get_metax_lifespan_manager
 
 
-class CategoryCollectionController(Controller[PydanticSerializer]):
+class CategoryCollectionController(MetaxJsonApiController):
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
 
@@ -32,7 +32,7 @@ class CategoryCollectionController(Controller[PydanticSerializer]):
         self,
         parsed_body: Annotated[
             Body[CategoryPostRequestBody],
-            MediaTypeMetadata(example=_CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE),
+            MediaTypeMetadata(example=CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE),
         ],
     ) -> CategoryResponseBody:
         container = get_metax_lifespan_manager().get_di_container()
@@ -43,9 +43,9 @@ class CategoryCollectionController(Controller[PydanticSerializer]):
         category_name = parsed_body.data.attributes.name
 
         request_dto = CreateCategoryRequestDTO(name=category_name, helper_words_payload=[])
-        service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        response_dto = await service.execute(request_dto)
-        created = CategoryResponseBody.from_basemodel(
+        cud_service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+        response_dto = await cud_service.execute(request_dto)
+        response_body = CategoryResponseBody.from_basemodel(
             resource=CategoryResource(
                 name=response_dto.name,
                 category_uuid=response_dto.category_uuid,
@@ -53,7 +53,7 @@ class CategoryCollectionController(Controller[PydanticSerializer]):
                 updated_at=response_dto.updated_at,
             ),
         )
-        return created
+        return response_body
 
     @modify(
         status_code=HTTPStatus.OK,

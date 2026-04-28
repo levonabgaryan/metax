@@ -3,16 +3,16 @@ from typing import Annotated, ClassVar
 from uuid import UUID
 
 from django_framework.metax.views.category_helper_word.resources import (
-    _CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE,
+    CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE,
     CategoryHelperWordPostRequestBody,
     CategoryHelperWordResource,
     CategoryHelperWordResponseBody,
 )
+from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
-from dmr import Body, Controller, modify
+from dmr import Body, modify
 from dmr.exceptions import RequestSerializationError
 from dmr.openapi.objects import MediaTypeMetadata
-from dmr.plugins.pydantic import PydanticSerializer
 
 from metax.core.application.cud_services.category import (
     AddNewHelperWordsRequestDTO,
@@ -25,7 +25,7 @@ from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
 from metax_bootstrap import get_metax_lifespan_manager
 
 
-class CategoryHelperWordCollectionController(Controller[PydanticSerializer]):
+class CategoryHelperWordCollectionController(MetaxJsonApiController):
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
 
@@ -37,7 +37,7 @@ class CategoryHelperWordCollectionController(Controller[PydanticSerializer]):
         self,
         parsed_body: Annotated[
             Body[CategoryHelperWordPostRequestBody],
-            MediaTypeMetadata(example=_CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE),
+            MediaTypeMetadata(example=CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE),
         ],
     ) -> CategoryHelperWordResponseBody:
         container = get_metax_lifespan_manager().get_di_container()

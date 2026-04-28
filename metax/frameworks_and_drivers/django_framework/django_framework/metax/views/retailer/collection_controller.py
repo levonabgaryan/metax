@@ -1,29 +1,28 @@
 from http import HTTPStatus
-from typing import Annotated, ClassVar
-from uuid import UUID
+from typing import Annotated, ClassVar, override
 
+from django.http import HttpResponse
+from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from django_framework.metax.views.retailer.resources import (
-    _RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE,
+    RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE,
     RetailerListResponseBody,
     RetailerPostRequestBody,
     RetailerResource,
     RetailerResponseBody,
 )
 from dmr import Body, Controller, modify
+from dmr.endpoint import Endpoint
 from dmr.openapi.objects import MediaTypeMetadata
 from dmr.plugins.pydantic import PydanticSerializer
-from pydantic import BaseModel
+from pydanja import DANJAError
 
 from metax.core.application.cud_services.retailer import CreateRetailerRequestDTO, CreateRetailerService
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax_bootstrap import get_metax_lifespan_manager
 
 
-class RetailerPath(BaseModel):
-    retailer_uuid: UUID
-
-
-class RetailerCollectionController(Controller[PydanticSerializer]):
+class RetailerCollectionController(MetaxJsonApiController):
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
 
@@ -37,7 +36,7 @@ class RetailerCollectionController(Controller[PydanticSerializer]):
     async def post(
         self,
         parsed_body: Annotated[
-            Body[RetailerPostRequestBody], MediaTypeMetadata(example=_RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE)
+            Body[RetailerPostRequestBody], MediaTypeMetadata(example=RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE)
         ],
     ) -> RetailerResponseBody:
         container = get_metax_lifespan_manager().get_di_container()
@@ -100,3 +99,18 @@ class RetailerCollectionController(Controller[PydanticSerializer]):
         )
         response_body.links = {"self": self._collection_links()}
         return response_body
+
+    @override
+    async def handle_async_error(
+        self,
+        endpoint: Endpoint,
+        controller: Controller[PydanticSerializer],
+        exc: Exception,
+    ) -> HttpResponse:
+        if isinstance(exc, EntityIsNotFoundError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.NOT_FOUND,
+            )
+
+        return await super().handle_async_error(endpoint, controller, exc)

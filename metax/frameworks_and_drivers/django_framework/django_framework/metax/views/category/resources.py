@@ -97,7 +97,7 @@ class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
         )
 
 
-_CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
+CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
         "type": RESOURCE_TYPE_CATEGORY,
         "attributes": {

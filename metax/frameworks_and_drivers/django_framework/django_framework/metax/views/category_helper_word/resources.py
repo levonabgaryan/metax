@@ -86,7 +86,7 @@ class CategoryHelperWordListResponseBody(MetaxDANJAResourceList[CategoryHelperWo
     pass
 
 
-_CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
+CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
         "type": "categoryHelperWord",
         "attributes": {"helperWord": "Marshall Emberton III"},

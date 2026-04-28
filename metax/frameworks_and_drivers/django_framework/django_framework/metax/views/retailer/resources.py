@@ -103,7 +103,7 @@ class RetailerListResponseBody(MetaxDANJAResourceList[RetailerResource]):
         )
 
 
-_RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
+RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
         "type": RESOURCE_TYPE_RETAILER,
         "attributes": {
@@ -113,3 +113,7 @@ _RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
         },
     },
 }
+
+
+class RetailerPath(BaseModel):
+    retailer_uuid: UUID
