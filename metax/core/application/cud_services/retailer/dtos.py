@@ -37,3 +37,5 @@ class UpdateRetailerResponseDTO(ResponseDTO):
     new_name: str
     new_url: str
     new_phone_number: str
+    created_at: datetime
+    updated_at: datetime

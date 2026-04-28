@@ -5,7 +5,7 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Self, cast, override
 
-from pydanja import DANJAResource
+from pydanja import DANJAResource, DANJAResourceList
 from pydantic import BaseModel, model_validator
 from pydantic.functional_validators import ModelWrapValidatorHandler
 
@@ -107,3 +107,27 @@ class MetaxDANJAResource[ResourceT](DANJAResource[ResourceT]):
         elif isinstance(data, list):
             for item in data:
                 cls.__recursive_check(item)
+
+
+class MetaxDANJAResourceList[ResourceT](DANJAResourceList[ResourceT]):
+    @model_validator(mode="wrap")
+    @override
+    @classmethod
+    def ignore_included(cls, data: Any, handler: ModelWrapValidatorHandler[Self]) -> Self:
+        data_copy = deepcopy(data)
+
+        # Exclude included resource types
+        if hasattr(data_copy, "included"):
+            del data_copy.included
+
+        return handler(data_copy)
+
+    @classmethod
+    @override
+    def from_basemodel_list(
+        cls, resources: list[ResourceT], resource_name: str | None = None, resource_id: str | None = None
+    ) -> Self:
+        return cast(
+            Self,
+            super().from_basemodel_list(resources=resources, resource_name=resource_name, resource_id=resource_id),
+        )

@@ -14,6 +14,56 @@ from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
     @override
+    async def get_all(self) -> AsyncIterator[Retailer]:
+        def _sync_version() -> Iterator[Retailer]:
+            select_all_query = """
+                SELECT
+                    retailer_uuid,
+                    name,
+                    url,
+                    phone_number,
+                    created_at,
+                    updated_at
+                FROM retailers
+                ORDER BY name ASC
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=select_all_query)
+                rows = cursor.fetchall()
+            return (
+                Retailer(
+                    uuid_=row[0],
+                    name=row[1],
+                    home_page_url=row[2],
+                    phone_number=row[3],
+                    created_at=row[4],
+                    updated_at=row[5],
+                )
+                for row in rows
+            )
+
+        retailers = await sync_to_async(_sync_version)()
+        for retailer in retailers:
+            yield retailer
+
+    @override
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
+        def _sync_version(_retailer_uuid: UUID) -> UUID | None:
+            delete_query = """
+                DELETE FROM retailers
+                WHERE retailer_uuid = %s;
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=delete_query, params=[_retailer_uuid])
+                if cursor.rowcount == 0:
+                    return None
+                return _retailer_uuid
+
+        return await sync_to_async(_sync_version)(uuid_)
+
+    @override
     async def _add(self, retailer: Retailer) -> None:
         def _sync_version(_retailer: Retailer) -> None:
             insert_query = """
@@ -120,37 +170,3 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 )
 
         return await sync_to_async(_sync_version)(updated_retailer)
-
-    @override
-    async def get_all(self) -> AsyncIterator[Retailer]:
-        def _sync_version() -> Iterator[Retailer]:
-            select_all_query = """
-                SELECT
-                    retailer_uuid,
-                    name,
-                    url,
-                    phone_number,
-                    created_at,
-                    updated_at
-                FROM retailers
-                ORDER BY name ASC
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(sql=select_all_query)
-                rows = cursor.fetchall()
-            return (
-                Retailer(
-                    uuid_=row[0],
-                    name=row[1],
-                    home_page_url=row[2],
-                    phone_number=row[3],
-                    created_at=row[4],
-                    updated_at=row[5],
-                )
-                for row in rows
-            )
-
-        retailers = await sync_to_async(_sync_version)()
-        for retailer in retailers:
-            yield retailer

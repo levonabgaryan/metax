@@ -18,13 +18,19 @@ Including another URLconf
 
 from django.urls import include
 from django_framework.metax.admin.site import admin_site
-from django_framework.metax.views.category.controllers import CategoryController
-from django_framework.metax.views.category_helper_word.controller import CategoryHelperWordController
+from django_framework.metax.views.category.collection_controller import CategoryCollectionController
+from django_framework.metax.views.category_helper_word.collection_controller import (
+    CategoryHelperWordCollectionController,
+)
 from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
 from django_framework.metax.views.health.controllers import HealthCheckView
-from django_framework.metax.views.retailer.controllers import CreateRetailerController
+from django_framework.metax.views.openapi_json import DanjaOpenAPIJsonView
+from django_framework.metax.views.retailer.collection_controller import (
+    RetailerCollectionController,
+)
+from django_framework.metax.views.retailer.resource_controller import RetailerResourceController
 from dmr.openapi import build_schema
-from dmr.openapi.views import OpenAPIJsonView, RedocView, SwaggerView
+from dmr.openapi.views import RedocView, SwaggerView
 from dmr.routing import Router, path
 
 from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
@@ -37,9 +43,10 @@ api_router = Router(
     prefix="api/",
     urls=[
         path("health-check/", HealthCheckView.as_view()),
-        path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryController.as_view()),
-        path(RESOURCE_TYPE_CATEGORY_HELPER_WORD, CategoryHelperWordController.as_view()),
-        path(f"{RESOURCE_TYPE_RETAILER}/", CreateRetailerController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/", CategoryHelperWordCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_RETAILER}/", RetailerCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>/", RetailerResourceController.as_view()),
         path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )
@@ -50,10 +57,10 @@ urlpatterns = [
     path(api_router.prefix, include((api_router.urls, "api"))),
     path(
         "docs/openapi.json/",
-        OpenAPIJsonView.as_view(api_schema),
+        DanjaOpenAPIJsonView.as_view(api_schema),
         name="api_openapi",
     ),
     path("docs/swagger/", SwaggerView.as_view(api_schema)),
     path("docs/redoc/", RedocView.as_view(api_schema)),
-    path("docs/openapi.json/", OpenAPIJsonView.as_view(api_schema), name="openapi"),
+    path("docs/openapi.json/", DanjaOpenAPIJsonView.as_view(api_schema), name="openapi"),
 ]

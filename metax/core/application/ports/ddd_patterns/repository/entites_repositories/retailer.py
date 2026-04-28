@@ -33,8 +33,21 @@ class RetailerRepository(ABC):
     async def update(self, updated_retailer: Retailer) -> None:
         await self._update(updated_retailer)
 
+    async def delete_by_uuid(self, uuid_: UUID) -> None:
+        deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)
+        if deleted_uuid is None:
+            raise EntityIsNotFoundError(
+                entity_name="retailer",
+                searched_field_name="uuid",
+                searched_field_value=str(uuid_),
+            )
+
     @abstractmethod
     def get_all(self) -> AsyncIterator[Retailer]:
+        pass
+
+    @abstractmethod
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         pass
 
     @abstractmethod

@@ -12,10 +12,20 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 
 from django.db.backends.postgresql.psycopg_any import IsolationLevel
+from dmr.openapi.config import OpenAPIConfig
+from dmr.settings import Settings as DmrSettings
 
 from metax_bootstrap import METAX_CONFIGS
 
 DEBUG = METAX_CONFIGS.debug
+
+# django-modern-rest OpenAPI / Swagger UI metadata (default title is "Django Modern Rest").
+DMR_SETTINGS = {
+    DmrSettings.openapi_config: OpenAPIConfig(
+        title="Metax API",
+        version="0.1.0",
+    ),
+}
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(METAX_CONFIGS.django_dir)

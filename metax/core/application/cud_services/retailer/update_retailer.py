@@ -41,4 +41,6 @@ class UpdateRetailerService(CUDService[UpdateRetailerRequestDTO]):
             new_name=retailer.get_name(),
             new_url=retailer.get_home_page_url(),
             new_phone_number=retailer.get_phone_number(),
+            created_at=retailer.get_created_at(),
+            updated_at=retailer.get_updated_at(),
         )
