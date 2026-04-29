@@ -1,7 +1,6 @@
 from http import HTTPStatus
-from typing import Annotated, ClassVar, override
+from typing import Annotated, ClassVar
 
-from django.http import HttpResponse
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from django_framework.metax.views.retailer.resources import (
@@ -11,23 +10,16 @@ from django_framework.metax.views.retailer.resources import (
     RetailerResource,
     RetailerResponseBody,
 )
-from dmr import Body, Controller, modify
-from dmr.endpoint import Endpoint
+from dmr import Body, modify
 from dmr.openapi.objects import MediaTypeMetadata
-from dmr.plugins.pydantic import PydanticSerializer
-from pydanja import DANJAError
 
 from metax.core.application.cud_services.retailer import CreateRetailerRequestDTO, CreateRetailerService
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax_bootstrap import get_metax_lifespan_manager
 
 
 class RetailerCollectionController(MetaxJsonApiController):
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
-    def _collection_links(self) -> str:
-        return self.request.build_absolute_uri(self.request.get_full_path())
 
     @modify(
         status_code=HTTPStatus.CREATED,
@@ -59,8 +51,7 @@ class RetailerCollectionController(MetaxJsonApiController):
             event_bus=event_bus,
         )
         response_dto = await service.execute(request_dto)
-
-        return RetailerResponseBody.from_basemodel(
+        response_body = RetailerResponseBody.from_basemodel(
             resource=RetailerResource(
                 retailer_uuid=response_dto.retailer_uuid,
                 name=response_dto.name,
@@ -70,6 +61,9 @@ class RetailerCollectionController(MetaxJsonApiController):
                 updated_at=response_dto.updated_at,
             )
         )
+        response_body.links = {"self": f"{self.request.build_absolute_uri()}/{response_dto.retailer_uuid}"}
+
+        return response_body
 
     @modify(
         status_code=HTTPStatus.OK,
@@ -97,20 +91,5 @@ class RetailerCollectionController(MetaxJsonApiController):
         response_body = RetailerListResponseBody.from_basemodel_list(
             resources=resources_list,
         )
-        response_body.links = {"self": self._collection_links()}
+        response_body.links = {"self": self.request.build_absolute_uri()}
         return response_body
-
-    @override
-    async def handle_async_error(
-        self,
-        endpoint: Endpoint,
-        controller: Controller[PydanticSerializer],
-        exc: Exception,
-    ) -> HttpResponse:
-        if isinstance(exc, EntityIsNotFoundError):
-            return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
-                status_code=HTTPStatus.NOT_FOUND,
-            )
-
-        return await super().handle_async_error(endpoint, controller, exc)

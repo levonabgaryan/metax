@@ -3,11 +3,15 @@ from http import HTTPStatus
 from typing import ClassVar, TypedDict, override
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
+from django.http import HttpResponse
 from dmr import Controller
+from dmr.endpoint import Endpoint
 from dmr.errors import ErrorType
 from dmr.exceptions import ValidationError
 from dmr.plugins.pydantic import PydanticSerializer
 from pydanja import DANJAError, DANJALink, DANJASource
+
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 
 
 def _to_json_api_pointer(loc: list[int | str] | None) -> str | None:
@@ -32,6 +36,20 @@ class JsonApiErrorModel(TypedDict):
 
 class MetaxJsonApiController(Controller[PydanticSerializer]):
     error_model: ClassVar[type[JsonApiErrorModel]] = JsonApiErrorModel
+
+    @override
+    async def handle_async_error(
+        self,
+        endpoint: Endpoint,
+        controller: Controller[PydanticSerializer],
+        exc: Exception,
+    ) -> HttpResponse:
+        if isinstance(exc, EntityIsNotFoundError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.NOT_FOUND,
+            )
+        return await super().handle_async_error(endpoint, controller, exc)
 
     @override
     def format_error(
@@ -115,3 +133,8 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
             new_query,
             str(parsed_url.fragment),
         ))
+
+
+# Category Helper word - delete, patch,
+# Retailer - collection-get-> pagination
+# think how to implement category delete

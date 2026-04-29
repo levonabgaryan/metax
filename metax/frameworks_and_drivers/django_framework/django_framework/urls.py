@@ -19,6 +19,7 @@ Including another URLconf
 from django.urls import include
 from django_framework.metax.admin.site import admin_site
 from django_framework.metax.views.category.collection_controller import CategoryCollectionController
+from django_framework.metax.views.category.resource_controller import CategoryResourceController
 from django_framework.metax.views.category_helper_word.collection_controller import (
     CategoryHelperWordCollectionController,
 )
@@ -44,6 +45,7 @@ api_router = Router(
     urls=[
         path("health-check/", HealthCheckView.as_view()),
         path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY}/<uuid:category_uuid>/", CategoryResourceController.as_view()),
         path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/", CategoryHelperWordCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_RETAILER}/", RetailerCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>/", RetailerResourceController.as_view()),

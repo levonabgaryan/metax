@@ -103,10 +103,18 @@ class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
         )
 
 
-class QueryParams(BaseModel):
+class QueryParamsForCollection(BaseModel):
     offset: Annotated[int, Field(ge=0, alias="page[offset]")]
     limit: Annotated[int, Field(ge=1, alias="page[limit]")]
     include: Annotated[Literal["categoryHelperWord"] | None, Field(alias="include")] = None
+
+
+class QueryParamsForResource(BaseModel):
+    include: Annotated[Literal["categoryHelperWord"] | None, Field(alias="include")] = None
+
+
+class CategoryPath(BaseModel):
+    category_uuid: UUID
 
 
 CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {

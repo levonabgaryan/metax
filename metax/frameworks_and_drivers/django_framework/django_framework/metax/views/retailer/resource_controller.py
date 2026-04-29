@@ -9,39 +9,18 @@ from django_framework.metax.views.retailer.resources import (
     RetailerResource,
     RetailerResponseBody,
 )
-from dmr import APIError, Body, Controller, Path, ResponseSpec, modify
+from dmr import Body, Controller, Path, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
 from dmr.plugins.pydantic import PydanticSerializer
 from pydanja import DANJAError
 
 from metax.core.application.cud_services.retailer import UpdateRetailerRequestDTO, UpdateRetailerService
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax_bootstrap import get_metax_lifespan_manager
 
 
 class RetailerResourceController(Controller[PydanticSerializer]):
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
-    @modify(
-        status_code=HTTPStatus.NO_CONTENT,
-        tags=["Retailer"],
-        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
-    )
-    async def delete(self, parsed_path: Path[RetailerPath]) -> None:
-        retailer_uuid = parsed_path.retailer_uuid
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
-        try:
-            async with unit_of_work as uow:
-                await uow.retailer_repo.delete_by_uuid(retailer_uuid)
-                await uow.commit()
-            return
-        except EntityIsNotFoundError as err:
-            raise APIError(
-                raw_data=DANJAError(code=err.error_code, title=err.title, detail=err.details),
-                status_code=HTTPStatus.NOT_FOUND,
-            ) from err
 
     @modify(
         status_code=HTTPStatus.OK,
@@ -51,26 +30,20 @@ class RetailerResourceController(Controller[PydanticSerializer]):
     async def get(self, parsed_path: Path[RetailerPath]) -> RetailerResponseBody:
         container = get_metax_lifespan_manager().get_di_container()
         unit_of_work = container.patterns_container.container.unit_of_work()
-        try:
-            async with unit_of_work as uow:
-                retailer = await uow.retailer_repo.get_by_uuid(parsed_path.retailer_uuid)
-                await uow.commit()
+        async with unit_of_work as uow:
+            retailer = await uow.retailer_repo.get_by_uuid(parsed_path.retailer_uuid)
+            await uow.commit()
 
-            return RetailerResponseBody.from_basemodel(
-                resource=RetailerResource(
-                    retailer_uuid=retailer.get_uuid(),
-                    name=retailer.get_name(),
-                    home_page_url=retailer.get_home_page_url(),
-                    phone_number=retailer.get_phone_number(),
-                    created_at=retailer.get_created_at(),
-                    updated_at=retailer.get_updated_at(),
-                )
+        return RetailerResponseBody.from_basemodel(
+            resource=RetailerResource(
+                retailer_uuid=retailer.get_uuid(),
+                name=retailer.get_name(),
+                home_page_url=retailer.get_home_page_url(),
+                phone_number=retailer.get_phone_number(),
+                created_at=retailer.get_created_at(),
+                updated_at=retailer.get_updated_at(),
             )
-        except EntityIsNotFoundError as err:
-            raise APIError(
-                raw_data=DANJAError(code=err.error_code, title=err.title, detail=err.details),
-                status_code=HTTPStatus.NOT_FOUND,
-            ) from err
+        )
 
     @modify(
         status_code=HTTPStatus.OK,
@@ -99,13 +72,7 @@ class RetailerResourceController(Controller[PydanticSerializer]):
             new_name=parsed_body.data.attributes.name,
             new_phone_number=parsed_body.data.attributes.phone_number,
         )
-        try:
-            response_dto = await cud_service.execute(request_dto)
-        except EntityIsNotFoundError as err:
-            raise APIError(
-                raw_data=DANJAError(code=err.error_code, title=err.title, detail=err.details),
-                status_code=HTTPStatus.NOT_FOUND,
-            ) from err
+        response_dto = await cud_service.execute(request_dto)
 
         return RetailerResponseBody.from_basemodel(
             resource=RetailerResource(
@@ -117,3 +84,16 @@ class RetailerResourceController(Controller[PydanticSerializer]):
                 updated_at=response_dto.updated_at,
             )
         )
+
+    @modify(
+        status_code=HTTPStatus.NO_CONTENT,
+        tags=["Retailer"],
+        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
+    )
+    async def delete(self, parsed_path: Path[RetailerPath]) -> None:
+        retailer_uuid = parsed_path.retailer_uuid
+        container = get_metax_lifespan_manager().get_di_container()
+        unit_of_work = container.patterns_container.container.unit_of_work()
+        async with unit_of_work as uow:
+            await uow.retailer_repo.delete_by_uuid(retailer_uuid)
+            await uow.commit()

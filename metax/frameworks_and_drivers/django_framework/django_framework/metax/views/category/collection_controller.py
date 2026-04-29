@@ -7,7 +7,7 @@ from django_framework.metax.views.category.resources import (
     CategoryPostRequestBody,
     CategoryResource,
     CategoryResponseBody,
-    QueryParams,
+    QueryParamsForCollection,
 )
 from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResource,
@@ -61,13 +61,14 @@ class CategoryCollectionController(MetaxJsonApiController):
                 updated_at=response_dto.updated_at,
             ),
         )
+        response_body.links = {"self": f"{self.request.build_absolute_uri()}/{response_dto.category_uuid}"}
         return response_body
 
     @modify(
         status_code=HTTPStatus.OK,
         tags=["Category"],
     )
-    async def get(self, parsed_query: Query[QueryParams]) -> CategoryListResponseBody:
+    async def get(self, parsed_query: Query[QueryParamsForCollection]) -> CategoryListResponseBody:
         container = get_metax_lifespan_manager().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work = patterns.unit_of_work()
