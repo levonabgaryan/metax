@@ -8,6 +8,7 @@ from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
+    TotalCount,
 )
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
@@ -105,8 +106,13 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await sync_to_async(_sync_version)()
 
     @override
-    async def list_paginated(self, limit: int, offset: int) -> list[Category]:
-        def _sync_version(_limit: int, _offset: int) -> list[Category]:
+    async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[TotalCount, list[Category]]:
+        def _sync_version(_limit: int, _offset: int) -> tuple[TotalCount, list[Category]]:
+            count_query = """
+                SELECT COUNT(*)::bigint
+                FROM categories c;
+            """
+
             query_ = """
                 WITH paged_categories AS (
                     SELECT
@@ -147,6 +153,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
 
             cursor: CursorWrapper
             with connection.cursor() as cursor:
+                cursor.execute(count_query)
+                total_count: int = cursor.fetchone()[0]
+
                 cursor.execute(sql=query_, params=[_limit, _offset])
                 rows: list[
                     tuple[
@@ -197,7 +206,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                             updated_at=helper_word_updated_at,
                         ),
                     )
-                return [
+                categories = [
                     Category(
                         uuid_=category_uuid,
                         name=category_name,
@@ -205,11 +214,14 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         created_at=category_created_at,
                         updated_at=category_updated_at,
                     )
-                    for (
-                        category_uuid,
-                        (category_name, category_created_at, category_updated_at, helper_words),
+                    for category_uuid, (
+                        category_name,
+                        category_created_at,
+                        category_updated_at,
+                        helper_words,
                     ) in category_map.items()
                 ]
+                return total_count, categories
 
         return await sync_to_async(_sync_version)(limit, offset)
 

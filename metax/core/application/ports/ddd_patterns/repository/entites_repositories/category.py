@@ -4,6 +4,8 @@ from uuid import UUID
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 
+type TotalCount = int
+
 
 class CategoryRepository(ABC):
     async def get_by_uuid(self, uuid_: UUID) -> Category:
@@ -37,8 +39,8 @@ class CategoryRepository(ABC):
         pass
 
     @abstractmethod
-    async def list_paginated(self, limit: int, offset: int) -> list[Category]:
-        pass
+    async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[TotalCount, list[Category]]:
+        """Returns list of category by params, and whole count of categories in the repository."""
 
     @abstractmethod
     async def _get_by_uuid(self, uuid_: UUID) -> Category | None:

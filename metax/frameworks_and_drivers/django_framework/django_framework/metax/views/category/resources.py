@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Annotated, Any, Self, override
+from typing import Annotated, Any, Literal, Self, override
 from uuid import UUID
 
+from django_framework.metax.views.category_helper_word.resources import CategoryHelperWordResource
+from pydanja import DANJASingleResource
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from pydantic.json_schema import SkipJsonSchema
@@ -87,6 +89,10 @@ class CategoryResponseBody(MetaxDANJAResource[CategoryResource]):
 
 
 class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
+    included: (
+        list[DANJASingleResource[CategoryResource] | DANJASingleResource[CategoryHelperWordResource]] | None
+    ) = None
+
     @classmethod
     @override
     def from_basemodel_list(
@@ -95,6 +101,12 @@ class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
         return super().from_basemodel_list(
             resources=resources, resource_name=resource_name, resource_id=resource_id
         )
+
+
+class QueryParams(BaseModel):
+    offset: Annotated[int, Field(ge=0, alias="page[offset]")]
+    limit: Annotated[int, Field(ge=1, alias="page[limit]")]
+    include: Annotated[Literal["categoryHelperWord"] | None, Field(alias="include")] = None
 
 
 CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {

@@ -1,11 +1,13 @@
+from copy import deepcopy
 from http import HTTPStatus
 from typing import ClassVar, TypedDict, override
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from dmr import Controller
 from dmr.errors import ErrorType
 from dmr.exceptions import ValidationError
 from dmr.plugins.pydantic import PydanticSerializer
-from pydanja import DANJAError, DANJASource
+from pydanja import DANJAError, DANJALink, DANJASource
 
 
 def _to_json_api_pointer(loc: list[int | str] | None) -> str | None:
@@ -66,3 +68,50 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
                 )
             ]
         }
+
+    def _build_pagination_links(
+        self, current_url: str, offset: int, limit: int, total_count: int
+    ) -> dict[str, str | DANJALink | None]:
+        prev_offset = (
+            None if offset == 0 else max(0, offset - limit)
+        )  # we could use just offset - limit, but max is for safety
+        next_offset = None if offset + limit >= total_count else offset + limit
+
+        last_item_idx = total_count - 1
+        first_index_of_last_block = last_item_idx // limit
+        last_offset = 0 if total_count == 0 else first_index_of_last_block * limit
+
+        links: dict[str, str | DANJALink | None] = {
+            "self": current_url,
+            "first": self.__make_new_url_by_limit_and_offset(current_url, offset=0, limit=limit),
+            "last": self.__make_new_url_by_limit_and_offset(current_url, offset=last_offset, limit=limit),
+        }
+        if prev_offset is None:
+            links["prev"] = None
+        else:
+            links["prev"] = self.__make_new_url_by_limit_and_offset(current_url, offset=prev_offset, limit=limit)
+
+        if next_offset is None:
+            links["next"] = None
+        else:
+            links["next"] = self.__make_new_url_by_limit_and_offset(current_url, offset=next_offset, limit=limit)
+
+        return links
+
+    @staticmethod
+    def __make_new_url_by_limit_and_offset(url_: str, limit: int, offset: int) -> str:
+        parsed_url = urlparse(url_)
+        query_params = {k: v[0] for k, v in parse_qs(parsed_url.query).items()}
+        new_query_params = deepcopy(query_params)
+        new_query_params["page[limit]"] = str(limit)
+        new_query_params["page[offset]"] = str(offset)
+
+        new_query = urlencode(new_query_params)
+        return urlunparse((
+            str(parsed_url.scheme),
+            str(parsed_url.netloc),
+            str(parsed_url.path),
+            str(parsed_url.params),
+            new_query,
+            str(parsed_url.fragment),
+        ))

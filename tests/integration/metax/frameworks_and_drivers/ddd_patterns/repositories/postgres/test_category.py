@@ -155,10 +155,11 @@ async def test_category_repo_list_paginated_returns_full_entities(
         await uow.commit()
 
     # when
-    first_page = await unit_of_work.category_repo.list_paginated(limit=2, offset=0)
-    second_page = await unit_of_work.category_repo.list_paginated(limit=2, offset=2)
+    total_count_1, first_page = await unit_of_work.category_repo.list_paginated_and_total_count(limit=2, offset=0)
+    total_count_2, second_page = await unit_of_work.category_repo.list_paginated_and_total_count(limit=2, offset=2)
 
     # then
+    assert total_count_1 == total_count_2 == 4
     assert [category.get_name() for category in first_page] == ["A", "B"]
     assert [category.get_name() for category in second_page] == ["C", "D"]
     assert {word.get_text() for word in first_page[0].get_helper_words()} == {

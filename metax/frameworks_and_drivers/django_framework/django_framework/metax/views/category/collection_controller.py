@@ -7,16 +7,24 @@ from django_framework.metax.views.category.resources import (
     CategoryPostRequestBody,
     CategoryResource,
     CategoryResponseBody,
+    QueryParams,
+)
+from django_framework.metax.views.category_helper_word.resources import (
+    CategoryHelperWordResource,
+    CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
-from dmr import Body, modify
+from dmr import Body, Query, modify
 from dmr.openapi.objects import MediaTypeMetadata
+from pydanja import DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
 
 from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
     CreateCategoryService,
 )
+from metax.core.domain.entities.category.aggregate_root_entity import Category
+from metax.frameworks_and_drivers.pydanja_.pydanja_resource import RESOURCE_TYPE_CATEGORY_HELPER_WORD
 from metax_bootstrap import get_metax_lifespan_manager
 
 
@@ -59,28 +67,84 @@ class CategoryCollectionController(MetaxJsonApiController):
         status_code=HTTPStatus.OK,
         tags=["Category"],
     )
-    async def get(self) -> CategoryListResponseBody:
+    async def get(self, parsed_query: Query[QueryParams]) -> CategoryListResponseBody:
         container = get_metax_lifespan_manager().get_di_container()
         patterns = container.patterns_container.container
         unit_of_work = patterns.unit_of_work()
 
         async with unit_of_work as uow:
-            all_categories = await uow.category_repo.all()
+            total_count, paginated_list_categories = await uow.category_repo.list_paginated_and_total_count(
+                limit=parsed_query.limit, offset=parsed_query.offset
+            )
             await uow.commit()
 
-        resources_list = [
+        categories_resources_list = [
             CategoryResource(
                 category_uuid=c.get_uuid(),
                 name=c.get_name(),
                 created_at=c.get_created_at(),
                 updated_at=c.get_updated_at(),
             )
-            for c in all_categories
+            for c in paginated_list_categories
         ]
+
         response_body = CategoryListResponseBody.from_basemodel_list(
-            resources=resources_list,
+            resources=categories_resources_list,
+        )
+
+        if parsed_query.include is not None and parsed_query.include != RESOURCE_TYPE_CATEGORY_HELPER_WORD:
+            msg = (
+                f"Unsupported include: {parsed_query.include}. Allowed value: {RESOURCE_TYPE_CATEGORY_HELPER_WORD}"
+            )
+            raise ValueError(msg)
+
+        if parsed_query.include == RESOURCE_TYPE_CATEGORY_HELPER_WORD:
+            self.__apply_helper_words_include(response_body, paginated_list_categories)
+
+        response_body.links = self._build_pagination_links(
+            self.request.build_absolute_uri(),
+            offset=parsed_query.offset,
+            limit=parsed_query.limit,
+            total_count=total_count,
         )
         return response_body
 
+    @staticmethod
+    def __apply_helper_words_include(
+        response_body: CategoryListResponseBody,
+        paginated_list_categories: list[Category],
+    ) -> None:
+        included: list[
+            DANJASingleResource[CategoryResource] | DANJASingleResource[CategoryHelperWordResource]
+        ] = []
+        category_data_by_id = {category_data.id: category_data for category_data in response_body.data}
 
-# all retailers
+        for category_entity in paginated_list_categories:
+            helper_word_identifiers_for_category: list[DANJAResourceIdentifier] = []
+            for helper_word in category_entity.get_helper_words():
+                helper_word_identifiers_for_category.append(
+                    DANJAResourceIdentifier(
+                        id=str(helper_word.get_uuid()),
+                        type=RESOURCE_TYPE_CATEGORY_HELPER_WORD,
+                    )
+                )
+                included.append(
+                    CategoryHelperWordResponseBody.from_basemodel(
+                        resource=CategoryHelperWordResource(
+                            helper_word_uuid=helper_word.get_uuid(),
+                            helper_word=helper_word.get_text(),
+                            created_at=helper_word.get_created_at(),
+                            updated_at=helper_word.get_updated_at(),
+                        )
+                    ).data
+                )
+
+            category_data = category_data_by_id.get(str(category_entity.get_uuid()))
+            if category_data is not None:
+                category_data.relationships = {
+                    RESOURCE_TYPE_CATEGORY_HELPER_WORD: DANJARelationship(
+                        data=helper_word_identifiers_for_category
+                    )
+                }
+
+        response_body.included = included

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Self, cast, override
+from typing import Any, Final, Self, cast, override
 
 from pydanja import DANJAResource, DANJAResourceList
 from pydantic import BaseModel, model_validator
@@ -11,10 +11,10 @@ from pydantic.functional_validators import ModelWrapValidatorHandler
 
 # JSON:API resource type strings — single source of truth
 # for `data.type`, `relationships` keys, pydanja `resource_name`.
-RESOURCE_TYPE_CATEGORY = "category"
-RESOURCE_TYPE_DISCOUNTED_PRODUCT = "discountedProduct"
-RESOURCE_TYPE_RETAILER = "retailer"
-RESOURCE_TYPE_CATEGORY_HELPER_WORD = "categoryHelperWord"
+RESOURCE_TYPE_CATEGORY: Final[str] = "category"
+RESOURCE_TYPE_DISCOUNTED_PRODUCT: Final[str] = "discountedProduct"
+RESOURCE_TYPE_RETAILER: Final[str] = "retailer"
+RESOURCE_TYPE_CATEGORY_HELPER_WORD: Final[str] = "categoryHelperWord"
 
 HTTP_RESOURCES: frozenset[str] = frozenset({
     RESOURCE_TYPE_CATEGORY,
