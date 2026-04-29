@@ -47,6 +47,10 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
+    async def list_paginated(self, limit: int, offset: int) -> list[Retailer]:
+        pass
+
+    @abstractmethod
     async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         pass
 

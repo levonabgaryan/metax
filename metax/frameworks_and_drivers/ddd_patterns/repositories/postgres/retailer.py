@@ -48,6 +48,42 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             yield retailer
 
     @override
+    async def list_paginated(self, limit: int, offset: int) -> list[Retailer]:
+        def _sync_version(_limit: int, _offset: int) -> list[Retailer]:
+            query_ = """
+                SELECT
+                    retailer_uuid,
+                    name,
+                    url,
+                    phone_number,
+                    created_at,
+                    updated_at
+                FROM retailers
+                ORDER BY name ASC
+                LIMIT %s OFFSET %s;
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql=query_,
+                    params=[_limit, _offset],
+                )
+                rows = cursor.fetchall()
+                return [
+                    Retailer(
+                        uuid_=row[0],
+                        name=row[1],
+                        home_page_url=row[2],
+                        phone_number=row[3],
+                        created_at=row[4],
+                        updated_at=row[5],
+                    )
+                    for row in rows
+                ]
+
+        return await sync_to_async(_sync_version)(limit, offset)
+
+    @override
     async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         def _sync_version(_retailer_uuid: UUID) -> UUID | None:
             delete_query = """

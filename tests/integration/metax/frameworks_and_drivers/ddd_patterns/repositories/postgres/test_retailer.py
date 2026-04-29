@@ -137,3 +137,40 @@ async def test_retailer_repo_get_all(
     assert len(all_retailers) == 2
     assert r_sas in all_retailers
     assert r_yvn in all_retailers
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_retailer_repo_list_paginated(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    r_sas = make_retailer_entity(
+        name=RetailersNames.SAS_AM.value,
+        url="https://repo-get-all-sas.example",
+        phone_number="+repo-get-all-sas",
+    )
+    r_yvn = make_retailer_entity(
+        name=RetailersNames.YEREVAN_CITY.value,
+        url="https://repo-get-all-yvn.example",
+        phone_number="+repo-get-all-yvn",
+    )
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(r_sas)
+        await uow.retailer_repo.add(r_yvn)
+        await uow.commit()
+
+    # when
+    async with unit_of_work as uow:
+        first_page = await uow.retailer_repo.list_paginated(limit=1, offset=0)
+        second_page = await uow.retailer_repo.list_paginated(limit=1, offset=1)
+
+    # then
+    assert len(first_page) == 1
+    assert len(second_page) == 1
+
+    assert first_page[0].get_uuid() == r_sas.get_uuid()
+    assert second_page[0].get_uuid() == r_yvn.get_uuid()
