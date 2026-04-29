@@ -179,7 +179,7 @@ async def test_delete_older_than_and_return_deleted_count(
 
     # then
     assert deleted_count == 1
-    all_products = [product async for product in uow.discounted_product_repo.get_all()]
+    all_products = [product async for product in uow.discounted_product_repo.all()]
     assert len(all_products) == 0
 
 
@@ -194,7 +194,7 @@ async def test_get_all_when_no_discounted_products(
 
     # when
     async with unit_of_work as uow:
-        products = [p async for p in uow.discounted_product_repo.get_all()]
+        products = [p async for p in uow.discounted_product_repo.all()]
 
     # then
     assert products == []
@@ -245,7 +245,7 @@ async def test_get_all_returns_all_products_ordered_by_uuid(
 
     # when
     async with unit_of_work as uow:
-        loaded = [p async for p in uow.discounted_product_repo.get_all()]
+        loaded = [p async for p in uow.discounted_product_repo.all()]
 
     # then
     assert [p.get_uuid() for p in loaded] == ordered_uuids
@@ -284,7 +284,7 @@ async def test_get_all_chunk_size(
 
     # when
     async with unit_of_work as uow:
-        loaded = [p async for p in uow.discounted_product_repo.get_all(chunk_size=2)]
+        loaded = [p async for p in uow.discounted_product_repo.all(chunk_size=2)]
 
     # then
     assert {p.get_uuid() for p in loaded} == set(uuids)

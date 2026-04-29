@@ -125,3 +125,47 @@ async def test_category_is_not_found_by_name(
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError):
             await uow.category_repo.get_by_name("unknown_category")
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_list_paginated_returns_full_entities(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    category_a = make_category_entity(
+        name="A",
+        helper_words=[
+            _make_helper_word("a-word-1"),
+            _make_helper_word("a-word-2"),
+            _make_helper_word("a-word-3"),
+        ],
+    )
+    category_b = make_category_entity(name="B", helper_words=[_make_helper_word("b-word-1")])
+    category_c = make_category_entity(name="C", helper_words=[_make_helper_word("c-word-1")])
+    category_d = make_category_entity(name="D", helper_words=[_make_helper_word("d-word-1")])
+
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category_a)
+        await uow.category_repo.add(category_b)
+        await uow.category_repo.add(category_c)
+        await uow.category_repo.add(category_d)
+        await uow.commit()
+
+    # when
+    first_page = await unit_of_work.category_repo.list_paginated(limit=2, offset=0)
+    second_page = await unit_of_work.category_repo.list_paginated(limit=2, offset=2)
+
+    # then
+    assert [category.get_name() for category in first_page] == ["A", "B"]
+    assert [category.get_name() for category in second_page] == ["C", "D"]
+    assert {word.get_text() for word in first_page[0].get_helper_words()} == {
+        "a-word-1",
+        "a-word-2",
+        "a-word-3",
+    }
+    assert {word.get_text() for word in first_page[1].get_helper_words()} == {"b-word-1"}
+    assert {word.get_text() for word in second_page[0].get_helper_words()} == {"c-word-1"}
+    assert {word.get_text() for word in second_page[1].get_helper_words()} == {"d-word-1"}

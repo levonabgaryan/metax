@@ -43,7 +43,7 @@ class RetailerRepository(ABC):
             )
 
     @abstractmethod
-    def get_all(self) -> AsyncIterator[Retailer]:
+    def all(self) -> AsyncIterator[Retailer]:
         pass
 
     @abstractmethod

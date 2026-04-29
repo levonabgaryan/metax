@@ -94,7 +94,7 @@ async def test_collect_discounted_products_from_all_retailers(
     )
 
     # then
-    discounted_products = unit_of_work.discounted_product_repo.get_all()
+    discounted_products = unit_of_work.discounted_product_repo.all()
 
     count = 0
     async for discounted_product in discounted_products:

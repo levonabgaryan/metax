@@ -65,7 +65,7 @@ class CategoryCollectionController(MetaxJsonApiController):
         unit_of_work = patterns.unit_of_work()
 
         async with unit_of_work as uow:
-            all_categories = await uow.category_repo.get_all()
+            all_categories = await uow.category_repo.all()
             await uow.commit()
 
         resources_list = [
@@ -81,3 +81,6 @@ class CategoryCollectionController(MetaxJsonApiController):
             resources=resources_list,
         )
         return response_body
+
+
+# all retailers

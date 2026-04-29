@@ -33,7 +33,11 @@ class CategoryRepository(ABC):
         await self._update(updated_category=updated_category)
 
     @abstractmethod
-    async def get_all(self) -> list[Category]:
+    async def all(self) -> list[Category]:
+        pass
+
+    @abstractmethod
+    async def list_paginated(self, limit: int, offset: int) -> list[Category]:
         pass
 
     @abstractmethod

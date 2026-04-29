@@ -1,5 +1,3 @@
-from uuid import uuid7
-
 import pytest
 
 from metax.core.application.cud_services.category import (
@@ -22,7 +20,6 @@ async def test_create_category_service(
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
     event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
-    category_uuid = uuid7()
     request_dto = CreateCategoryRequestDTO(
         name="Test Category",
         helper_words_payload=[
@@ -37,14 +34,13 @@ async def test_create_category_service(
 
     # then
     assert isinstance(response_dto, CreateCategoryResponseDTO)
-    assert response_dto.category_uuid == category_uuid
     assert response_dto.name == request_dto.name
     assert {word.text for word in response_dto.helper_words_payload} == {"A", "B"}
 
     uow = await unit_of_work_provider.provide()
     async with uow:
-        category = await uow.category_repo.get_by_uuid(category_uuid)
-    assert category.get_uuid() == category_uuid
+        category = await uow.category_repo.get_by_uuid(response_dto.category_uuid)
+    assert category.get_uuid() == response_dto.category_uuid
     assert category.get_name() == request_dto.name
     assert {word.get_text() for word in category.get_helper_words()} == {"B", "A"}
 
@@ -60,7 +56,6 @@ async def test_create_category_service_without_helper_words(
         metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
     )
     event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
-    category_uuid = uuid7()
     request_dto = CreateCategoryRequestDTO(
         name="Category Without Helper Words",
     )
@@ -71,13 +66,13 @@ async def test_create_category_service_without_helper_words(
 
     # then
     assert isinstance(response_dto, CreateCategoryResponseDTO)
-    assert response_dto.category_uuid == category_uuid
     assert response_dto.name == request_dto.name
     assert response_dto.helper_words_payload == []
 
     uow = await unit_of_work_provider.provide()
     async with uow:
-        category = await uow.category_repo.get_by_uuid(category_uuid)
-    assert category.get_uuid() == category_uuid
+        category = await uow.category_repo.get_by_uuid(response_dto.category_uuid)
+        await uow.commit()
+    assert category.get_uuid() == response_dto.category_uuid
     assert category.get_name() == request_dto.name
     assert category.get_helper_words() == []

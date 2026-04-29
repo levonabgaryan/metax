@@ -80,7 +80,7 @@ def _run_django_uvicorn_server(_metax_app: MetaxAppLifespanManager, _metax_confi
         reload=True,
         reload_dirs=[project_root_, django_dir_],
         app_dir=str(django_dir_),
-        loop="uvloop",
+        loop="asyncio",
     )
 
 

@@ -132,7 +132,7 @@ async def test_retailer_repo_get_all(
 
     # when
     async with unit_of_work as uow:
-        all_retailers = [r async for r in uow.retailer_repo.get_all()]
+        all_retailers = [r async for r in uow.retailer_repo.all()]
 
     assert len(all_retailers) == 2
     assert r_sas in all_retailers

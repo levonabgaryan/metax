@@ -79,7 +79,7 @@ class RetailerCollectionController(MetaxJsonApiController):
         container = get_metax_lifespan_manager().get_di_container()
         unit_of_work = container.patterns_container.container.unit_of_work()
         async with unit_of_work as uow:
-            all_retailers = uow.retailer_repo.get_all()
+            all_retailers = uow.retailer_repo.all()
             await uow.commit()
 
         resources_list: list[RetailerResource] = [

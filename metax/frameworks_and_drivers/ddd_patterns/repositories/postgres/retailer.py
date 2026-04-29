@@ -14,7 +14,7 @@ from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
     @override
-    async def get_all(self) -> AsyncIterator[Retailer]:
+    async def all(self) -> AsyncIterator[Retailer]:
         def _sync_version() -> Iterator[Retailer]:
             select_all_query = """
                 SELECT

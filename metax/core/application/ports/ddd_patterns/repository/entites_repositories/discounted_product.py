@@ -37,7 +37,7 @@ class DiscountedProductRepository(ABC):
         pass
 
     @abstractmethod
-    def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
+    def all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
         # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
         pass
 

@@ -33,7 +33,7 @@ async def collect_discounted_products_from_all_retailers(
     metax_configs = METAX_CONFIGS
     uow = await unit_of_work_provider.provide()
     async with uow:
-        retailers = [r async for r in uow.retailer_repo.get_all()]
+        retailers = [r async for r in uow.retailer_repo.all()]
     if not retailers:
         raise NoRetailersError
 

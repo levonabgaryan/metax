@@ -139,7 +139,7 @@ class CategoryAdminHandler:
         unit_of_work_provider = patterns.unit_of_work_provider()
         uow = await unit_of_work_provider.provide()
         async with uow:
-            all_categories = await uow.category_repo.get_all()
+            all_categories = await uow.category_repo.all()
         return all_categories
 
     @staticmethod

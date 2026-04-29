@@ -91,7 +91,7 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
     # then
     assert response.added_count == 2
     async with unit_of_work as uow:
-        saved_products = [p async for p in uow.discounted_product_repo.get_all()]
+        saved_products = [p async for p in uow.discounted_product_repo.all()]
 
     assert len(saved_products) == 2
     assert {p.get_name() for p in saved_products} == {"lays", "cola"}

@@ -78,7 +78,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(date_limit)
 
     @override
-    async def get_all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
+    async def all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
         offset = 0
         while True:
             discounted_products: list[DiscountedProduct] = await sync_to_async(self.__fetch_chunk)(

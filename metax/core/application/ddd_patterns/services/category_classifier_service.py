@@ -13,7 +13,7 @@ class CategoryClassifierService:
             return
         uow = await self.__unit_of_work_provider.provide()
         async with uow:
-            all_categories = await uow.category_repo.get_all()
+            all_categories = await uow.category_repo.all()
             await uow.commit()
 
         self.__category_map = {

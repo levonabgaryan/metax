@@ -13,11 +13,12 @@ from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 type CategoryName = str
+type HelperWordText = str
 
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
-    async def get_all(self) -> list[Category]:
+    async def all(self) -> list[Category]:
         def _sync_version() -> list[Category]:
             select_all_query = """
                 SELECT
@@ -102,6 +103,115 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             ]
 
         return await sync_to_async(_sync_version)()
+
+    @override
+    async def list_paginated(self, limit: int, offset: int) -> list[Category]:
+        def _sync_version(_limit: int, _offset: int) -> list[Category]:
+            query_ = """
+                WITH paged_categories AS (
+                    SELECT
+                        c.category_uuid,
+                        c.name,
+                        c.created_at,
+                        c.updated_at
+                    FROM categories c
+                    ORDER BY c.name ASC
+                    LIMIT %s OFFSET %s
+                ),
+                category_and_helper_words AS (
+                    SELECT
+                        pc.category_uuid AS category_uuid,
+                        pc.name AS category_name,
+                        pc.created_at AS category_created_at,
+                        pc.updated_at AS category_updated_at,
+                        chw.helper_word_uuid AS helper_word_uuid,
+                        chw.helper_word_text AS helper_word,
+                        chw.created_at AS helper_word_created_at,
+                        chw.updated_at AS helper_word_updated_at
+                    FROM paged_categories pc
+                    LEFT JOIN category_helper_words chw
+                    ON pc.category_uuid = chw.category_uuid
+                    ORDER BY pc.name ASC
+                )
+                SELECT
+                    category_uuid,
+                    category_name,
+                    category_created_at,
+                    category_updated_at,
+                    helper_word_uuid,
+                    helper_word,
+                    helper_word_created_at,
+                    helper_word_updated_at
+                FROM category_and_helper_words;
+            """
+
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=query_, params=[_limit, _offset])
+                rows: list[
+                    tuple[
+                        UUID,
+                        CategoryName,
+                        datetime,
+                        datetime,
+                        UUID | None,
+                        HelperWordText | None,
+                        datetime | None,
+                        datetime | None,
+                    ]
+                ] = cursor.fetchall()
+                category_map: dict[
+                    UUID,
+                    tuple[CategoryName, datetime, datetime, list[CategoryHelperWord]],
+                ] = {}
+                for row in rows:
+                    category_uuid = row[0]
+                    category_name = row[1]
+                    category_created_at = row[2]
+                    category_updated_at = row[3]
+                    helper_word_uuid = row[4]
+                    if category_uuid not in category_map:
+                        category_map[category_uuid] = (
+                            category_name,
+                            category_created_at,
+                            category_updated_at,
+                            [],
+                        )
+
+                    helper_word_text = row[5]
+                    helper_word_created_at = row[6]
+                    helper_word_updated_at = row[7]
+                    if (
+                        helper_word_uuid is None
+                        or helper_word_text is None
+                        or helper_word_created_at is None
+                        or helper_word_updated_at is None
+                    ):
+                        continue
+
+                    category_map[category_uuid][3].append(
+                        CategoryHelperWord(
+                            uuid_=helper_word_uuid,
+                            text=helper_word_text,
+                            created_at=helper_word_created_at,
+                            updated_at=helper_word_updated_at,
+                        ),
+                    )
+                return [
+                    Category(
+                        uuid_=category_uuid,
+                        name=category_name,
+                        helper_words=helper_words,
+                        created_at=category_created_at,
+                        updated_at=category_updated_at,
+                    )
+                    for (
+                        category_uuid,
+                        (category_name, category_created_at, category_updated_at, helper_words),
+                    ) in category_map.items()
+                ]
+
+        return await sync_to_async(_sync_version)(limit, offset)
 
     @override
     async def _update(self, updated_category: Category) -> None:
