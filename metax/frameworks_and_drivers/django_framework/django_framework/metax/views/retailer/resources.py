@@ -117,3 +117,8 @@ RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
 
 class RetailerPath(BaseModel):
     retailer_uuid: UUID
+
+
+class QueryParamsForCollection(BaseModel):
+    offset: Annotated[int, Field(ge=0, alias="page[offset]")]
+    limit: Annotated[int, Field(ge=1, alias="page[limit]")]

@@ -226,6 +226,70 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await sync_to_async(_sync_version)(limit, offset)
 
     @override
+    async def _get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category | None:
+        def _sync_version(_helper_word_uuid: UUID) -> Category | None:
+            query_ = """
+                WITH found_category_uuid AS (
+                    SELECT c.category_uuid
+                    FROM categories c
+                    JOIN category_helper_words ch ON c.category_uuid = ch.category_uuid
+                    WHERE ch.helper_word_uuid = %s
+                    LIMIT 1
+                )
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.helper_word_uuid,
+                    ch.helper_word_text,
+                    ch.created_at,
+                    ch.updated_at
+                FROM categories c
+                LEFT JOIN category_helper_words ch ON c.category_uuid = ch.category_uuid
+                WHERE c.category_uuid IN (SELECT category_uuid FROM found_category_uuid);
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=query_, params=[_helper_word_uuid])
+                rows: list[
+                    tuple[
+                        UUID,
+                        CategoryName,
+                        datetime,
+                        datetime,
+                        UUID | None,
+                        str | None,
+                        datetime | None,
+                        datetime | None,
+                    ]
+                ] = cursor.fetchall()
+
+            if not rows:
+                return None
+
+            first_row = rows[0]
+            helper_words = [
+                CategoryHelperWord(
+                    uuid_=row[4],
+                    text=row[5],
+                    created_at=row[6],
+                    updated_at=row[7],
+                )
+                for row in rows
+                if row[4] is not None and row[5] is not None and row[6] is not None and row[7] is not None
+            ]
+            return Category(
+                uuid_=first_row[0],
+                name=first_row[1],
+                helper_words=helper_words,
+                created_at=first_row[2],
+                updated_at=first_row[3],
+            )
+
+        return await sync_to_async(_sync_version)(helper_word_uuid)
+
+    @override
     async def _update(self, updated_category: Category) -> None:
         def _sync_version(_updated_category: Category) -> None:
             category_uuid = _updated_category.get_uuid()

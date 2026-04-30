@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Annotated, ClassVar
+from typing import Annotated
 
 from django_framework.metax.views.category.resources import (
     CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE,
@@ -14,7 +14,6 @@ from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
-from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from dmr import Body, Query, modify
 from dmr.openapi.objects import MediaTypeMetadata
 from pydanja import DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
@@ -29,9 +28,6 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CategoryCollectionController(MetaxJsonApiController):
-    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
-    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category"],

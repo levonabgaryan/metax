@@ -42,6 +42,20 @@ class CategoryRepository(ABC):
     async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[TotalCount, list[Category]]:
         """Returns list of category by params, and whole count of categories in the repository."""
 
+    async def get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category:
+        category = await self._get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
+        if category is None:
+            raise EntityIsNotFoundError(
+                entity_name="category",
+                searched_field_name="helper_word_uuid",
+                searched_field_value=str(helper_word_uuid),
+            )
+        return category
+
+    @abstractmethod
+    async def _get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category | None:
+        pass
+
     @abstractmethod
     async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         pass

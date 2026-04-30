@@ -6,7 +6,7 @@ from metax.core.application.base_dtos.base_dtos import RequestDTO, ResponseDTO
 
 
 @dataclass(frozen=True)
-class HelperWordPayload:
+class HelperWordPayloadRequestDTO:
     text: str
     helper_word_uuid: UUID | None = None
     created_at: datetime | None = None
@@ -14,9 +14,17 @@ class HelperWordPayload:
 
 
 @dataclass(frozen=True)
+class HelperWordPayloadResponseDTO:
+    text: str
+    helper_word_uuid: UUID
+    created_at: datetime
+    updated_at: datetime
+
+
+@dataclass(frozen=True)
 class AddNewHelperWordsRequestDTO(RequestDTO):
     category_uuid: UUID
-    new_helper_word_payload: HelperWordPayload
+    new_helper_word_payload: HelperWordPayloadRequestDTO
 
 
 @dataclass(frozen=True)
@@ -25,13 +33,13 @@ class AddNewHelperWordsResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    new_helper_word_payload: HelperWordPayload
+    new_helper_word_payload: HelperWordPayloadResponseDTO
 
 
 @dataclass(frozen=True)
 class CreateCategoryRequestDTO(RequestDTO):
     name: str
-    helper_words_payload: list[HelperWordPayload] = field(default_factory=list)
+    helper_words_payload: list[HelperWordPayloadRequestDTO] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -40,7 +48,7 @@ class CreateCategoryResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    helper_words_payload: list[HelperWordPayload]
+    helper_words_payload: list[HelperWordPayloadRequestDTO]
 
 
 @dataclass(frozen=True)
@@ -55,7 +63,7 @@ class UpdateCategoryResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    helper_words_payload: list[HelperWordPayload]
+    helper_words_payload: list[HelperWordPayloadRequestDTO]
 
 
 @dataclass(frozen=True)
@@ -70,7 +78,7 @@ class DeleteHelperWordsResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    helper_words_payload: list[HelperWordPayload]
+    helper_words_payload: list[HelperWordPayloadRequestDTO]
 
 
 @dataclass(frozen=True)
@@ -86,4 +94,4 @@ class UpdateHelperWordTextResponseDTO(ResponseDTO):
     created_at: datetime
     updated_at: datetime
     name: str
-    helper_words_payload: list[HelperWordPayload]
+    helper_words_payload: HelperWordPayloadResponseDTO

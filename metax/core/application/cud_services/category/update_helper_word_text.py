@@ -3,7 +3,7 @@ from typing import override
 
 from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import (
-    HelperWordPayload,
+    HelperWordPayloadResponseDTO,
     UpdateHelperWordTextRequestDTO,
     UpdateHelperWordTextResponseDTO,
 )
@@ -34,18 +34,20 @@ class UpdateHelperWordTextService(CUDService[UpdateHelperWordTextRequestDTO]):
             request.__class__.__name__,
             category.get_uuid(),
         )
+        updated_helper_word = next(
+            helper_word
+            for helper_word in category.get_helper_words()
+            if helper_word.get_uuid() == request.helper_word_uuid
+        )
         return UpdateHelperWordTextResponseDTO(
             category_uuid=category.get_uuid(),
             created_at=category.get_created_at(),
             updated_at=category.get_updated_at(),
             name=category.get_name(),
-            helper_words_payload=[
-                HelperWordPayload(
-                    text=helper_word.get_text(),
-                    helper_word_uuid=helper_word.get_uuid(),
-                    created_at=helper_word.get_created_at(),
-                    updated_at=helper_word.get_updated_at(),
-                )
-                for helper_word in category.get_helper_words()
-            ],
+            helper_words_payload=HelperWordPayloadResponseDTO(
+                text=updated_helper_word.get_text(),
+                helper_word_uuid=updated_helper_word.get_uuid(),
+                created_at=updated_helper_word.get_created_at(),
+                updated_at=updated_helper_word.get_updated_at(),
+            ),
         )

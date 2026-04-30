@@ -170,3 +170,39 @@ async def test_category_repo_list_paginated_returns_full_entities(
     assert {word.get_text() for word in first_page[1].get_helper_words()} == {"b-word-1"}
     assert {word.get_text() for word in second_page[0].get_helper_words()} == {"c-word-1"}
     assert {word.get_text() for word in second_page[1].get_helper_words()} == {"d-word-1"}
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_get_by_helper_word_uuid(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    category = make_category_entity()
+    helper_word_uuid = category.get_helper_words()[0].get_uuid()
+
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category)
+        await uow.commit()
+
+    found_category = await unit_of_work.category_repo.get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
+
+    assert found_category.get_uuid() == category.get_uuid()
+    assert found_category.get_name() == category.get_name()
+    assert {word.get_text() for word in found_category.get_helper_words()} == {
+        word.get_text() for word in category.get_helper_words()
+    }
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_is_not_found_by_helper_word_uuid(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+
+    async with unit_of_work as uow:
+        with pytest.raises(EntityIsNotFoundError):
+            await uow.category_repo.get_by_helper_word_uuid(helper_word_uuid=uuid7())

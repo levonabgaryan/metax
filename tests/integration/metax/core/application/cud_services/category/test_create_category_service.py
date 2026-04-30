@@ -4,7 +4,7 @@ from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
     CreateCategoryResponseDTO,
     CreateCategoryService,
-    HelperWordPayload,
+    HelperWordPayloadRequestDTO,
 )
 from metax_lifespan import MetaxAppLifespanManager
 
@@ -23,8 +23,8 @@ async def test_create_category_service(
     request_dto = CreateCategoryRequestDTO(
         name="Test Category",
         helper_words_payload=[
-            HelperWordPayload(text="A"),
-            HelperWordPayload(text="B"),
+            HelperWordPayloadRequestDTO(text="A"),
+            HelperWordPayloadRequestDTO(text="B"),
         ],
     )
 

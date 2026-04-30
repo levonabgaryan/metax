@@ -1,7 +1,6 @@
 from http import HTTPStatus
-from typing import Annotated, ClassVar
+from typing import Annotated
 
-from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from django_framework.metax.views.retailer.resources import (
     RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE,
     RetailerPatchRequestBody,
@@ -19,9 +18,6 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 
 class RetailerResourceController(Controller[PydanticSerializer]):
-    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
-    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
     @modify(
         status_code=HTTPStatus.OK,
         tags=["Retailer"],

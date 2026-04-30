@@ -4,6 +4,7 @@ from typing import ClassVar, TypedDict, override
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.http import HttpResponse
+from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from dmr import Controller
 from dmr.endpoint import Endpoint
 from dmr.errors import ErrorType
@@ -36,6 +37,8 @@ class JsonApiErrorModel(TypedDict):
 
 class MetaxJsonApiController(Controller[PydanticSerializer]):
     error_model: ClassVar[type[JsonApiErrorModel]] = JsonApiErrorModel
+    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
+    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
 
     @override
     async def handle_async_error(
@@ -135,6 +138,6 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
         ))
 
 
-# Category Helper word - delete, patch,
-# Retailer - collection-get-> pagination
-# think how to implement category delete
+# Think how to implement category delete
+# discounted product API
+# integrity error handling

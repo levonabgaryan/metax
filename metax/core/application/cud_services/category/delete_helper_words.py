@@ -5,7 +5,7 @@ from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import (
     DeleteHelperWordsRequestDTO,
     DeleteHelperWordsResponseDTO,
-    HelperWordPayload,
+    HelperWordPayloadRequestDTO,
 )
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class DeleteHelperWordsService(CUDService[DeleteHelperWordsRequestDTO]):
             updated_at=category.get_updated_at(),
             name=category.get_name(),
             helper_words_payload=[
-                HelperWordPayload(
+                HelperWordPayloadRequestDTO(
                     text=helper_word.get_text(),
                     helper_word_uuid=helper_word.get_uuid(),
                     created_at=helper_word.get_created_at(),

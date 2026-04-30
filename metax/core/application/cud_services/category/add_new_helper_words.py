@@ -7,7 +7,7 @@ from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import (
     AddNewHelperWordsRequestDTO,
     AddNewHelperWordsResponseDTO,
-    HelperWordPayload,
+    HelperWordPayloadResponseDTO,
 )
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
@@ -47,7 +47,7 @@ class AddNewHelperWordsService(CUDService[AddNewHelperWordsRequestDTO]):
         added_helper_word = new_helper_words_entities[0]
         return AddNewHelperWordsResponseDTO(
             category_uuid=category.get_uuid(),
-            new_helper_word_payload=HelperWordPayload(
+            new_helper_word_payload=HelperWordPayloadResponseDTO(
                 text=added_helper_word.get_text(),
                 helper_word_uuid=added_helper_word.get_uuid(),
                 created_at=added_helper_word.get_created_at(),

@@ -47,7 +47,7 @@ class RetailerRepository(ABC):
         pass
 
     @abstractmethod
-    async def list_paginated(self, limit: int, offset: int) -> list[Retailer]:
+    async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[int, list[Retailer]]:
         pass
 
     @abstractmethod

@@ -7,7 +7,7 @@ from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import (
     CreateCategoryRequestDTO,
     CreateCategoryResponseDTO,
-    HelperWordPayload,
+    HelperWordPayloadRequestDTO,
 )
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
@@ -57,7 +57,7 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
             updated_at=category.get_updated_at(),
             name=category.get_name(),
             helper_words_payload=[
-                HelperWordPayload(
+                HelperWordPayloadRequestDTO(
                     text=helper_word.get_text(),
                     helper_word_uuid=helper_word.get_uuid(),
                     created_at=helper_word.get_created_at(),

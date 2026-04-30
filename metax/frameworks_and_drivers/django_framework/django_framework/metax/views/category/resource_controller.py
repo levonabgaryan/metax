@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import ClassVar
 
 from django_framework.metax.views.category.resources import (
     CategoryPath,
@@ -12,7 +11,6 @@ from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
-from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from dmr import Path, Query, ResponseSpec, modify
 from pydanja import DANJAError, DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
 
@@ -22,9 +20,6 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CategoryResourceController(MetaxJsonApiController):
-    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
-    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
     @modify(
         status_code=HTTPStatus.OK,
         tags=["Category"],

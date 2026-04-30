@@ -12,8 +12,10 @@ from metax.core.application.cud_services.category import (
     DeleteHelperWordsRequestDTO,
     DeleteHelperWordsService,
 )
-from metax.core.application.cud_services.category.dtos import HelperWordPayload as AddHelperWordPayload
-from metax.core.application.cud_services.category.dtos import HelperWordPayload as CreateHelperWordPayload
+from metax.core.application.cud_services.category.dtos import HelperWordPayloadRequestDTO as AddHelperWordPayload
+from metax.core.application.cud_services.category.dtos import (
+    HelperWordPayloadRequestDTO as CreateHelperWordPayload,
+)
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax_bootstrap import get_metax_lifespan_manager
 

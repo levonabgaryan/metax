@@ -43,10 +43,8 @@ async def test_update_helper_word_text_service(
     assert isinstance(response_dto, UpdateHelperWordTextResponseDTO)
     assert response_dto.category_uuid == category.get_uuid()
     assert response_dto.name == category.get_name()
-    assert {word.text for word in response_dto.helper_words_payload} == {
-        "updated_helper_word_text",
-        helper_word_to_keep.get_text(),
-    }
+    assert response_dto.helper_words_payload.text == "updated_helper_word_text"
+    assert response_dto.helper_words_payload.helper_word_uuid == helper_word_to_update.get_uuid()
 
     uow = await unit_of_work_provider.provide()
     async with uow:

@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Annotated, ClassVar
+from typing import Annotated
 from uuid import UUID
 
 from django_framework.metax.views.category_helper_word.resources import (
@@ -9,26 +9,18 @@ from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
-from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
 from dmr import Body, modify
-from dmr.exceptions import RequestSerializationError
 from dmr.openapi.objects import MediaTypeMetadata
 
 from metax.core.application.cud_services.category import (
     AddNewHelperWordsRequestDTO,
     AddNewHelperWordsService,
-    HelperWordPayload,
-)
-from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
-    RESOURCE_TYPE_CATEGORY,
+    HelperWordPayloadRequestDTO,
 )
 from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CategoryHelperWordCollectionController(MetaxJsonApiController):
-    parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
-    renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
-
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category Helper word"],
@@ -47,22 +39,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
 
         unit_of_work = await unit_of_work_provider.provide()
 
-        relationships = parsed_body.data.relationships
-        if relationships is None:
-            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
-            raise RequestSerializationError(msg)
-
-        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
-        if category_relationship is None:
-            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
-            raise RequestSerializationError(msg)
-
-        relationship_data = category_relationship.data
-        if relationship_data is None or isinstance(relationship_data, list):
-            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
-            raise RequestSerializationError(msg)
-
-        category_identifier = relationship_data
+        category_identifier = parsed_body.category_identifier
         category_uuid = category_identifier.id
         helper_word = parsed_body.data.attributes.helper_word
 
@@ -72,7 +49,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
 
         request_dto = AddNewHelperWordsRequestDTO(
             category_uuid=category.get_uuid(),
-            new_helper_word_payload=HelperWordPayload(text=helper_word),
+            new_helper_word_payload=HelperWordPayloadRequestDTO(text=helper_word),
         )
         cud_service = AddNewHelperWordsService(
             unit_of_work_provider=unit_of_work_provider,

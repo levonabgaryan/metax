@@ -1,12 +1,14 @@
 from datetime import datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Self, cast, override
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydanja import DANJARelationship, DANJAResourceIdentifier
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from pydantic.alias_generators import to_camel
 from pydantic.json_schema import SkipJsonSchema
 
 from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
+    RESOURCE_TYPE_CATEGORY,
     RESOURCE_TYPE_CATEGORY_HELPER_WORD,
     MetaxDANJAResource,
     MetaxDANJAResourceList,
@@ -71,19 +73,93 @@ class __CategoryHelperWordPatchRequestResource(BaseModel):
 
 
 class CategoryHelperWordPostRequestBody(MetaxDANJAResource[__CategoryHelperWordPostRequestResource]):
-    pass
+    @model_validator(mode="after")
+    def validate_category_relationship(self) -> Self:
+        relationships = self.data.relationships
+        if relationships is None:
+            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
+            raise ValueError(msg)
+
+        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
+        if category_relationship is None:
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
+            raise ValueError(msg)
+
+        relationship_data = category_relationship.data
+        if relationship_data is None or isinstance(relationship_data, list):
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
+            raise ValueError(msg)
+
+        return self
+
+    @property
+    def category_identifier(self) -> DANJAResourceIdentifier:
+        # Safe cast: validate_category_relationship guarantees this shape.
+        relationships = cast(dict[str, DANJARelationship], self.data.relationships)
+        category_relationship = relationships[RESOURCE_TYPE_CATEGORY]
+        return cast(DANJAResourceIdentifier, category_relationship.data)
 
 
 class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWordPatchRequestResource]):
-    pass
+    @model_validator(mode="after")
+    def validate_category_relationship(self) -> Self:
+        relationships = self.data.relationships
+        if relationships is None:
+            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
+            raise ValueError(msg)
+
+        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
+        if category_relationship is None:
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
+            raise ValueError(msg)
+
+        relationship_data = category_relationship.data
+        if relationship_data is None or isinstance(relationship_data, list):
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
+            raise ValueError(msg)
+
+        return self
+
+    @property
+    def category_identifier(self) -> DANJAResourceIdentifier:
+        # Safe cast: validate_category_relationship guarantees this shape.
+        relationships = cast(dict[str, DANJARelationship], self.data.relationships)
+        category_relationship = relationships[RESOURCE_TYPE_CATEGORY]
+        return cast(DANJAResourceIdentifier, category_relationship.data)
+
+    @property
+    def helper_word_text(self) -> str:
+        helper_word = self.data.attributes.helper_word
+        if helper_word is None:
+            msg = "Attribute 'helperWord' is required"
+            raise ValueError(msg)
+        return helper_word
 
 
 class CategoryHelperWordResponseBody(MetaxDANJAResource[CategoryHelperWordResource]):
-    pass
+    @override
+    @classmethod
+    def from_basemodel(
+        cls,
+        resource: CategoryHelperWordResource,
+        resource_name: str | None = None,
+        resource_id: str | None = None,
+    ) -> Self:
+        return super().from_basemodel(resource=resource, resource_name=resource_name, resource_id=resource_id)
 
 
 class CategoryHelperWordListResponseBody(MetaxDANJAResourceList[CategoryHelperWordResponseBody]):
-    pass
+    @classmethod
+    @override
+    def from_basemodel_list(
+        cls,
+        resources: list[CategoryHelperWordResponseBody],
+        resource_name: str | None = None,
+        resource_id: str | None = None,
+    ) -> Self:
+        return super().from_basemodel_list(
+            resources=resources, resource_name=resource_name, resource_id=resource_id
+        )
 
 
 CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
@@ -95,3 +171,7 @@ CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
         },
     }
 }
+
+
+class CategoryHelperWordPath(BaseModel):
+    helper_word_path: UUID

@@ -165,10 +165,11 @@ async def test_retailer_repo_list_paginated(
 
     # when
     async with unit_of_work as uow:
-        first_page = await uow.retailer_repo.list_paginated(limit=1, offset=0)
-        second_page = await uow.retailer_repo.list_paginated(limit=1, offset=1)
+        total_count_1, first_page = await uow.retailer_repo.list_paginated_and_total_count(limit=1, offset=0)
+        total_count_2, second_page = await uow.retailer_repo.list_paginated_and_total_count(limit=1, offset=1)
 
     # then
+    assert total_count_1 == total_count_2
     assert len(first_page) == 1
     assert len(second_page) == 1
 

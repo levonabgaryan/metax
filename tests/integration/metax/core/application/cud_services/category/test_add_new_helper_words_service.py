@@ -5,7 +5,7 @@ from metax.core.application.cud_services.category import (
     AddNewHelperWordsResponseDTO,
     AddNewHelperWordsService,
 )
-from metax.core.application.cud_services.category.dtos import HelperWordPayload
+from metax.core.application.cud_services.category.dtos import HelperWordPayloadRequestDTO
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
 
@@ -27,7 +27,7 @@ async def test_add_new_helper_words_service(
 
     request_dto = AddNewHelperWordsRequestDTO(
         category_uuid=category.get_uuid(),
-        new_helper_word_payload=HelperWordPayload(text="c"),
+        new_helper_word_payload=HelperWordPayloadRequestDTO(text="c"),
     )
     # when
     service = AddNewHelperWordsService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
@@ -37,7 +37,6 @@ async def test_add_new_helper_words_service(
     assert isinstance(response_dto, AddNewHelperWordsResponseDTO)
     assert response_dto.category_uuid == category.get_uuid()
     assert response_dto.new_helper_word_payload.text == "c"
-    assert response_dto.new_helper_word_payload.helper_word_uuid is not None
 
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())

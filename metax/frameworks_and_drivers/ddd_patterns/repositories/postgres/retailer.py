@@ -48,8 +48,13 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             yield retailer
 
     @override
-    async def list_paginated(self, limit: int, offset: int) -> list[Retailer]:
-        def _sync_version(_limit: int, _offset: int) -> list[Retailer]:
+    async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[int, list[Retailer]]:
+        def _sync_version(_limit: int, _offset: int) -> tuple[int, list[Retailer]]:
+            count_query = """
+                SELECT COUNT(*)::bigint
+                FROM categories c;
+            """
+
             query_ = """
                 SELECT
                     retailer_uuid,
@@ -64,12 +69,15 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
+                cursor.execute(count_query)
+                total_count: int = cursor.fetchone()[0]
+
                 cursor.execute(
                     sql=query_,
                     params=[_limit, _offset],
                 )
                 rows = cursor.fetchall()
-                return [
+                retailers = [
                     Retailer(
                         uuid_=row[0],
                         name=row[1],
@@ -80,6 +88,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     )
                     for row in rows
                 ]
+            return total_count, retailers
 
         return await sync_to_async(_sync_version)(limit, offset)
 
