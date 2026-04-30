@@ -28,13 +28,8 @@ class DiscountedProductRepository(ABC):
             )
         return discounted_product
 
-    @abstractmethod
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
-        """Adds discounted product entities.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
+        await self._add_many(discounted_products)
 
     @abstractmethod
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
@@ -54,3 +49,11 @@ class DiscountedProductRepository(ABC):
     @abstractmethod
     async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
         pass
+
+    @abstractmethod
+    async def _add_many(self, discounted_products: list[DiscountedProduct]) -> None:
+        """Adds discounted products.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """

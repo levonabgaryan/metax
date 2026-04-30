@@ -2,10 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors import (
-    EntityAlreadyExistsError,
-    EntityIsNotFoundError,
-)
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
@@ -31,26 +28,10 @@ class RetailerRepository(ABC):
         return retailer
 
     async def add(self, retailer: Retailer) -> None:
-        """Adds a retailer entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
-        try:
-            await self._add(retailer)
-        except EntityAlreadyExistsError as err:
-            raise err from err
+        await self._add(retailer)
 
     async def update(self, updated_retailer: Retailer) -> None:
-        """Updates a retailer entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
-        try:
-            await self._update(updated_retailer)
-        except EntityAlreadyExistsError as err:
-            raise err from err
+        await self._update(updated_retailer)
 
     async def delete_by_uuid(self, uuid_: UUID) -> None:
         deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)
@@ -79,7 +60,11 @@ class RetailerRepository(ABC):
 
     @abstractmethod
     async def _add(self, retailer: Retailer) -> None:
-        pass
+        """Adds a retailer entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
 
     @abstractmethod
     async def _get_by_name(self, name: str) -> Retailer | None:
@@ -87,4 +72,8 @@ class RetailerRepository(ABC):
 
     @abstractmethod
     async def _update(self, updated_retailer: Retailer) -> None:
-        pass
+        """Updates a retailer entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """

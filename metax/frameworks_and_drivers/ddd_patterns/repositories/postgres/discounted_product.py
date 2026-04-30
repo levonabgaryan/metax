@@ -28,7 +28,7 @@ type RetailerName = str
 
 class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
     @override
-    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
+    async def _add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         def _sync_version(_discounted_products: list[DiscountedProduct]) -> None:
             insert_query = """
                 INSERT INTO discounted_products (

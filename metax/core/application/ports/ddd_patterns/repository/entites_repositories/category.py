@@ -1,10 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors import (
-    EntityAlreadyExistsError,
-    EntityIsNotFoundError,
-)
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 
 type TotalCount = int
@@ -32,26 +29,10 @@ class CategoryRepository(ABC):
         return category
 
     async def add(self, category: Category) -> None:
-        """Adds a category entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
-        try:
-            await self._add(category)
-        except EntityAlreadyExistsError as err:
-            raise err from err
+        await self._add(category)
 
     async def update(self, updated_category: Category) -> None:
-        """Updates a category entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
-        try:
-            await self._update(updated_category=updated_category)
-        except EntityAlreadyExistsError as err:
-            raise err from err
+        await self._update(updated_category=updated_category)
 
     async def delete_by_uuid(self, uuid_: UUID) -> None:
         deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)
@@ -94,7 +75,11 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _add(self, category: Category) -> None:
-        pass
+        """Adds a category entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
 
     @abstractmethod
     async def _get_by_name(self, name: str) -> Category | None:
@@ -102,4 +87,8 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _update(self, updated_category: Category) -> None:
-        pass
+        """Updates a category entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
