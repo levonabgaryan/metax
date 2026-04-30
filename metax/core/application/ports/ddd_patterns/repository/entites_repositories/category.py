@@ -34,6 +34,15 @@ class CategoryRepository(ABC):
     async def update(self, updated_category: Category) -> None:
         await self._update(updated_category=updated_category)
 
+    async def delete_by_uuid(self, uuid_: UUID) -> None:
+        deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)
+        if deleted_uuid is None:
+            raise EntityIsNotFoundError(
+                entity_name="category",
+                searched_field_name="uuid",
+                searched_field_value=str(uuid_),
+            )
+
     @abstractmethod
     async def all(self) -> list[Category]:
         pass
@@ -54,6 +63,10 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category | None:
+        pass
+
+    @abstractmethod
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         pass
 
     @abstractmethod

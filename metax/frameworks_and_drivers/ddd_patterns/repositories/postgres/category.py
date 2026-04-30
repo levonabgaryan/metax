@@ -290,6 +290,23 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await sync_to_async(_sync_version)(helper_word_uuid)
 
     @override
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
+        def _sync_version(_category_uuid: UUID) -> UUID | None:
+            # Since delete cascade mode has been set, this query will delete all related helper words.
+            delete_query = """
+                DELETE FROM categories
+                WHERE category_uuid = %s;
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=delete_query, params=[_category_uuid])
+                if cursor.rowcount == 0:
+                    return None
+                return _category_uuid
+
+        return await sync_to_async(_sync_version)(uuid_)
+
+    @override
     async def _update(self, updated_category: Category) -> None:
         def _sync_version(_updated_category: Category) -> None:
             category_uuid = _updated_category.get_uuid()

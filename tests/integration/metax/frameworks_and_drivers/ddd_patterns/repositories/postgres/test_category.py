@@ -177,6 +177,7 @@ async def test_category_repo_list_paginated_returns_full_entities(
 async def test_category_repo_get_by_helper_word_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
+    # given
     metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     category = make_category_entity()
@@ -186,8 +187,10 @@ async def test_category_repo_get_by_helper_word_uuid(
         await uow.category_repo.add(category)
         await uow.commit()
 
+    # when
     found_category = await unit_of_work.category_repo.get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
 
+    # then
     assert found_category.get_uuid() == category.get_uuid()
     assert found_category.get_name() == category.get_name()
     assert {word.get_text() for word in found_category.get_helper_words()} == {
@@ -200,9 +203,60 @@ async def test_category_repo_get_by_helper_word_uuid(
 async def test_category_is_not_found_by_helper_word_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
+    # given
     metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
 
+    # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError):
             await uow.category_repo.get_by_helper_word_uuid(helper_word_uuid=uuid7())
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_delete_by_uuid(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    category = make_category_entity()
+    helper_word_uuids = [helper_word.get_uuid() for helper_word in category.get_helper_words()]
+
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category)
+        await uow.commit()
+
+    # when
+    async with unit_of_work as uow:
+        await uow.category_repo.delete_by_uuid(category.get_uuid())
+        await uow.commit()
+
+    # then
+    async with unit_of_work as uow:
+        with pytest.raises(EntityIsNotFoundError):
+            await uow.category_repo.get_by_uuid(category.get_uuid())
+        for helper_word_uuid in helper_word_uuids:
+            with pytest.raises(EntityIsNotFoundError):
+                await uow.category_repo.get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_delete_by_uuid_not_found(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    random_uuid = uuid7()
+
+    # expect
+    async with unit_of_work as uow:
+        with pytest.raises(EntityIsNotFoundError) as err:
+            await uow.category_repo.delete_by_uuid(random_uuid)
+
+    # then
+    assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
+    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
