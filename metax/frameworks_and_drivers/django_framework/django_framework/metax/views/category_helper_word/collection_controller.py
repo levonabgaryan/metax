@@ -41,7 +41,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
 
         category_identifier = parsed_body.category_identifier
         category_uuid = category_identifier.id
-        helper_word = parsed_body.data.attributes.helper_word
+        helper_word = parsed_body.data.attributes.helper_word_text
 
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_uuid(uuid_=UUID(category_uuid))
@@ -49,7 +49,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
 
         request_dto = AddNewHelperWordsRequestDTO(
             category_uuid=category.get_uuid(),
-            new_helper_word_payload=HelperWordPayloadRequestDTO(text=helper_word),
+            new_helper_word_payload=HelperWordPayloadRequestDTO(helper_word_text=helper_word),
         )
         cud_service = AddNewHelperWordsService(
             unit_of_work_provider=unit_of_work_provider,
@@ -58,7 +58,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
         response_dto = await cud_service.execute(request_dto)
         return CategoryHelperWordResponseBody.from_basemodel(
             resource=CategoryHelperWordResource(
-                helper_word=response_dto.new_helper_word_payload.text,
+                helper_word_text=response_dto.new_helper_word_payload.helper_word_text,
                 helper_word_uuid=response_dto.new_helper_word_payload.helper_word_uuid,
                 created_at=response_dto.new_helper_word_payload.created_at,
                 updated_at=response_dto.new_helper_word_payload.updated_at,

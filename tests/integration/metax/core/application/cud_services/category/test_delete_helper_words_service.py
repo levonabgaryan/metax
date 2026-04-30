@@ -29,7 +29,7 @@ async def test_delete_helper_words_service(
     words_to_delete_uuids = [
         helper_word.get_uuid()
         for helper_word in category.get_helper_words()
-        if helper_word.get_text() in {"test_word1"}
+        if helper_word.get_helper_word_text() in {"test_word1"}
     ]
     request_dto = DeleteHelperWordsRequestDTO(
         category_uuid=category.get_uuid(),
@@ -43,9 +43,9 @@ async def test_delete_helper_words_service(
     # then
     assert isinstance(response_dto, DeleteHelperWordsResponseDTO)
     assert response_dto.category_uuid == category.get_uuid()
-    assert {word.text for word in response_dto.helper_words_payload} == {"test_word2"}
+    assert {word.helper_word_text for word in response_dto.helper_words_payload} == {"test_word2"}
 
     async with unit_of_work as uow:
         updated_category = await uow.category_repo.get_by_uuid(category.get_uuid())
 
-    assert {word.get_text() for word in updated_category.get_helper_words()} == {"test_word2"}
+    assert {word.get_helper_word_text() for word in updated_category.get_helper_words()} == {"test_word2"}

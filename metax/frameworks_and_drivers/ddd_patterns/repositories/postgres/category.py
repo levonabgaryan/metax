@@ -83,7 +83,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 category_map[category_uuid][3].append(
                     CategoryHelperWord(
                         uuid_=helper_word_uuid,
-                        text=helper_word_text,
+                        helper_word_text=helper_word_text,
                         created_at=helper_word_created_at,
                         updated_at=helper_word_updated_at,
                     ),
@@ -201,7 +201,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     category_map[category_uuid][3].append(
                         CategoryHelperWord(
                             uuid_=helper_word_uuid,
-                            text=helper_word_text,
+                            helper_word_text=helper_word_text,
                             created_at=helper_word_created_at,
                             updated_at=helper_word_updated_at,
                         ),
@@ -272,7 +272,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             helper_words = [
                 CategoryHelperWord(
                     uuid_=row[4],
-                    text=row[5],
+                    helper_word_text=row[5],
                     created_at=row[6],
                     updated_at=row[7],
                 )
@@ -292,14 +292,18 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     @override
     async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         def _sync_version(_category_uuid: UUID) -> UUID | None:
-            # Since delete cascade mode has been set, this query will delete all related helper words.
-            delete_query = """
+            delete_helper_words_query = """
+                DELETE FROM category_helper_words
+                WHERE category_uuid = %s;
+            """
+            delete_category_query = """
                 DELETE FROM categories
                 WHERE category_uuid = %s;
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
-                cursor.execute(sql=delete_query, params=[_category_uuid])
+                cursor.execute(sql=delete_helper_words_query, params=[_category_uuid])
+                cursor.execute(sql=delete_category_query, params=[_category_uuid])
                 if cursor.rowcount == 0:
                     return None
                 return _category_uuid
@@ -352,7 +356,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 db_helper_words = tuple(
                     CategoryHelperWord(
                         uuid_=row[0],
-                        text=row[1],
+                        helper_word_text=row[1],
                         created_at=row[2],
                         updated_at=row[3],
                     )
@@ -371,7 +375,8 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                     helper_word_uuid
                     for helper_word_uuid in general_ids
                     if (
-                        db_map[helper_word_uuid].get_text() != entity_map[helper_word_uuid].get_text()
+                        db_map[helper_word_uuid].get_helper_word_text()
+                        != entity_map[helper_word_uuid].get_helper_word_text()
                         or db_map[helper_word_uuid].get_updated_at()
                         != entity_map[helper_word_uuid].get_updated_at()
                     )
@@ -388,7 +393,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         param_list=[
                             (
                                 entity_map[helper_word_uuid].get_uuid(),
-                                entity_map[helper_word_uuid].get_text(),
+                                entity_map[helper_word_uuid].get_helper_word_text(),
                                 category_uuid,
                                 entity_map[helper_word_uuid].get_created_at(),
                                 entity_map[helper_word_uuid].get_updated_at(),
@@ -401,7 +406,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         sql=helper_words_update_query,
                         param_list=[
                             (
-                                entity_map[helper_word_uuid].get_text(),
+                                entity_map[helper_word_uuid].get_helper_word_text(),
                                 entity_map[helper_word_uuid].get_updated_at(),
                                 helper_word_uuid,
                             )
@@ -441,7 +446,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         param_list=[
                             (
                                 helper_word.get_uuid(),
-                                helper_word.get_text(),
+                                helper_word.get_helper_word_text(),
                                 _category.get_uuid(),
                                 helper_word.get_created_at(),
                                 helper_word.get_updated_at(),
@@ -493,7 +498,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             helper_words = [
                 CategoryHelperWord(
                     uuid_=row[4],
-                    text=row[5],
+                    helper_word_text=row[5],
                     created_at=row[6],
                     updated_at=row[7],
                 )
@@ -551,7 +556,7 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             helper_words = [
                 CategoryHelperWord(
                     uuid_=row[4],
-                    text=row[5],
+                    helper_word_text=row[5],
                     created_at=row[6],
                     updated_at=row[7],
                 )

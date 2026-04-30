@@ -32,7 +32,7 @@ class CategoryHelperWordResource(BaseModel):
     ]
     created_at: datetime
     updated_at: datetime
-    helper_word: str
+    helper_word_text: str
 
 
 class __CategoryHelperWordPostRequestResource(BaseModel):
@@ -50,7 +50,7 @@ class __CategoryHelperWordPostRequestResource(BaseModel):
             exclude=True,
         ),
     ]
-    helper_word: str
+    helper_word_text: str
 
 
 class __CategoryHelperWordPatchRequestResource(BaseModel):
@@ -69,7 +69,7 @@ class __CategoryHelperWordPatchRequestResource(BaseModel):
         ),
     ]
 
-    helper_word: str | None = None
+    helper_word_text: str | None = None
 
 
 class CategoryHelperWordPostRequestBody(MetaxDANJAResource[__CategoryHelperWordPostRequestResource]):
@@ -129,11 +129,11 @@ class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWord
 
     @property
     def helper_word_text(self) -> str:
-        helper_word = self.data.attributes.helper_word
-        if helper_word is None:
-            msg = "Attribute 'helperWord' is required"
+        helper_word_text = self.data.attributes.helper_word_text
+        if helper_word_text is None:
+            msg = "Attribute 'helperWordText' is required"
             raise ValueError(msg)
-        return helper_word
+        return helper_word_text
 
 
 class CategoryHelperWordResponseBody(MetaxDANJAResource[CategoryHelperWordResource]):
@@ -165,7 +165,7 @@ class CategoryHelperWordListResponseBody(MetaxDANJAResourceList[CategoryHelperWo
 CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
         "type": "categoryHelperWord",
-        "attributes": {"helperWord": "Marshall Emberton III"},
+        "attributes": {"helperWordText": "Marshall Emberton III"},
         "relationships": {
             "category": {"data": {"type": "category", "id": "019dd091-7968-75a8-ba01-2db4f33aa63f"}}
         },

@@ -138,6 +138,5 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
         ))
 
 
-# Think how to implement category delete
 # discounted product API
 # integrity error handling

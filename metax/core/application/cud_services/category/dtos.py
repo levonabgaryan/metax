@@ -7,7 +7,7 @@ from metax.core.application.base_dtos.base_dtos import RequestDTO, ResponseDTO
 
 @dataclass(frozen=True)
 class HelperWordPayloadRequestDTO:
-    text: str
+    helper_word_text: str
     helper_word_uuid: UUID | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
@@ -15,7 +15,7 @@ class HelperWordPayloadRequestDTO:
 
 @dataclass(frozen=True)
 class HelperWordPayloadResponseDTO:
-    text: str
+    helper_word_text: str
     helper_word_uuid: UUID
     created_at: datetime
     updated_at: datetime

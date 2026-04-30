@@ -33,7 +33,7 @@ class AddNewHelperWordsService(CUDService[AddNewHelperWordsRequestDTO]):
                     uuid_=uuid.uuid7(),
                     created_at=now,
                     updated_at=now,
-                    text=request.new_helper_word_payload.text,
+                    helper_word_text=request.new_helper_word_payload.helper_word_text,
                 )
             ]
             category.add_new_helper_words(new_helper_words_entities)
@@ -48,7 +48,7 @@ class AddNewHelperWordsService(CUDService[AddNewHelperWordsRequestDTO]):
         return AddNewHelperWordsResponseDTO(
             category_uuid=category.get_uuid(),
             new_helper_word_payload=HelperWordPayloadResponseDTO(
-                text=added_helper_word.get_text(),
+                helper_word_text=added_helper_word.get_helper_word_text(),
                 helper_word_uuid=added_helper_word.get_uuid(),
                 created_at=added_helper_word.get_created_at(),
                 updated_at=added_helper_word.get_updated_at(),

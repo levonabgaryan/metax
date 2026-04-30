@@ -17,7 +17,7 @@ class CategoryClassifierService:
             await uow.commit()
 
         self.__category_map = {
-            helper_word.get_text(): category
+            helper_word.get_helper_word_text(): category
             for category in all_categories
             for helper_word in category.get_helper_words()
         }

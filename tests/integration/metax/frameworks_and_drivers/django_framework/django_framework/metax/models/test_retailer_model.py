@@ -10,7 +10,7 @@ def test_retailer_model_rejects_name_not_in_retailers_names() -> None:
     retailer = RetailerModel(
         retailer_uuid=uuid7(),
         name="unknown-retailer-slug",
-        url="https://example.com/",
+        home_page_url="https://example.com/",
         phone_number="12345678",
     )
 

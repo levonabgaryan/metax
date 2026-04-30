@@ -54,7 +54,7 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
         return CategoryHelperWordResponseBody.from_basemodel(
             resource=CategoryHelperWordResource(
                 helper_word_uuid=response_dto.helper_words_payload.helper_word_uuid,
-                helper_word=response_dto.helper_words_payload.text,
+                helper_word_text=response_dto.helper_words_payload.helper_word_text,
                 created_at=response_dto.helper_words_payload.created_at,
                 updated_at=response_dto.helper_words_payload.updated_at,
             )

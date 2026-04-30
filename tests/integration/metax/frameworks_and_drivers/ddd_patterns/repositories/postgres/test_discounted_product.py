@@ -37,13 +37,13 @@ async def test_add_many_discounted_products(
     helper_words = [
         CategoryHelperWord(
             uuid_=uuid7(),
-            text="օղի",
+            helper_word_text="օղի",
             created_at=created_data,
             updated_at=created_data,
         ),
         CategoryHelperWord(
             uuid_=uuid7(),
-            text="գինի",
+            helper_word_text="գինի",
             created_at=created_data,
             updated_at=created_data,
         ),

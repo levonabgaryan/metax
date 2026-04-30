@@ -38,8 +38,8 @@ async def test_update_category_service(
     assert isinstance(response_dto, UpdateCategoryResponseDTO)
     assert response_dto.category_uuid == category.get_uuid()
     assert response_dto.name == request_dto.new_name
-    assert {word.text for word in response_dto.helper_words_payload} == {
-        word.get_text() for word in initial_helper_words
+    assert {word.helper_word_text for word in response_dto.helper_words_payload} == {
+        word.get_helper_word_text() for word in initial_helper_words
     }
 
     uow = await unit_of_work_provider.provide()

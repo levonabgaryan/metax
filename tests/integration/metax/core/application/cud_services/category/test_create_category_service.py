@@ -23,8 +23,8 @@ async def test_create_category_service(
     request_dto = CreateCategoryRequestDTO(
         name="Test Category",
         helper_words_payload=[
-            HelperWordPayloadRequestDTO(text="A"),
-            HelperWordPayloadRequestDTO(text="B"),
+            HelperWordPayloadRequestDTO(helper_word_text="A"),
+            HelperWordPayloadRequestDTO(helper_word_text="B"),
         ],
     )
 
@@ -35,14 +35,14 @@ async def test_create_category_service(
     # then
     assert isinstance(response_dto, CreateCategoryResponseDTO)
     assert response_dto.name == request_dto.name
-    assert {word.text for word in response_dto.helper_words_payload} == {"A", "B"}
+    assert {word.helper_word_text for word in response_dto.helper_words_payload} == {"A", "B"}
 
     uow = await unit_of_work_provider.provide()
     async with uow:
         category = await uow.category_repo.get_by_uuid(response_dto.category_uuid)
     assert category.get_uuid() == response_dto.category_uuid
     assert category.get_name() == request_dto.name
-    assert {word.get_text() for word in category.get_helper_words()} == {"B", "A"}
+    assert {word.get_helper_word_text() for word in category.get_helper_words()} == {"B", "A"}
 
 
 @pytest.mark.django_db(transaction=True)

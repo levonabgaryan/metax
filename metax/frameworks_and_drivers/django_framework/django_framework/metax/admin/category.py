@@ -88,7 +88,9 @@ class CategoryAdminHandler:
 
         request_dto = CreateCategoryRequestDTO(
             name=category_name,
-            helper_words_payload=[CreateHelperWordPayload(text=helper_word) for helper_word in helper_words],
+            helper_words_payload=[
+                CreateHelperWordPayload(helper_word_text=helper_word) for helper_word in helper_words
+            ],
         )
         service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         await service.execute(request_dto)
@@ -108,7 +110,7 @@ class CategoryAdminHandler:
         for helper_word in new_helper_words:
             command = AddNewHelperWordsRequestDTO(
                 category_uuid=category.get_uuid(),
-                new_helper_word_payload=AddHelperWordPayload(text=helper_word),
+                new_helper_word_payload=AddHelperWordPayload(helper_word_text=helper_word),
             )
             await service.execute(command)
 
@@ -128,7 +130,7 @@ class CategoryAdminHandler:
             helper_words_uuid=[
                 helper_word.get_uuid()
                 for helper_word in category.get_helper_words()
-                if helper_word.get_text() in words_to_delete
+                if helper_word.get_helper_word_text() in words_to_delete
             ],
         )
         service = DeleteHelperWordsService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
@@ -149,5 +151,5 @@ class CategoryAdminHandler:
         return {
             "category_uuid": str(category.get_uuid()),
             "category_name": category.get_name(),
-            "helper_words": [helper_word.get_text() for helper_word in category.get_helper_words()],
+            "helper_words": [helper_word.get_helper_word_text() for helper_word in category.get_helper_words()],
         }

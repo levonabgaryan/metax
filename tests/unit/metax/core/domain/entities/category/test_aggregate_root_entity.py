@@ -14,7 +14,7 @@ def _make_helper_word(text: str) -> CategoryHelperWord:
     ts = datetime(2026, 1, 1, tzinfo=UTC)
     return CategoryHelperWord(
         uuid_=uuid7(),
-        text=text,
+        helper_word_text=text,
         created_at=ts,
         updated_at=ts,
     )
@@ -57,4 +57,4 @@ def test_delete_helper_words_by_uuids() -> None:
     words_to_delete = [word_a.get_uuid(), word_c.get_uuid()]
 
     category.delete_helper_words_by_uuids(words_to_delete)
-    assert [word.get_text() for word in category.get_helper_words()] == ["b"]
+    assert [word.get_helper_word_text() for word in category.get_helper_words()] == ["b"]

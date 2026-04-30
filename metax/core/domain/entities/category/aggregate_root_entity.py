@@ -43,12 +43,12 @@ class Category(AggregateRootEntity):
         self.__check_texts_uniqueness([text])
         for helper_word in self.__helper_words:
             if helper_word.get_uuid() == helper_word_uuid:
-                helper_word.set_text(text)
+                helper_word.set_helper_word_text(text)
                 break
         self._touch()
 
     def add_new_helper_words(self, new_helper_words: list[CategoryHelperWord]) -> None:
-        new_helper_words_texts = [helper_word.get_text() for helper_word in new_helper_words]
+        new_helper_words_texts = [helper_word.get_helper_word_text() for helper_word in new_helper_words]
         self.__check_texts_uniqueness(new_helper_words_texts)
         self.__helper_words.extend(new_helper_words)
         self._touch()
@@ -66,7 +66,9 @@ class Category(AggregateRootEntity):
         Raises:
             DuplicateCategoryHelperWordsError: If any text already exists in category helper words.
         """
-        current_helper_words_texts = frozenset(helper_word.get_text() for helper_word in self.__helper_words)
+        current_helper_words_texts = frozenset(
+            helper_word.get_helper_word_text() for helper_word in self.__helper_words
+        )
         new_helper_words_texts = frozenset(texts)
         duplicate_texts = current_helper_words_texts.intersection(new_helper_words_texts)
 

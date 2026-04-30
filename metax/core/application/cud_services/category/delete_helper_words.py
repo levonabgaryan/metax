@@ -38,7 +38,7 @@ class DeleteHelperWordsService(CUDService[DeleteHelperWordsRequestDTO]):
             name=category.get_name(),
             helper_words_payload=[
                 HelperWordPayloadRequestDTO(
-                    text=helper_word.get_text(),
+                    helper_word_text=helper_word.get_helper_word_text(),
                     helper_word_uuid=helper_word.get_uuid(),
                     created_at=helper_word.get_created_at(),
                     updated_at=helper_word.get_updated_at(),

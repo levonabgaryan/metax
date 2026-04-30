@@ -13,7 +13,7 @@ def _make_helper_word(text: str) -> CategoryHelperWord:
     first = category.get_helper_words()[0]
     return CategoryHelperWord(
         uuid_=uuid7(),
-        text=text,
+        helper_word_text=text,
         created_at=first.get_created_at(),
         updated_at=first.get_updated_at(),
     )
@@ -37,8 +37,8 @@ async def test_category_repo_add_and_get(
 
     assert got_by_uuid.get_uuid() == category.get_uuid()
     assert got_by_uuid.get_name() == category.get_name()
-    assert {word.get_text() for word in got_by_uuid.get_helper_words()} == {
-        word.get_text() for word in category.get_helper_words()
+    assert {word.get_helper_word_text() for word in got_by_uuid.get_helper_words()} == {
+        word.get_helper_word_text() for word in category.get_helper_words()
     }
     assert got_by_name.get_uuid() == category.get_uuid()
 
@@ -94,7 +94,7 @@ async def test_category_repo_update_helper_words_via_diff(
         await uow.commit()
 
     testing_category = await unit_of_work.category_repo.get_by_uuid(loaded_category.get_uuid())
-    assert {word.get_text() for word in testing_category.get_helper_words()} == {
+    assert {word.get_helper_word_text() for word in testing_category.get_helper_words()} == {
         "updated_word",
         "new_word",
     }
@@ -162,14 +162,14 @@ async def test_category_repo_list_paginated_returns_full_entities(
     assert total_count_1 == total_count_2 == 4
     assert [category.get_name() for category in first_page] == ["A", "B"]
     assert [category.get_name() for category in second_page] == ["C", "D"]
-    assert {word.get_text() for word in first_page[0].get_helper_words()} == {
+    assert {word.get_helper_word_text() for word in first_page[0].get_helper_words()} == {
         "a-word-1",
         "a-word-2",
         "a-word-3",
     }
-    assert {word.get_text() for word in first_page[1].get_helper_words()} == {"b-word-1"}
-    assert {word.get_text() for word in second_page[0].get_helper_words()} == {"c-word-1"}
-    assert {word.get_text() for word in second_page[1].get_helper_words()} == {"d-word-1"}
+    assert {word.get_helper_word_text() for word in first_page[1].get_helper_words()} == {"b-word-1"}
+    assert {word.get_helper_word_text() for word in second_page[0].get_helper_words()} == {"c-word-1"}
+    assert {word.get_helper_word_text() for word in second_page[1].get_helper_words()} == {"d-word-1"}
 
 
 @pytest.mark.django_db(transaction=True)
@@ -193,8 +193,8 @@ async def test_category_repo_get_by_helper_word_uuid(
     # then
     assert found_category.get_uuid() == category.get_uuid()
     assert found_category.get_name() == category.get_name()
-    assert {word.get_text() for word in found_category.get_helper_words()} == {
-        word.get_text() for word in category.get_helper_words()
+    assert {word.get_helper_word_text() for word in found_category.get_helper_words()} == {
+        word.get_helper_word_text() for word in category.get_helper_words()
     }
 
 

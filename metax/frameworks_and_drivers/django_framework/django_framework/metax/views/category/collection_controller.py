@@ -129,7 +129,7 @@ class CategoryCollectionController(MetaxJsonApiController):
                     CategoryHelperWordResponseBody.from_basemodel(
                         resource=CategoryHelperWordResource(
                             helper_word_uuid=helper_word.get_uuid(),
-                            helper_word=helper_word.get_text(),
+                            helper_word_text=helper_word.get_helper_word_text(),
                             created_at=helper_word.get_created_at(),
                             updated_at=helper_word.get_updated_at(),
                         )

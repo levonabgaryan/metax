@@ -12,7 +12,7 @@ class CategoryRepository(ABC):
         category = await self._get_by_uuid(uuid_=uuid_)
         if category is None:
             raise EntityIsNotFoundError(
-                entity_name="category",
+                entity_type="category",
                 searched_field_name="uuid",
                 searched_field_value=str(uuid_),
             )
@@ -22,7 +22,7 @@ class CategoryRepository(ABC):
         category = await self._get_by_name(name=name)
         if category is None:
             raise EntityIsNotFoundError(
-                entity_name="category",
+                entity_type="category",
                 searched_field_name="name",
                 searched_field_value=name,
             )
@@ -38,7 +38,7 @@ class CategoryRepository(ABC):
         deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)
         if deleted_uuid is None:
             raise EntityIsNotFoundError(
-                entity_name="category",
+                entity_type="category",
                 searched_field_name="uuid",
                 searched_field_value=str(uuid_),
             )
@@ -55,7 +55,7 @@ class CategoryRepository(ABC):
         category = await self._get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
         if category is None:
             raise EntityIsNotFoundError(
-                entity_name="category",
+                entity_type="category",
                 searched_field_name="helper_word_uuid",
                 searched_field_value=str(helper_word_uuid),
             )

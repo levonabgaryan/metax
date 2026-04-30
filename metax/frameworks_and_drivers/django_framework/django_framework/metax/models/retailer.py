@@ -15,7 +15,7 @@ _RETAILER_NAME_CHOICES = tuple((member.value, member.value) for member in Retail
 class RetailerModel(BaseDbModel):
     retailer_uuid = models.UUIDField(primary_key=True, editable=False)
     name = models.CharField(max_length=64, unique=True, null=False, choices=_RETAILER_NAME_CHOICES)
-    url = models.URLField(max_length=2048)
+    home_page_url = models.URLField(max_length=2048)
     phone_number = models.CharField(max_length=64)
 
     class Meta(TypedModelMeta):

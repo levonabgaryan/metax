@@ -45,7 +45,7 @@ class UpdateHelperWordTextService(CUDService[UpdateHelperWordTextRequestDTO]):
             updated_at=category.get_updated_at(),
             name=category.get_name(),
             helper_words_payload=HelperWordPayloadResponseDTO(
-                text=updated_helper_word.get_text(),
+                helper_word_text=updated_helper_word.get_helper_word_text(),
                 helper_word_uuid=updated_helper_word.get_uuid(),
                 created_at=updated_helper_word.get_created_at(),
                 updated_at=updated_helper_word.get_updated_at(),

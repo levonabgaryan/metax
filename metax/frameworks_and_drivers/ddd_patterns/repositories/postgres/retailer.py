@@ -20,7 +20,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 SELECT
                     retailer_uuid,
                     name,
-                    url,
+                    home_page_url,
                     phone_number,
                     created_at,
                     updated_at
@@ -59,7 +59,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 SELECT
                     retailer_uuid,
                     name,
-                    url,
+                    home_page_url,
                     phone_number,
                     created_at,
                     updated_at
@@ -112,7 +112,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _add(self, retailer: Retailer) -> None:
         def _sync_version(_retailer: Retailer) -> None:
             insert_query = """
-                INSERT INTO retailers (retailer_uuid, name, url, phone_number, created_at, updated_at)
+                INSERT INTO retailers (retailer_uuid, name, home_page_url, phone_number, created_at, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """
             cursor: CursorWrapper
@@ -138,7 +138,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 SELECT
                     retailer_uuid,
                     name,
-                    url,
+                    home_page_url,
                     phone_number,
                     created_at,
                     updated_at
@@ -169,7 +169,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 SELECT
                     retailer_uuid,
                     name,
-                    url,
+                    home_page_url,
                     phone_number,
                     created_at,
                     updated_at
@@ -198,7 +198,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         def _sync_version(_updated_retailer: Retailer) -> None:
             update_query = """
                 UPDATE retailers
-                SET name = %s, url = %s, phone_number = %s, updated_at = %s
+                SET name = %s, home_page_url = %s, phone_number = %s, updated_at = %s
                 WHERE retailer_uuid = %s
             """
             cursor: CursorWrapper

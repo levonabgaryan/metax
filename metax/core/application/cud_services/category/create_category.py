@@ -32,7 +32,7 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
                     uuid_=uuid.uuid7(),
                     created_at=now,
                     updated_at=now,
-                    text=helper_word_payload.text,
+                    helper_word_text=helper_word_payload.helper_word_text,
                 )
                 for helper_word_payload in request.helper_words_payload
             ]
@@ -58,7 +58,7 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
             name=category.get_name(),
             helper_words_payload=[
                 HelperWordPayloadRequestDTO(
-                    text=helper_word.get_text(),
+                    helper_word_text=helper_word.get_helper_word_text(),
                     helper_word_uuid=helper_word.get_uuid(),
                     created_at=helper_word.get_created_at(),
                     updated_at=helper_word.get_updated_at(),
