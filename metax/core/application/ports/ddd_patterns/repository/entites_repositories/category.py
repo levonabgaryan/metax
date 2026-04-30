@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import (
+    EntityAlreadyExistsError,
+    EntityIsNotFoundError,
+)
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 
 type TotalCount = int
@@ -29,10 +32,26 @@ class CategoryRepository(ABC):
         return category
 
     async def add(self, category: Category) -> None:
-        await self._add(category)
+        """Adds a category entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
+        try:
+            await self._add(category)
+        except EntityAlreadyExistsError as err:
+            raise err from err
 
     async def update(self, updated_category: Category) -> None:
-        await self._update(updated_category=updated_category)
+        """Updates a category entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
+        try:
+            await self._update(updated_category=updated_category)
+        except EntityAlreadyExistsError as err:
+            raise err from err
 
     async def delete_by_uuid(self, uuid_: UUID) -> None:
         deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)

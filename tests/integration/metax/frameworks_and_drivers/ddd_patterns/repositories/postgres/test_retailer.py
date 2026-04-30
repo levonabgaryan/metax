@@ -2,7 +2,10 @@ from uuid import uuid7
 
 import pytest
 
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import (
+    EntityAlreadyExistsError,
+    EntityIsNotFoundError,
+)
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_retailer_entity
@@ -175,3 +178,56 @@ async def test_retailer_repo_list_paginated(
 
     assert first_page[0].get_uuid() == r_sas.get_uuid()
     assert second_page[0].get_uuid() == r_yvn.get_uuid()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_retailer_repo_add_duplicate_name_raises_entity_already_exists(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    existing = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
+    duplicate_name = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(existing)
+        await uow.commit()
+
+    # expect
+    async with unit_of_work as uow:
+        with pytest.raises(EntityAlreadyExistsError) as err:
+            await uow.retailer_repo.add(duplicate_name)
+
+    # then
+    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
+    assert "field 'name'" in err.value.title
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_retailer_repo_update_duplicate_name_raises_entity_already_exists(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    retailer_a = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
+    retailer_b = make_retailer_entity(name=RetailersNames.SAS_AM.value)
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer_a)
+        await uow.retailer_repo.add(retailer_b)
+        await uow.commit()
+
+    retailer_b.set_name(retailer_a.get_name())
+
+    # expect
+    async with unit_of_work as uow:
+        with pytest.raises(EntityAlreadyExistsError) as err:
+            await uow.retailer_repo.update(retailer_b)
+
+    # then
+    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
+    assert "field 'name'" in err.value.title

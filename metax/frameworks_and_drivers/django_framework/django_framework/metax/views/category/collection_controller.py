@@ -14,9 +14,9 @@ from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
-from dmr import Body, Query, modify
+from dmr import Body, Query, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
-from pydanja import DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
+from pydanja import DANJAError, DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
 
 from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
@@ -31,6 +31,7 @@ class CategoryCollectionController(MetaxJsonApiController):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category"],
+        extra_responses=[ResponseSpec(status_code=HTTPStatus.CONFLICT, return_type=DANJAError)],
     )
     async def post(
         self,

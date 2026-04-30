@@ -5,15 +5,19 @@ from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
-from django.db import connection
+from django.db import IntegrityError, connection
 from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductRepository,
     DiscountedProductWithDetails,
 )
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityAlreadyExistsError
 from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
+)
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.utils import (
+    extract_field_from_integrity_message,
 )
 
 type CategoryUUID = UUID | None
@@ -60,7 +64,15 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     ],
                 )
 
-        return await sync_to_async(_sync_version)(discounted_products)
+        try:
+            return await sync_to_async(_sync_version)(discounted_products)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="discounted_product",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err
 
     @override
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:

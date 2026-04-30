@@ -9,8 +9,9 @@ from django_framework.metax.views.category_helper_word.resources import (
     CategoryHelperWordResponseBody,
 )
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
-from dmr import Body, modify
+from dmr import Body, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
+from pydanja import DANJAError
 
 from metax.core.application.cud_services.category import (
     AddNewHelperWordsRequestDTO,
@@ -24,6 +25,7 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Category Helper word"],
+        extra_responses=[ResponseSpec(status_code=HTTPStatus.CONFLICT, return_type=DANJAError)],
     )
     async def post(
         self,

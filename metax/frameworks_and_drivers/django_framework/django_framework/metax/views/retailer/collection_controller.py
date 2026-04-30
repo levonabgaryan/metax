@@ -10,8 +10,9 @@ from django_framework.metax.views.retailer.resources import (
     RetailerResource,
     RetailerResponseBody,
 )
-from dmr import Body, Query, modify
+from dmr import Body, Query, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
+from pydanja import DANJAError
 
 from metax.core.application.cud_services.retailer import CreateRetailerRequestDTO, CreateRetailerService
 from metax_bootstrap import get_metax_lifespan_manager
@@ -21,6 +22,9 @@ class RetailerCollectionController(MetaxJsonApiController):
     @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Retailer"],
+        extra_responses=[
+            ResponseSpec(status_code=HTTPStatus.CONFLICT, return_type=DANJAError),
+        ],
     )
     async def post(
         self,

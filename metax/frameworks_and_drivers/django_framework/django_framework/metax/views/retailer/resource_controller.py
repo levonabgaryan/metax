@@ -44,7 +44,10 @@ class RetailerResourceController(Controller[PydanticSerializer]):
     @modify(
         status_code=HTTPStatus.OK,
         tags=["Retailer"],
-        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
+        extra_responses=[
+            ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError),
+            ResponseSpec(status_code=HTTPStatus.CONFLICT, return_type=DANJAError),
+        ],
     )
     async def patch(
         self,

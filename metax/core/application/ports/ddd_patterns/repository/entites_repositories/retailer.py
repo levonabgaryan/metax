@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from uuid import UUID
 
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import (
+    EntityAlreadyExistsError,
+    EntityIsNotFoundError,
+)
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
@@ -28,10 +31,26 @@ class RetailerRepository(ABC):
         return retailer
 
     async def add(self, retailer: Retailer) -> None:
-        await self._add(retailer)
+        """Adds a retailer entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
+        try:
+            await self._add(retailer)
+        except EntityAlreadyExistsError as err:
+            raise err from err
 
     async def update(self, updated_retailer: Retailer) -> None:
-        await self._update(updated_retailer)
+        """Updates a retailer entity.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
+        try:
+            await self._update(updated_retailer)
+        except EntityAlreadyExistsError as err:
+            raise err from err
 
     async def delete_by_uuid(self, uuid_: UUID) -> None:
         deleted_uuid = await self._delete_by_uuid_and_return_uuid(uuid_)

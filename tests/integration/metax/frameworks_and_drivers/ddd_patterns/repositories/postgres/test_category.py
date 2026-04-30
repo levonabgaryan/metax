@@ -2,7 +2,10 @@ from uuid import uuid7
 
 import pytest
 
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import (
+    EntityAlreadyExistsError,
+    EntityIsNotFoundError,
+)
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
@@ -260,3 +263,61 @@ async def test_category_repo_delete_by_uuid_not_found(
     # then
     assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
     assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_add_duplicate_name_raises_entity_already_exists(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    existing = make_category_entity(name="duplicate-category-name")
+    duplicate_name = make_category_entity(name="duplicate-category-name")
+
+    async with unit_of_work as uow:
+        await uow.category_repo.add(existing)
+        await uow.commit()
+
+    # expect
+    async with unit_of_work as uow:
+        with pytest.raises(EntityAlreadyExistsError) as err:
+            await uow.category_repo.add(duplicate_name)
+
+    # then
+    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
+    assert "field 'name'" in err.value.title
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_update_duplicate_name_raises_entity_already_exists(
+    metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    category_a = make_category_entity(
+        name="category-a-unique",
+        helper_words=[_make_helper_word("category-a-word-1"), _make_helper_word("category-a-word-2")],
+    )
+    category_b = make_category_entity(
+        name="category-b-unique",
+        helper_words=[_make_helper_word("category-b-word-1"), _make_helper_word("category-b-word-2")],
+    )
+
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category_a)
+        await uow.category_repo.add(category_b)
+        await uow.commit()
+
+    # expect
+    category_b.set_name(category_a.get_name())
+    async with unit_of_work as uow:
+        with pytest.raises(EntityAlreadyExistsError) as err:
+            await uow.category_repo.update(category_b)
+
+    # then
+    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
+    assert "field 'name'" in err.value.title

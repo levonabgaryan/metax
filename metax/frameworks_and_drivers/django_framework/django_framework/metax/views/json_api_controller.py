@@ -12,7 +12,10 @@ from dmr.exceptions import ValidationError
 from dmr.plugins.pydantic import PydanticSerializer
 from pydanja import DANJAError, DANJALink, DANJASource
 
-from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax.core.application.ports.ddd_patterns.repository.errors import (
+    EntityAlreadyExistsError,
+    EntityIsNotFoundError,
+)
 
 
 def _to_json_api_pointer(loc: list[int | str] | None) -> str | None:
@@ -52,6 +55,12 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
                 raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
                 status_code=HTTPStatus.NOT_FOUND,
             )
+        if isinstance(exc, EntityAlreadyExistsError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.CONFLICT,
+            )
+
         return await super().handle_async_error(endpoint, controller, exc)
 
     @override

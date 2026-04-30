@@ -30,7 +30,11 @@ class DiscountedProductRepository(ABC):
 
     @abstractmethod
     async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
-        pass
+        """Adds discounted product entities.
+
+        Raises:
+            EntityAlreadyExistsError: If unique constraint is violated.
+        """
 
     @abstractmethod
     async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:

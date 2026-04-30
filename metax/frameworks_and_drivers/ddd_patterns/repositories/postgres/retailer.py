@@ -3,13 +3,17 @@ from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
-from django.db import connection
+from django.db import IntegrityError, connection
 from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.retailer import (
     RetailerRepository,
 )
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityAlreadyExistsError
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.utils import (
+    extract_field_from_integrity_message,
+)
 
 
 class DjangoPostgresqlRetailerRepository(RetailerRepository):
@@ -129,7 +133,15 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     ],
                 )
 
-        await sync_to_async(_sync_version)(retailer)
+        try:
+            await sync_to_async(_sync_version)(retailer)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="retailer",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err
 
     @override
     async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
@@ -214,4 +226,12 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     ],
                 )
 
-        return await sync_to_async(_sync_version)(updated_retailer)
+        try:
+            return await sync_to_async(_sync_version)(updated_retailer)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="retailer",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err

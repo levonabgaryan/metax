@@ -3,15 +3,19 @@ from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
-from django.db import connection
+from django.db import IntegrityError, connection
 from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
     TotalCount,
 )
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityAlreadyExistsError
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.utils import (
+    extract_field_from_integrity_message,
+)
 
 type CategoryName = str
 type HelperWordText = str
@@ -414,7 +418,15 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         ],
                     )
 
-        await sync_to_async(_sync_version)(updated_category)
+        try:
+            await sync_to_async(_sync_version)(updated_category)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="category",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err
 
     @override
     async def _add(self, category: Category) -> None:
@@ -455,7 +467,15 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                         ],
                     )
 
-        await sync_to_async(_sync_version)(category)
+        try:
+            await sync_to_async(_sync_version)(category)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="category",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err
 
     @override
     async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
