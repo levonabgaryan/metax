@@ -4,6 +4,7 @@ from uuid import uuid7
 
 import pytest
 
+from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
     DiscountedProductWithDetails,
 )
@@ -143,11 +144,9 @@ async def test_discounted_products_is_not_found_by_uuid(
             await uow.discounted_product_repo.get_by_uuid(random_uuid)
 
     # then
-    assert (
-        err.value.title
-        == f"There is no discounted_product entity found by field 'uuid' with value '{random_uuid}'."
-    )
-    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
+    assert err.value.title == "discounted_product not found."
+    assert err.value.details == f"No discounted_product found by 'uuid' = '{random_uuid}'."
+    assert err.value.error_code == ErrorCodes.ENTITY_IS_NOT_FOUND
 
 
 @pytest.mark.django_db(transaction=True)

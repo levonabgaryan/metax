@@ -2,6 +2,7 @@ from uuid import uuid7
 
 import pytest
 
+from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.errors import (
     EntityAlreadyExistsError,
     EntityIsNotFoundError,
@@ -85,8 +86,9 @@ async def test_retailer_is_not_found_by_uuid(
             await uow.retailer_repo.get_by_uuid(random_uuid)
 
     # then
-    assert err.value.title == f"There is no retailer entity found by field 'uuid' with value '{random_uuid}'."
-    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
+    assert err.value.title == "retailer not found."
+    assert err.value.details == f"No retailer found by 'uuid' = '{random_uuid}'."
+    assert err.value.error_code == ErrorCodes.ENTITY_IS_NOT_FOUND
 
 
 @pytest.mark.django_db(transaction=True)
@@ -106,8 +108,9 @@ async def test_retailer_is_not_found_by_name(
             await uow.retailer_repo.get_by_name(test_name)
 
     # then
-    assert err.value.title == f"There is no retailer entity found by field 'name' with value '{test_name}'."
-    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
+    assert err.value.title == "retailer not found."
+    assert err.value.details == f"No retailer found by 'name' = '{test_name}'."
+    assert err.value.error_code == ErrorCodes.ENTITY_IS_NOT_FOUND
 
 
 @pytest.mark.django_db(transaction=True)
@@ -201,8 +204,11 @@ async def test_retailer_repo_add_duplicate_name_raises_entity_already_exists(
             await uow.retailer_repo.add(duplicate_name)
 
     # then
-    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
-    assert "field 'name'" in err.value.title
+    assert err.value.error_code == ErrorCodes.ENTITY_ALREADY_EXISTS
+    assert err.value.title == "retailer already exists."
+    assert (
+        err.value.details == f"An existing retailer was found by 'name' = '{RetailersNames.YEREVAN_CITY.value}'."
+    )
 
 
 @pytest.mark.django_db(transaction=True)
@@ -229,5 +235,8 @@ async def test_retailer_repo_update_duplicate_name_raises_entity_already_exists(
             await uow.retailer_repo.update(retailer_b)
 
     # then
-    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
-    assert "field 'name'" in err.value.title
+    assert err.value.error_code == ErrorCodes.ENTITY_ALREADY_EXISTS
+    assert err.value.title == "retailer already exists."
+    assert (
+        err.value.details == f"An existing retailer was found by 'name' = '{RetailersNames.YEREVAN_CITY.value}'."
+    )

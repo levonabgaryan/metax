@@ -2,6 +2,7 @@ from uuid import uuid7
 
 import pytest
 
+from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.errors import (
     EntityAlreadyExistsError,
     EntityIsNotFoundError,
@@ -73,6 +74,7 @@ async def test_category_repo_update_name(
 async def test_category_repo_update_helper_words_via_diff(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
+    # given
     metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     category = make_category_entity()
@@ -90,12 +92,14 @@ async def test_category_repo_update_helper_words_via_diff(
     loaded_category.delete_helper_words_by_uuids(
         [loaded_helper_words[1].get_uuid()],
     )
+    # when
     loaded_category.add_new_helper_words([_make_helper_word("new_word")])
 
     async with unit_of_work as uow:
         await uow.category_repo.update(updated_category=loaded_category)
         await uow.commit()
 
+    # then
     testing_category = await unit_of_work.category_repo.get_by_uuid(loaded_category.get_uuid())
     assert {word.get_helper_word_text() for word in testing_category.get_helper_words()} == {
         "updated_word",
@@ -108,10 +112,12 @@ async def test_category_repo_update_helper_words_via_diff(
 async def test_category_is_not_found_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
+    # given
     metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
     random_uuid = uuid7()
 
+    # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError):
             await uow.category_repo.get_by_uuid(random_uuid)
@@ -122,9 +128,11 @@ async def test_category_is_not_found_by_uuid(
 async def test_category_is_not_found_by_name(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
+    # given
     metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
     unit_of_work = metax_container.patterns_container.container.unit_of_work()
 
+    # expect
     async with unit_of_work as uow:
         with pytest.raises(EntityIsNotFoundError):
             await uow.category_repo.get_by_name("unknown_category")
@@ -261,8 +269,9 @@ async def test_category_repo_delete_by_uuid_not_found(
             await uow.category_repo.delete_by_uuid(random_uuid)
 
     # then
-    assert err.value.title == f"There is no category entity found by field 'uuid' with value '{random_uuid}'."
-    assert err.value.error_code == "ENTITY_IS_NOT_FOUND"
+    assert err.value.title == "category not found."
+    assert err.value.details == f"No category found by 'uuid' = '{random_uuid}'."
+    assert err.value.error_code == ErrorCodes.ENTITY_IS_NOT_FOUND
 
 
 @pytest.mark.django_db(transaction=True)
@@ -286,8 +295,9 @@ async def test_category_repo_add_duplicate_name_raises_entity_already_exists(
             await uow.category_repo.add(duplicate_name)
 
     # then
-    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
-    assert "field 'name'" in err.value.title
+    assert err.value.error_code == ErrorCodes.ENTITY_ALREADY_EXISTS
+    assert err.value.title == "category already exists."
+    assert err.value.details == "An existing category was found by 'name' = 'duplicate-category-name'."
 
 
 @pytest.mark.django_db(transaction=True)
@@ -319,5 +329,6 @@ async def test_category_repo_update_duplicate_name_raises_entity_already_exists(
             await uow.category_repo.update(category_b)
 
     # then
-    assert err.value.error_code == "ENTITY_ALREADY_CREATED"
-    assert "field 'name'" in err.value.title
+    assert err.value.error_code == ErrorCodes.ENTITY_ALREADY_EXISTS
+    assert err.value.title == "category already exists."
+    assert err.value.details == "An existing category was found by 'name' = 'category-a-unique'."

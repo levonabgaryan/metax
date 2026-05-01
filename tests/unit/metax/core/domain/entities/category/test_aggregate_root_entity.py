@@ -3,6 +3,7 @@ from uuid import uuid7
 
 import pytest
 
+from constants import ErrorCodes
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category.errors import (
     DuplicateCategoryHelperWordsError,
@@ -32,13 +33,14 @@ def test_add_new_helper_words() -> None:
     )
     new_words = [_make_helper_word("a"), _make_helper_word("c")]
 
-    # when
+    # expect
     with pytest.raises(DuplicateCategoryHelperWordsError) as err:
         category.add_new_helper_words(new_words)
 
-    # except
-    assert err.value.error_code == "DUPLICATE_HELPER_WORDS"
-    assert err.value.title == "Cannot add duplicate helper words: a, c."
+    # then
+    assert err.value.error_code == ErrorCodes.DUPLICATE_HELPER_WORDS
+    assert err.value.title == "Cannot add duplicate helper words."
+    assert err.value.details == "Duplicate words: a, c."
 
 
 def test_delete_helper_words_by_uuids() -> None:
