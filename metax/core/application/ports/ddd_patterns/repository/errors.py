@@ -1,5 +1,6 @@
 from typing import Any
 
+from constants import ErrorCodes
 from metax_main_error import MetaxError
 
 
@@ -10,15 +11,14 @@ class EntityIsNotFoundError(MetaxError):
         searched_field_name: str,
         searched_field_value: str,
     ) -> None:
-        message = (
-            f"There is no {entity_type} entity found "
-            f"by field '{searched_field_name}' with value '{searched_field_value}'."
-        )
+        title = f"{entity_type} not found."
+        details = f"No {entity_type} found by '{searched_field_name}' = '{searched_field_value}'."
 
-        super().__init__(title=message, error_code="ENTITY_IS_NOT_FOUND")
+        super().__init__(title=title, error_code=ErrorCodes.ENTITY_IS_NOT_FOUND, details=details)
 
 
 class EntityAlreadyExistsError(MetaxError):
     def __init__(self, entity_type: str, entity_field_value: Any, entity_field_name: str) -> None:
-        msg = f"There is already a(n) {entity_type} entity found by field '{entity_field_name}' with value '{entity_field_value}'."  # noqa: E501
-        super().__init__(title=msg, error_code="ENTITY_ALREADY_CREATED")
+        title = f"{entity_type} already exists."
+        details = f"An existing {entity_type} was found by '{entity_field_name}' = '{entity_field_value}'."
+        super().__init__(title=title, error_code=ErrorCodes.ENTITY_ALREADY_EXISTS, details=details)

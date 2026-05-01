@@ -4,7 +4,7 @@ from typing import ClassVar, TypedDict, override
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.http import HttpResponse
-from django_framework.metax.views.json_content_configs import JsonApiParser, JsonApiRenderer
+from django_framework.metax.views.json_parsers import JsonApiParser, JsonApiRenderer
 from dmr import Controller
 from dmr.endpoint import Endpoint
 from dmr.errors import ErrorType
@@ -148,4 +148,3 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
 
 
 # discounted product API
-# integrity error handling

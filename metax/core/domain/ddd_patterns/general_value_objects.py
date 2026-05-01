@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from typing import Self, override
 from uuid import UUID
 
+from constants import ErrorCodes
 from metax_main_error import MetaxError
 
 from .value_object import ValueObject
@@ -71,26 +72,25 @@ class EntityDateTimeDetails(ValueObject):
 class InvalidUUIDError(MetaxError):
     def __init__(self, uuid_: UUID) -> None:
         super().__init__(
-            error_code="INVALID_UUID", title=f"Invalid uuid format: {uuid_}", details="UUID should be of version 7"
+            error_code=ErrorCodes.INVALID_UUID,
+            title="Invalid UUID format.",
+            details=f"Received value: {uuid_}. Expected UUID version 7.",
         )
 
 
 class InvalidUtcDateTimeError(MetaxError):
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            error_code="DATETIME_NOT_UTC",
-            title="The datetime object must be in UTC format",
-            details="Native date times or local timezones are not allowed. Use datetime.now(timezone.utc).",
+            error_code=ErrorCodes.DATETIME_NOT_UTC,
+            title="Datetime must be in UTC.",
+            details="Naive datetimes and non-UTC timezones are not allowed. Use datetime.now(timezone.utc).",
         )
 
 
 class UpdateBeforeCreationError(MetaxError):
     def __init__(self) -> None:
         super().__init__(
-            error_code="UPDATE_BEFORE_CREATION",
-            title="The update date cannot be earlier than the creation date.",
-            details="The chronological order invariant was violated:"
-            " the timestamp value 'updated_at' must be greater than or equal to 'created_at'.",
+            error_code=ErrorCodes.UPDATE_BEFORE_CREATION,
+            title="Update time cannot be earlier than creation time.",
+            details="Invariant violated: 'updated_at' must be greater than or equal to 'created_at'.",
         )
