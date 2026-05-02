@@ -80,6 +80,31 @@ services:
     networks:
       - metax-net
 
+  metax-opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:3.4.0
+    env_file: ".env"
+    container_name: metax-opensearch-dashboards
+    ports:
+      - "${OPENSEARCH_DASHBOARD_PORT}:5601"
+    environment:
+      # Same cluster as ``metax-opensearch-db`` (TLS + security plugin).
+      OPENSEARCH_HOSTS: '["https://metax-opensearch-db:9200"]'
+      OPENSEARCH_USERNAME: "${OPENSEARCH_USERNAME}"
+      OPENSEARCH_PASSWORD: "${OPENSEARCH_ADMIN_PASSWORD}"
+      # Dev/single-node images often use self-signed certs between containers.
+      OPENSEARCH_SSL_VERIFICATIONMODE: none
+    networks:
+      - metax-net
+    depends_on:
+      metax-opensearch-db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5601/api/status >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
   metax-celery:
     build:
       dockerfile: ./Dockerfile.base

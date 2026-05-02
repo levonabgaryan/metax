@@ -177,7 +177,12 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
         ))
 
 
+# to relearn
 # Endpoints included, relationship builders
 # asyncio, Open-search, subprocess(sync and async)
 # best practise for docker containers (testing, local launch, for deployment)
+
+
+# to implement
 # django admin
+#
