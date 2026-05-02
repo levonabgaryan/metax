@@ -8,27 +8,86 @@ from opensearchpy import AsyncOpenSearch
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     IDiscountedProductReadModelRepository,
 )
-from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.application.read_models.discounted_product import (
+    DiscountedProductCategoryReadModel,
+    DiscountedProductReadModel,
+    DiscountedProductRetailerReadModel,
+)
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
 
+def _document_body_for_index(read_model: DiscountedProductReadModel) -> dict[str, Any]:
+    """Serialize read model to the OpenSearch document (same nested shape as mappings).
+
+    Returns:
+        Body for ``index`` / ``bulk`` (no ``uuid_``; stored as ``_id``).
+    """
+    retailer = read_model["retailer"]
+    body: dict[str, Any] = {
+        "name": read_model["name"],
+        "real_price": read_model["real_price"],
+        "discounted_price": read_model["discounted_price"],
+        "created_at": read_model["created_at"],
+        "updated_at": read_model["updated_at"],
+        "url": read_model["url"],
+        "retailer": {
+            "uuid_": retailer["uuid_"],
+            "name": retailer["name"],
+            "created_at": retailer["created_at"],
+            "updated_at": retailer["updated_at"],
+            "home_page_url": retailer["home_page_url"],
+            "phone_number": retailer["phone_number"],
+        },
+    }
+    if "category" in read_model:
+        category = read_model["category"]
+        body["category"] = {
+            "uuid_": category["uuid_"],
+            "name": category["name"],
+            "created_at": category["created_at"],
+            "updated_at": category["updated_at"],
+        }
+    return body
+
+
 def _opensearch_source_to_read_model(uuid_: str, source: dict[str, Any]) -> DiscountedProductReadModel:
+    """Map OpenSearch ``_source`` to ``DiscountedProductReadModel`` (same keys as TypedDict).
+
+    Returns:
+        Value satisfying ``DiscountedProductReadModel``.
+    """
+    created_at = source["created_at"]
+    updated_at = source["updated_at"]
+    src_retailer = source["retailer"]
+    r_created = src_retailer["created_at"]
+    r_updated = src_retailer["updated_at"]
     item: DiscountedProductReadModel = {
         "uuid_": uuid_,
         "name": source["name"],
         "real_price": source["real_price"],
         "discounted_price": source["discounted_price"],
-        "retailer_uuid": source["retailer_uuid"],
-        "retailer_name": source["retailer_name"],
+        "created_at": created_at,
+        "updated_at": updated_at,
         "url": source["url"],
-        "created_at": source["created_at"],
+        "retailer": {
+            "uuid_": src_retailer["uuid_"],
+            "name": src_retailer["name"],
+            "created_at": r_created,
+            "updated_at": r_updated,
+            "home_page_url": src_retailer["home_page_url"],
+            "phone_number": src_retailer["phone_number"],
+        },
     }
-    category_uuid: str | None = source.get("category_uuid")
-    if category_uuid is not None:
-        item["category_uuid"] = category_uuid
-    category_name: str | None = source.get("category_name")
-    if category_name is not None:
-        item["category_name"] = category_name
+    if "category" in source:
+        category_src = source["category"]
+        c_created = category_src["created_at"]
+        c_updated = category_src["updated_at"]
+        item["category"] = DiscountedProductCategoryReadModel(
+            uuid_=category_src["uuid_"],
+            created_at=c_created,
+            updated_at=c_updated,
+            name=category_src["name"],
+        )
     return item
 
 
@@ -48,14 +107,25 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         return int(response.get("deleted", 0))
 
     @override
-    async def update_category_names_by_category_uuid(self, category_uuid: str, new_category_name: str) -> None:
+    async def update_categories_by_category_uuid(
+        self,
+        category_uuid: str,
+        category: DiscountedProductCategoryReadModel,
+    ) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
-            "query": {"term": {"category_uuid": category_uuid}},
+            "query": {"term": {"category.uuid_": category_uuid}},
             "script": {
-                "source": "ctx._source.category_name = params.new_name",
+                "source": "ctx._source.category = params.cat",
                 "lang": "painless",
-                "params": {"new_name": new_category_name},
+                "params": {
+                    "cat": {
+                        "uuid_": category["uuid_"],
+                        "name": category["name"],
+                        "created_at": category["created_at"],
+                        "updated_at": category["updated_at"],
+                    }
+                },
             },
         }
         await self.__opensearch_async_client.update_by_query(
@@ -64,14 +134,27 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
         )
 
     @override
-    async def update_retailer_names_by_retailer_uuid(self, retailer_uuid: str, new_retailer_name: str) -> None:
+    async def update_retailers_by_retailer_uuid(
+        self,
+        retailer_uuid: str,
+        retailer: DiscountedProductRetailerReadModel,
+    ) -> None:
         # https://docs.opensearch.org/latest/api-reference/document-apis/update-by-query/#example-requests
         body = {
-            "query": {"term": {"retailer_uuid": retailer_uuid}},
+            "query": {"term": {"retailer.uuid_": retailer_uuid}},
             "script": {
-                "source": "ctx._source.retailer_name = params.new_name",
+                "source": "ctx._source.retailer = params.ret",
                 "lang": "painless",
-                "params": {"new_name": new_retailer_name},
+                "params": {
+                    "ret": {
+                        "uuid_": retailer["uuid_"],
+                        "name": retailer["name"],
+                        "created_at": retailer["created_at"],
+                        "updated_at": retailer["updated_at"],
+                        "home_page_url": retailer["home_page_url"],
+                        "phone_number": retailer["phone_number"],
+                    }
+                },
             },
         }
 
@@ -105,14 +188,14 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
     async def add_one(self, discounted_product: DiscountedProductReadModel) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/guides/async.md#index-documents
         doc_id = discounted_product["uuid_"]
-        doc_body = {k: v for k, v in discounted_product.items() if k != "uuid_"}
+        doc_body = _document_body_for_index(discounted_product)
 
         await self.__opensearch_async_client.index(index=self.__alias_name, id=doc_id, body=doc_body)
 
     @override
     async def add_many(self, discounted_products: list[DiscountedProductReadModel]) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/samples/bulk/bulk_array.py
-        formatted_to_dict: list[dict[str, Any] | DiscountedProductReadModel] = []
+        formatted_to_dict: list[dict[str, Any]] = []
         for discounted_product in discounted_products:
             doc_id = discounted_product["uuid_"]
 
@@ -122,8 +205,7 @@ class OpenSearchDiscountedProductReadModelRepository(IDiscountedProductReadModel
                     "_id": doc_id,
                 }
             })
-            doc_body = {k: v for k, v in discounted_product.items() if k != "uuid_"}
-            formatted_to_dict.append(doc_body)
+            formatted_to_dict.append(_document_body_for_index(discounted_product))
         response = await self.__opensearch_async_client.bulk(body=formatted_to_dict)
         if response.get("errors"):
             msg = "OpenSearch bulk indexing reported errors"

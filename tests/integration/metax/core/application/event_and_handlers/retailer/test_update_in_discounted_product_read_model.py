@@ -35,15 +35,24 @@ async def test_event_handler_shall_update_retailer_in_read_model(
         await uow.discounted_product_repo.add_many(discounted_products=[discounted_product])
         await uow.commit()
 
+    created_iso = discounted_product.get_created_at().isoformat()
+    updated_iso = discounted_product.get_updated_at().isoformat()
     discounted_product_read_model_ = DiscountedProductReadModel(
         uuid_=str(discounted_product.get_uuid()),
         name=discounted_product.get_name(),
         real_price=float(discounted_product.get_real_price()),
         discounted_price=float(discounted_product.get_discounted_price()),
-        retailer_uuid=str(discounted_product.get_retailer_uuid()),
-        retailer_name=retailer.get_name(),
-        created_at=discounted_product.get_created_at().isoformat(),
+        created_at=created_iso,
+        updated_at=updated_iso,
         url=discounted_product.get_url(),
+        retailer={
+            "uuid_": str(retailer.get_uuid()),
+            "created_at": retailer.get_created_at().isoformat(),
+            "updated_at": retailer.get_updated_at().isoformat(),
+            "name": retailer.get_name(),
+            "home_page_url": retailer.get_home_page_url(),
+            "phone_number": retailer.get_phone_number(),
+        },
     )
     await discounted_product_read_model_repository.add_many([discounted_product_read_model_])
     await refresh_opensearch_index(
@@ -68,4 +77,4 @@ async def test_event_handler_shall_update_retailer_in_read_model(
     product_uuid = str(discounted_product.get_uuid())
     updated_retailer = await discounted_product_read_model_repository.get_by_uuid(product_uuid)
 
-    assert updated_retailer["retailer_name"] == RetailersNames.SAS_AM.value
+    assert updated_retailer["retailer"]["name"] == RetailersNames.SAS_AM.value

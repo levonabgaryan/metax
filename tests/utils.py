@@ -5,7 +5,10 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid7
 
-from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.application.read_models.discounted_product import (
+    DiscountedProductCategoryReadModel,
+    DiscountedProductReadModel,
+)
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
@@ -108,20 +111,32 @@ def make_discounted_product_read_model(
     retailer_name: str = "test_retailer_name",
     url: str = "test_url",
 ) -> DiscountedProductReadModel:
-    result = DiscountedProductReadModel(
-        uuid_=discounted_product_uuid,
-        name=name,
-        real_price=real_price,
-        discounted_price=discounted_price,
-        retailer_uuid=retailer_uuid,
-        retailer_name=retailer_name,
-        url=url,
-        created_at=created_at.isoformat(),
-    )
+    created_iso = created_at.isoformat()
+    updated_iso = (created_at + timedelta(seconds=1)).isoformat()
+    result: DiscountedProductReadModel = {
+        "uuid_": discounted_product_uuid,
+        "name": name,
+        "real_price": real_price,
+        "discounted_price": discounted_price,
+        "created_at": created_iso,
+        "updated_at": updated_iso,
+        "url": url,
+        "retailer": {
+            "uuid_": retailer_uuid,
+            "created_at": created_iso,
+            "updated_at": updated_iso,
+            "name": retailer_name,
+            "home_page_url": "https://retailer.com",
+            "phone_number": "+37498521474",
+        },
+    }
     if category_uuid is not None:
-        result["category_uuid"] = category_uuid
-    if category_name is not None:
-        result["category_name"] = category_name
+        result["category"] = DiscountedProductCategoryReadModel(
+            uuid_=category_uuid,
+            created_at=created_iso,
+            updated_at=updated_iso,
+            name=category_name or "test_category_name",
+        )
     return result
 
 

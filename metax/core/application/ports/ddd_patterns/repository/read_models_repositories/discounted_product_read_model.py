@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from datetime import datetime
 
-from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.application.read_models.discounted_product import (
+    DiscountedProductCategoryReadModel,
+    DiscountedProductReadModel,
+    DiscountedProductRetailerReadModel,
+)
 
 
 class IDiscountedProductReadModelRepository(ABC):
@@ -11,12 +15,20 @@ class IDiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_category_names_by_category_uuid(self, category_uuid: str, new_category_name: str) -> None:
-        pass
+    async def update_categories_by_category_uuid(
+        self,
+        category_uuid: str,
+        category: DiscountedProductCategoryReadModel,
+    ) -> None:
+        """Replace ``category`` on all indexed products whose nested ``category.uuid_`` matches."""
 
     @abstractmethod
-    async def update_retailer_names_by_retailer_uuid(self, retailer_uuid: str, new_retailer_name: str) -> None:
-        pass
+    async def update_retailers_by_retailer_uuid(
+        self,
+        retailer_uuid: str,
+        retailer: DiscountedProductRetailerReadModel,
+    ) -> None:
+        """Replace ``retailer`` on all indexed products whose nested ``retailer.uuid_`` matches."""
 
     @abstractmethod
     async def get_all_count(self) -> int:

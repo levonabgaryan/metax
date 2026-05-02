@@ -26,6 +26,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "redis>=7.4.0",
     "ruff>=0.15.10",
+    "typer>=0.24.1",
     "types-gunicorn>=25.3.0.20260408",
     "types-psycopg2>=2.9.21.20260408",
     "uv-audit>=0.1.9",

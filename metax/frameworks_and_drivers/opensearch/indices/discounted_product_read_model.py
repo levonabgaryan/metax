@@ -39,6 +39,7 @@ INDEX_BODY = {
             },
         },
     },
+    # Documents mirror nested ``DiscountedProductReadModel`` (minus ``uuid_``);
     "mappings": {  # https://docs.opensearch.org/latest/mappings/#mapping-structure-and-example
         "properties": {
             "name": {
@@ -51,17 +52,29 @@ INDEX_BODY = {
             },
             "real_price": {"type": "scaled_float", "scaling_factor": 100},
             "discounted_price": {"type": "scaled_float", "scaling_factor": 100},
-            "category_uuid": {
-                "type": "keyword",
-            },
-            "category_name": {
-                "type": "keyword",
-            },
-            "retailer_uuid": {"type": "keyword"},
-            "retailer_name": {"type": "keyword"},
             "url": {"type": "keyword"},
-            "created_at": {
-                "type": "date",
+            "created_at": {"type": "date"},
+            "updated_at": {"type": "date"},
+            # Same nested keys as ``DiscountedProductCategoryReadModel`` / ``DiscountedProductRetailerReadModel``.
+            "category": {
+                "type": "object",
+                "properties": {
+                    "uuid_": {"type": "keyword"},
+                    "name": {"type": "keyword"},
+                    "created_at": {"type": "date"},
+                    "updated_at": {"type": "date"},
+                },
+            },
+            "retailer": {
+                "type": "object",
+                "properties": {
+                    "uuid_": {"type": "keyword"},
+                    "name": {"type": "keyword"},
+                    "created_at": {"type": "date"},
+                    "updated_at": {"type": "date"},
+                    "home_page_url": {"type": "keyword"},
+                    "phone_number": {"type": "keyword"},
+                },
             },
         }
     },

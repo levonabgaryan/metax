@@ -3,6 +3,10 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from metax.core.application.read_models.discounted_product import (
+    DiscountedProductCategoryReadModel,
+    DiscountedProductRetailerReadModel,
+)
 from metax.core.domain.entities.retailer.value_objects import RetailersNames
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 from metax_lifespan import MetaxAppLifespanManager
@@ -77,9 +81,14 @@ async def test_update_category(
 
     # when
     category.set_name("category_new_name")
-    await repo.update_category_names_by_category_uuid(
+    await repo.update_categories_by_category_uuid(
         category_uuid=str(category.get_uuid()),
-        new_category_name=category.get_name(),
+        category=DiscountedProductCategoryReadModel(
+            uuid_=str(category.get_uuid()),
+            created_at=category.get_created_at().isoformat(),
+            updated_at=category.get_updated_at().isoformat(),
+            name=category.get_name(),
+        ),
     )
     await refresh_opensearch_index(
         metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
@@ -87,7 +96,7 @@ async def test_update_category(
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
-    assert updated_discounted_product_read_model["category_name"] == "category_new_name"
+    assert updated_discounted_product_read_model["category"]["name"] == "category_new_name"
 
 
 @pytest.mark.asyncio
@@ -115,9 +124,16 @@ async def test_update_retailer(
     retailer.set_name(RetailersNames.SAS_AM.value)
     retailer.set_home_page_url("new_url")
     retailer.set_phone_number("new_phone_number")
-    await repo.update_retailer_names_by_retailer_uuid(
+    await repo.update_retailers_by_retailer_uuid(
         retailer_uuid=str(retailer.get_uuid()),
-        new_retailer_name=retailer.get_name(),
+        retailer=DiscountedProductRetailerReadModel(
+            uuid_=str(retailer.get_uuid()),
+            created_at=retailer.get_created_at().isoformat(),
+            updated_at=retailer.get_updated_at().isoformat(),
+            name=retailer.get_name(),
+            home_page_url=retailer.get_home_page_url(),
+            phone_number=retailer.get_phone_number(),
+        ),
     )
     await refresh_opensearch_index(
         metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
@@ -125,7 +141,9 @@ async def test_update_retailer(
 
     # then
     updated_discounted_product_read_model = await repo.get_by_uuid(uuid_=discounted_product_read_model_["uuid_"])
-    assert updated_discounted_product_read_model["retailer_name"] == RetailersNames.SAS_AM.value
+    assert updated_discounted_product_read_model["retailer"]["name"] == RetailersNames.SAS_AM.value
+    assert updated_discounted_product_read_model["retailer"]["home_page_url"] == "new_url"
+    assert updated_discounted_product_read_model["retailer"]["phone_number"] == "new_phone_number"
 
 
 @pytest.mark.asyncio

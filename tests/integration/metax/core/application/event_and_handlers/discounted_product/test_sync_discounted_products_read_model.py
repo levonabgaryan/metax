@@ -39,16 +39,25 @@ async def test_event_handler_shall_save_in_empty_read_model(
 
     discounted_product_read_models_: list[DiscountedProductReadModel] = []
     for product in discounted_products:
+        created_iso = product.get_created_at().isoformat()
+        updated_iso = product.get_updated_at().isoformat()
         discounted_product_read_models_.append(
             DiscountedProductReadModel(
                 uuid_=str(product.get_uuid()),
                 name=product.get_name(),
                 real_price=float(product.get_real_price()),
                 discounted_price=float(product.get_discounted_price()),
-                retailer_uuid=str(product.get_retailer_uuid()),
-                retailer_name=retailer.get_name(),
-                created_at=product.get_created_at().isoformat(),
+                created_at=created_iso,
+                updated_at=updated_iso,
                 url=product.get_url(),
+                retailer={
+                    "uuid_": str(retailer.get_uuid()),
+                    "created_at": retailer.get_created_at().isoformat(),
+                    "updated_at": retailer.get_updated_at().isoformat(),
+                    "name": retailer.get_name(),
+                    "home_page_url": retailer.get_home_page_url(),
+                    "phone_number": retailer.get_phone_number(),
+                },
             )
         )
 

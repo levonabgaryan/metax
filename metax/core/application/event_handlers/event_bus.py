@@ -19,9 +19,35 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     IDiscountedProductReadModelRepository,
 )
-from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.core.application.read_models.discounted_product import (
+    DiscountedProductCategoryReadModel,
+    DiscountedProductReadModel,
+    DiscountedProductRetailerReadModel,
+)
+from metax.core.domain.entities.category.aggregate_root_entity import Category
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 logger = logging.getLogger(__name__)
+
+
+def _category_entity_to_read_fragment(entity: Category) -> DiscountedProductCategoryReadModel:
+    return DiscountedProductCategoryReadModel(
+        uuid_=str(entity.get_uuid()),
+        created_at=entity.get_created_at().isoformat(),
+        updated_at=entity.get_updated_at().isoformat(),
+        name=entity.get_name(),
+    )
+
+
+def _retailer_entity_to_read_fragment(entity: Retailer) -> DiscountedProductRetailerReadModel:
+    return DiscountedProductRetailerReadModel(
+        uuid_=str(entity.get_uuid()),
+        created_at=entity.get_created_at().isoformat(),
+        updated_at=entity.get_updated_at().isoformat(),
+        name=entity.get_name(),
+        home_page_url=entity.get_home_page_url(),
+        phone_number=entity.get_phone_number(),
+    )
 
 
 def _expect_event[E: Event](event: Event, typ: type[E]) -> E:
@@ -54,8 +80,8 @@ class EventBus:
         self.__unit_of_work_provider = unit_of_work_provider
         self.__discounted_product_read_model_repo = discounted_product_read_model_repo
         self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
-            CategoryUpdated: (self.__update_categories_names_in_discounted_product_read_model,),
-            RetailerUpdated: (self.__update_retailers_names_in_discounted_product_read_model,),
+            CategoryUpdated: (self.__update_category_in_discounted_product_read_models,),
+            RetailerUpdated: (self.__update_retailer_in_discounted_product_read_models,),
             NewDiscountedProductsFromRetailerCollected: (self.__delete_old_discounted_products,),
             OldDiscountedProductsDeleted: (self.__add_new_discounted_products_read_models,),
         }
@@ -107,7 +133,7 @@ class EventBus:
             raise NotImplementedError(msg)
         await asyncio.gather(*(handler(event) for handler in handlers), return_exceptions=True)
 
-    async def __update_categories_names_in_discounted_product_read_model(self, event: Event) -> None:
+    async def __update_category_in_discounted_product_read_models(self, event: Event) -> None:
         event_: CategoryUpdated = _expect_event(event, CategoryUpdated)
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
@@ -118,9 +144,9 @@ class EventBus:
         async with uow:
             updated_category = await uow.category_repo.get_by_uuid(event_.category_uuid)
             await uow.commit()
-        await self.__discounted_product_read_model_repo.update_category_names_by_category_uuid(
+        await self.__discounted_product_read_model_repo.update_categories_by_category_uuid(
             category_uuid=str(updated_category.get_uuid()),
-            new_category_name=updated_category.get_name(),
+            category=_category_entity_to_read_fragment(updated_category),
         )
         logger.info(
             "[Event: %s] | Handler: Update category in read model | Status: SUCCESS | Target UUID: [%s]",
@@ -128,7 +154,7 @@ class EventBus:
             event_.category_uuid,
         )
 
-    async def __update_retailers_names_in_discounted_product_read_model(self, event: Event) -> None:
+    async def __update_retailer_in_discounted_product_read_models(self, event: Event) -> None:
         event_: RetailerUpdated = _expect_event(event, RetailerUpdated)
         logger.info(
             "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
@@ -139,9 +165,9 @@ class EventBus:
         async with uow:
             updated_retailer = await uow.retailer_repo.get_by_uuid(event_.retailer_uuid)
             await uow.commit()
-        await self.__discounted_product_read_model_repo.update_retailer_names_by_retailer_uuid(
+        await self.__discounted_product_read_model_repo.update_retailers_by_retailer_uuid(
             retailer_uuid=str(updated_retailer.get_uuid()),
-            new_retailer_name=updated_retailer.get_name(),
+            retailer=_retailer_entity_to_read_fragment(updated_retailer),
         )
 
         logger.info(
@@ -207,22 +233,31 @@ class EventBus:
 
 
 def to_read_model(discounted_product_with_details: DiscountedProductWithDetails) -> DiscountedProductReadModel:
-    result = DiscountedProductReadModel(
-        uuid_=str(discounted_product_with_details.entity.get_uuid()),
-        name=discounted_product_with_details.entity.get_name(),
-        real_price=float(discounted_product_with_details.entity.get_real_price()),
-        discounted_price=float(discounted_product_with_details.entity.get_discounted_price()),
-        retailer_uuid=str(discounted_product_with_details.entity.get_retailer_uuid()),
-        retailer_name=str(discounted_product_with_details.retailer_name),
-        url=str(discounted_product_with_details.entity.get_url()),
-        created_at=discounted_product_with_details.entity.get_created_at().isoformat(),
-    )
-    if discounted_product_with_details.entity.has_category():
-        result["category_uuid"] = str(discounted_product_with_details.entity.get_category_uuid())
-    if (
-        discounted_product_with_details.entity.has_category()
-        and discounted_product_with_details.category_name is not None
-    ):
-        result["category_name"] = str(discounted_product_with_details.category_name)
-
+    entity = discounted_product_with_details.entity
+    created_at = entity.get_created_at().isoformat()
+    updated_at = entity.get_updated_at().isoformat()
+    result: DiscountedProductReadModel = {
+        "uuid_": str(entity.get_uuid()),
+        "name": entity.get_name(),
+        "real_price": float(entity.get_real_price()),
+        "discounted_price": float(entity.get_discounted_price()),
+        "created_at": created_at,
+        "updated_at": updated_at,
+        "url": str(entity.get_url()),
+        "retailer": {
+            "uuid_": str(entity.get_retailer_uuid()),
+            "created_at": created_at,
+            "updated_at": updated_at,
+            "name": discounted_product_with_details.retailer_name,
+            "home_page_url": "",
+            "phone_number": "",
+        },
+    }
+    if entity.has_category():
+        result["category"] = {
+            "uuid_": str(entity.get_category_uuid()),
+            "created_at": created_at,
+            "updated_at": updated_at,
+            "name": str(discounted_product_with_details.category_name or ""),
+        }
     return result
