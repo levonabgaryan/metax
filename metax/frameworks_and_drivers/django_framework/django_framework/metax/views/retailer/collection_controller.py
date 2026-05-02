@@ -20,6 +20,42 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 class RetailerCollectionController(MetaxJsonApiController):
     @modify(
+        status_code=HTTPStatus.OK,
+        tags=["Retailer"],
+    )
+    async def get(self, parsed_query: Query[QueryParamsForCollection]) -> RetailerListResponseBody:
+        container = get_metax_lifespan_manager().get_di_container()
+        unit_of_work = container.patterns_container.container.unit_of_work()
+        async with unit_of_work as uow:
+            total_count, paginated_list_retailers = await uow.retailer_repo.list_paginated_and_total_count(
+                limit=parsed_query.limit, offset=parsed_query.offset
+            )
+            await uow.commit()
+
+        resources_list: list[RetailerResource] = [
+            RetailerResource(
+                retailer_uuid=r.get_uuid(),
+                name=r.get_name(),
+                home_page_url=r.get_home_page_url(),
+                phone_number=r.get_phone_number(),
+                created_at=r.get_created_at(),
+                updated_at=r.get_updated_at(),
+            )
+            for r in paginated_list_retailers
+        ]
+
+        response_body = RetailerListResponseBody.from_basemodel_list(
+            resources=resources_list,
+        )
+        response_body.links = self._build_pagination_links(
+            self.request.build_absolute_uri(),
+            offset=parsed_query.offset,
+            limit=parsed_query.limit,
+            total_count=total_count,
+        )
+        return response_body
+
+    @modify(
         status_code=HTTPStatus.CREATED,
         tags=["Retailer"],
         extra_responses=[
@@ -64,40 +100,4 @@ class RetailerCollectionController(MetaxJsonApiController):
         )
         response_body.links = {"self": f"{self.request.build_absolute_uri()}/{response_dto.retailer_uuid}"}
 
-        return response_body
-
-    @modify(
-        status_code=HTTPStatus.OK,
-        tags=["Retailer"],
-    )
-    async def get(self, parsed_query: Query[QueryParamsForCollection]) -> RetailerListResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
-        async with unit_of_work as uow:
-            total_count, paginated_list_retailers = await uow.retailer_repo.list_paginated_and_total_count(
-                limit=parsed_query.limit, offset=parsed_query.offset
-            )
-            await uow.commit()
-
-        resources_list: list[RetailerResource] = [
-            RetailerResource(
-                retailer_uuid=r.get_uuid(),
-                name=r.get_name(),
-                home_page_url=r.get_home_page_url(),
-                phone_number=r.get_phone_number(),
-                created_at=r.get_created_at(),
-                updated_at=r.get_updated_at(),
-            )
-            for r in paginated_list_retailers
-        ]
-
-        response_body = RetailerListResponseBody.from_basemodel_list(
-            resources=resources_list,
-        )
-        response_body.links = self._build_pagination_links(
-            self.request.build_absolute_uri(),
-            offset=parsed_query.offset,
-            limit=parsed_query.limit,
-            total_count=total_count,
-        )
         return response_body

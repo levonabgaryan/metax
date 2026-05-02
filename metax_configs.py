@@ -46,21 +46,21 @@ class BaseConfigs(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
 
     @property
-    def project_root_pythonpath(self) -> str:
-        project_root = Path(__file__).resolve().parent
-        return str(project_root)
-
-    @property
-    def django_dir(self) -> str:
-        return str(Path(self.project_root_pythonpath) / "metax/frameworks_and_drivers/django_framework")
-
-    @property
     def celery_broker_url(self) -> str:
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/0"
 
     @property
     def celery_result_backend_url(self) -> str:
         return f"redis://:{self.redis_password}@{self.redis_host}:{self.redis_port}/1"
+
+    @property
+    def django_dir(self) -> str:
+        return str(Path(self.project_root_pythonpath) / "metax/frameworks_and_drivers/django_framework")
+
+    @property
+    def project_root_pythonpath(self) -> str:
+        project_root = Path(__file__).resolve().parent
+        return str(project_root)
 
 
 class DevConfigs(BaseConfigs):

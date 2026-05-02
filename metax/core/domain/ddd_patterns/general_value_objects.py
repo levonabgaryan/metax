@@ -57,16 +57,16 @@ class EntityDateTimeDetails(ValueObject):
     def renew_update_at(cls, old: Self) -> Self:
         return cls.create(created_at=old.created_at, updated_at=datetime.now(tz=UTC))
 
+    def __validate_update_is_after_creation(self) -> None:
+        if self.created_at > self.updated_at:
+            raise UpdateBeforeCreationError
+
     @staticmethod
     def __validate_utc(dt: datetime) -> None:
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
             raise InvalidUtcDateTimeError
         if dt.tzinfo != UTC:
             raise InvalidUtcDateTimeError
-
-    def __validate_update_is_after_creation(self) -> None:
-        if self.created_at > self.updated_at:
-            raise UpdateBeforeCreationError
 
 
 class InvalidUUIDError(MetaxError):

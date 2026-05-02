@@ -14,6 +14,18 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 
 class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerializer]):
+    @override
+    async def handle_async_error(
+        self, endpoint: Endpoint, controller: Controller[PydanticSerializer], exc: Exception
+    ) -> HttpResponse:
+        if isinstance(exc, NoRetailersError):
+            raw_data = self.format_error(error=exc.error_code)
+            return self.to_error(
+                raw_data=raw_data,
+                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
+            )
+        return await super().handle_async_error(endpoint, controller, exc)
+
     @modify(
         tags=["Celery-tasks"],
         status_code=HTTPStatus.NO_CONTENT,
@@ -34,15 +46,3 @@ class CollectDiscountedProductsFromRetailersController(Controller[PydanticSerial
             unit_of_work_provider=unit_of_work_provider,
             category_classifier_service=category_classifier_service,
         )
-
-    @override
-    async def handle_async_error(
-        self, endpoint: Endpoint, controller: Controller[PydanticSerializer], exc: Exception
-    ) -> HttpResponse:
-        if isinstance(exc, NoRetailersError):
-            raw_data = self.format_error(error=exc.error_code)
-            return self.to_error(
-                raw_data=raw_data,
-                status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-            )
-        return await super().handle_async_error(endpoint, controller, exc)

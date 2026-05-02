@@ -23,6 +23,21 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 class CategoryHelperWordResourceController(MetaxJsonApiController):
     @modify(
+        status_code=HTTPStatus.NO_CONTENT,
+        tags=["Retailer"],
+        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
+    )
+    async def delete(self, parsed_path: Path[CategoryHelperWordPath]) -> None:
+        di_container = get_metax_lifespan_manager().get_di_container()
+        unit_of_work = di_container.patterns_container.container.unit_of_work()
+
+        async with unit_of_work as uow:
+            category = await uow.category_repo.get_by_helper_word_uuid(parsed_path.helper_word_path)
+            category.delete_helper_words_by_uuids(uuids=[parsed_path.helper_word_path])
+            await uow.category_repo.update(category)
+            await uow.commit()
+
+    @modify(
         status_code=HTTPStatus.OK,
         tags=["Retailer"],
         extra_responses=[
@@ -62,18 +77,3 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
                 updated_at=response_dto.helper_words_payload.updated_at,
             )
         )
-
-    @modify(
-        status_code=HTTPStatus.NO_CONTENT,
-        tags=["Retailer"],
-        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
-    )
-    async def delete(self, parsed_path: Path[CategoryHelperWordPath]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = di_container.patterns_container.container.unit_of_work()
-
-        async with unit_of_work as uow:
-            category = await uow.category_repo.get_by_helper_word_uuid(parsed_path.helper_word_path)
-            category.delete_helper_words_by_uuids(uuids=[parsed_path.helper_word_path])
-            await uow.category_repo.update(category)
-            await uow.commit()

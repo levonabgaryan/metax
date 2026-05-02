@@ -19,6 +19,19 @@ from metax_bootstrap import get_metax_lifespan_manager
 
 class RetailerResourceController(Controller[PydanticSerializer]):
     @modify(
+        status_code=HTTPStatus.NO_CONTENT,
+        tags=["Retailer"],
+        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
+    )
+    async def delete(self, parsed_path: Path[RetailerPath]) -> None:
+        retailer_uuid = parsed_path.retailer_uuid
+        container = get_metax_lifespan_manager().get_di_container()
+        unit_of_work = container.patterns_container.container.unit_of_work()
+        async with unit_of_work as uow:
+            await uow.retailer_repo.delete_by_uuid(retailer_uuid)
+            await uow.commit()
+
+    @modify(
         status_code=HTTPStatus.OK,
         tags=["Retailer"],
         extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
@@ -83,16 +96,3 @@ class RetailerResourceController(Controller[PydanticSerializer]):
                 updated_at=response_dto.updated_at,
             )
         )
-
-    @modify(
-        status_code=HTTPStatus.NO_CONTENT,
-        tags=["Retailer"],
-        extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
-    )
-    async def delete(self, parsed_path: Path[RetailerPath]) -> None:
-        retailer_uuid = parsed_path.retailer_uuid
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
-        async with unit_of_work as uow:
-            await uow.retailer_repo.delete_by_uuid(retailer_uuid)
-            await uow.commit()

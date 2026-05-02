@@ -13,27 +13,6 @@ class DiscountAdminSite(admin.AdminSite):
     index_title = "Discount service admin panel"
 
     @override
-    def get_urls(self) -> list[URLPattern | URLResolver]:
-        urls = super().get_urls()
-        category_handler = CategoryAdminHandler(self)
-
-        custom_urls = [
-            path("categories/", self.admin_view(category_handler.all_categories), name="categories_list"),
-            path("categories/add/", self.admin_view(category_handler.add_category), name="category_add"),
-            path(
-                "categories/delete-helper-words",
-                self.admin_view(category_handler.delete_helper_words),
-                name="category_delete_helper_words",
-            ),
-            path(
-                "categories/add-new-helper-words",
-                self.admin_view(category_handler.add_new_helper_words),
-                name="category_add_new_helper_words",
-            ),
-        ]
-        return custom_urls + urls
-
-    @override
     def get_app_list(self, request: HttpRequest, app_label: str | None = None) -> list[Any]:
         app_list = super().get_app_list(request, app_label)
 
@@ -54,6 +33,27 @@ class DiscountAdminSite(admin.AdminSite):
 
         app_list.insert(0, custom_app)
         return app_list
+
+    @override
+    def get_urls(self) -> list[URLPattern | URLResolver]:
+        urls = super().get_urls()
+        category_handler = CategoryAdminHandler(self)
+
+        custom_urls = [
+            path("categories/", self.admin_view(category_handler.all_categories), name="categories_list"),
+            path("categories/add/", self.admin_view(category_handler.add_category), name="category_add"),
+            path(
+                "categories/delete-helper-words",
+                self.admin_view(category_handler.delete_helper_words),
+                name="category_delete_helper_words",
+            ),
+            path(
+                "categories/add-new-helper-words",
+                self.admin_view(category_handler.add_new_helper_words),
+                name="category_add_new_helper_words",
+            ),
+        ]
+        return custom_urls + urls
 
 
 admin_site = DiscountAdminSite(name="discount_admin")

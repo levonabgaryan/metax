@@ -37,34 +37,6 @@ class MetaxAppLifespanManager:
 
         self.__is_resources_initialized = False
 
-    def get_di_container(self) -> MetaxContainer:
-        if not self.__is_resources_initialized:
-            msg = "Di container has not been initialized yet"
-            raise RuntimeError(msg)
-        return self.__metax_di_container
-
-    # ==========================================
-    # STARTUP METHODS (Initialization)
-    # ==========================================
-
-    async def init_di_container_resources(self) -> None:
-        metax_di_container = self.__metax_di_container
-        metax_di_container.config.from_pydantic(self.__metax_configs)
-
-        init_task = metax_di_container.init_resources()
-        if init_task:
-            await init_task
-        self.__is_resources_initialized = True
-
-    def configure_logger(self) -> None:
-        init_logger(metax_configs=self.__metax_configs)
-
-    async def run_entrypoints(self) -> None:
-        opensearch_async_client = (
-            await self.get_di_container().resources_container.container.opensearch_async_client.async_()
-        )
-        await run_entrypoint(client=opensearch_async_client, metax_configs=self.__metax_configs)
-
     def configure_django_app(self) -> None:
         import django
         from django.conf import settings
@@ -84,9 +56,29 @@ class MetaxAppLifespanManager:
             return
         django.setup()
 
-    # ==========================================
-    # TEARDOWN METHODS (Cleanup)
-    # ==========================================
+    def configure_logger(self) -> None:
+        init_logger(metax_configs=self.__metax_configs)
+
+    def get_di_container(self) -> MetaxContainer:
+        if not self.__is_resources_initialized:
+            msg = "Di container has not been initialized yet"
+            raise RuntimeError(msg)
+        return self.__metax_di_container
+
+    async def init_di_container_resources(self) -> None:
+        metax_di_container = self.__metax_di_container
+        metax_di_container.config.from_pydantic(self.__metax_configs)
+
+        init_task = metax_di_container.init_resources()
+        if init_task:
+            await init_task
+        self.__is_resources_initialized = True
+
+    async def run_entrypoints(self) -> None:
+        opensearch_async_client = (
+            await self.get_di_container().resources_container.container.opensearch_async_client.async_()
+        )
+        await run_entrypoint(client=opensearch_async_client, metax_configs=self.__metax_configs)
 
     async def shutdown_di_container_resources(self) -> None:
         shutdown_task = self.get_di_container().shutdown_resources()

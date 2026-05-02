@@ -18,6 +18,24 @@ class DiscountedProductWithDetails:
 
 
 class DiscountedProductRepository(ABC):
+    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
+        await self._add_many(discounted_products)
+
+    @abstractmethod
+    def all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
+        # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
+        pass
+
+    @abstractmethod
+    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
+        pass
+
+    @abstractmethod
+    def get_by_created_at(
+        self, created_at: datetime, chunk_size: int = 500
+    ) -> AsyncIterator[DiscountedProductWithDetails]:
+        pass
+
     async def get_by_uuid(self, uuid_: UUID) -> DiscountedProduct:
         discounted_product = await self._get_by_uuid(uuid_)
         if discounted_product is None:
@@ -28,28 +46,6 @@ class DiscountedProductRepository(ABC):
             )
         return discounted_product
 
-    async def add_many(self, discounted_products: list[DiscountedProduct]) -> None:
-        await self._add_many(discounted_products)
-
-    @abstractmethod
-    async def delete_older_than_and_return_deleted_count(self, date_limit: datetime) -> int:
-        pass
-
-    @abstractmethod
-    def all(self, chunk_size: int = 500) -> AsyncIterator[DiscountedProduct]:
-        # https://mypy.readthedocs.io/en/stable/more_types.html#asynchronous-iterators
-        pass
-
-    @abstractmethod
-    def get_by_created_at(
-        self, created_at: datetime, chunk_size: int = 500
-    ) -> AsyncIterator[DiscountedProductWithDetails]:
-        pass
-
-    @abstractmethod
-    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
-        pass
-
     @abstractmethod
     async def _add_many(self, discounted_products: list[DiscountedProduct]) -> None:
         """Adds discounted products.
@@ -57,3 +53,7 @@ class DiscountedProductRepository(ABC):
         Raises:
             EntityAlreadyExistsError: If unique constraint is violated.
         """
+
+    @abstractmethod
+    async def _get_by_uuid(self, uuid_: UUID) -> DiscountedProduct | None:
+        pass

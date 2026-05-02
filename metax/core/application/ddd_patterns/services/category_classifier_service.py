@@ -8,6 +8,13 @@ class CategoryClassifierService:
         self.__category_map: dict[str, Category] = {}
         self.__category_map_loaded = False
 
+    async def classify_category(self, discounted_product_name: str) -> Category | None:
+        await self.__load_category_map()
+        for word in discounted_product_name.lower().split():
+            if word in self.__category_map:
+                return self.__category_map[word]
+        return None
+
     async def __load_category_map(self) -> None:
         if self.__category_map_loaded:
             return
@@ -23,10 +30,3 @@ class CategoryClassifierService:
         }
 
         self.__category_map_loaded = True
-
-    async def classify_category(self, discounted_product_name: str) -> Category | None:
-        await self.__load_category_map()
-        for word in discounted_product_name.lower().split():
-            if word in self.__category_map:
-                return self.__category_map[word]
-        return None

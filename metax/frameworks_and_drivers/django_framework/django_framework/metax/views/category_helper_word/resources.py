@@ -73,25 +73,6 @@ class __CategoryHelperWordPatchRequestResource(BaseModel):
 
 
 class CategoryHelperWordPostRequestBody(MetaxDANJAResource[__CategoryHelperWordPostRequestResource]):
-    @model_validator(mode="after")
-    def validate_category_relationship(self) -> Self:
-        relationships = self.data.relationships
-        if relationships is None:
-            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
-            raise ValueError(msg)
-
-        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
-        if category_relationship is None:
-            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
-            raise ValueError(msg)
-
-        relationship_data = category_relationship.data
-        if relationship_data is None or isinstance(relationship_data, list):
-            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
-            raise ValueError(msg)
-
-        return self
-
     @property
     def category_identifier(self) -> DANJAResourceIdentifier:
         # Safe cast: validate_category_relationship guarantees this shape.
@@ -99,8 +80,6 @@ class CategoryHelperWordPostRequestBody(MetaxDANJAResource[__CategoryHelperWordP
         category_relationship = relationships[RESOURCE_TYPE_CATEGORY]
         return cast(DANJAResourceIdentifier, category_relationship.data)
 
-
-class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWordPatchRequestResource]):
     @model_validator(mode="after")
     def validate_category_relationship(self) -> Self:
         relationships = self.data.relationships
@@ -120,6 +99,8 @@ class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWord
 
         return self
 
+
+class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWordPatchRequestResource]):
     @property
     def category_identifier(self) -> DANJAResourceIdentifier:
         # Safe cast: validate_category_relationship guarantees this shape.
@@ -134,6 +115,25 @@ class CategoryHelperWordPatchRequestBody(MetaxDANJAResource[__CategoryHelperWord
             msg = "Attribute 'helperWordText' is required"
             raise ValueError(msg)
         return helper_word_text
+
+    @model_validator(mode="after")
+    def validate_category_relationship(self) -> Self:
+        relationships = self.data.relationships
+        if relationships is None:
+            msg = f"Relationship block is required (link to '{RESOURCE_TYPE_CATEGORY}')"
+            raise ValueError(msg)
+
+        category_relationship = relationships.get(RESOURCE_TYPE_CATEGORY)
+        if category_relationship is None:
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}' is required"
+            raise ValueError(msg)
+
+        relationship_data = category_relationship.data
+        if relationship_data is None or isinstance(relationship_data, list):
+            msg = f"Relationship '{RESOURCE_TYPE_CATEGORY}.data' must contain a single resource identifier"
+            raise ValueError(msg)
+
+        return self
 
 
 class CategoryHelperWordResponseBody(MetaxDANJAResource[CategoryHelperWordResource]):

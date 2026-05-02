@@ -27,10 +27,6 @@ class MetaxError(Exception):
         self.details = details or "No details provided."
 
     @override
-    def __str__(self) -> str:
-        return f"[{self.error_code}] {self.title} {self.details if self.details else ''}"
-
-    @override
     def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}("
@@ -38,3 +34,7 @@ class MetaxError(Exception):
             f"error_code={self.error_code!r}, "
             f"details={self.details!r})"
         )
+
+    @override
+    def __str__(self) -> str:
+        return f"[{self.error_code}] {self.title} {self.details if self.details else ''}"

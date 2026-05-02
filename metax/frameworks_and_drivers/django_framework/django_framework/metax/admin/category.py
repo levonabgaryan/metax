@@ -40,6 +40,16 @@ class CategoryAdminHandler:
         }
         return render(request, "admin/category/add.html", context)
 
+    def add_new_helper_words(self, request: HttpRequest) -> HttpResponse:
+        if request.method == "POST":
+            category_name = request.POST.get("category_name")
+            new_helper_words = request.POST.getlist("new_helper_words")
+
+            if category_name and new_helper_words:
+                async_to_sync(self.__add_new_helper_words)(category_name, new_helper_words)
+            return redirect("admin:categories_list")
+        return render(request, "admin/category/add_new_helper_words.html")
+
     def all_categories(self, request: HttpRequest) -> HttpResponse:
         categories = async_to_sync(self.__get__all_categories)()
 
@@ -65,36 +75,6 @@ class CategoryAdminHandler:
 
         return render(request, "admin/category/delete_helper_words.html")
 
-    def add_new_helper_words(self, request: HttpRequest) -> HttpResponse:
-        if request.method == "POST":
-            category_name = request.POST.get("category_name")
-            new_helper_words = request.POST.getlist("new_helper_words")
-
-            if category_name and new_helper_words:
-                async_to_sync(self.__add_new_helper_words)(category_name, new_helper_words)
-            return redirect("admin:categories_list")
-        return render(request, "admin/category/add_new_helper_words.html")
-
-    # def update_category(self, request: HttpRequest) -> HttpResponse:
-    #     if request.method == "POST":
-    #         pass
-
-    @staticmethod
-    async def __create_category(category_name: str, helper_words: list[str]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        patterns = di_container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await di_container.resources_container.container.event_bus.async_()
-
-        request_dto = CreateCategoryRequestDTO(
-            name=category_name,
-            helper_words_payload=[
-                CreateHelperWordPayload(helper_word_text=helper_word) for helper_word in helper_words
-            ],
-        )
-        service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await service.execute(request_dto)
-
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
         di_container = get_metax_lifespan_manager().get_di_container()
@@ -113,6 +93,30 @@ class CategoryAdminHandler:
                 new_helper_word_payload=AddHelperWordPayload(helper_word_text=helper_word),
             )
             await service.execute(command)
+
+    @staticmethod
+    def __convert_category_to_dict(category: Category) -> dict[str, str | list[str]]:
+        return {
+            "category_uuid": str(category.get_uuid()),
+            "category_name": category.get_name(),
+            "helper_words": [helper_word.get_helper_word_text() for helper_word in category.get_helper_words()],
+        }
+
+    @staticmethod
+    async def __create_category(category_name: str, helper_words: list[str]) -> None:
+        di_container = get_metax_lifespan_manager().get_di_container()
+        patterns = di_container.patterns_container.container
+        unit_of_work_provider = patterns.unit_of_work_provider()
+        event_bus = await di_container.resources_container.container.event_bus.async_()
+
+        request_dto = CreateCategoryRequestDTO(
+            name=category_name,
+            helper_words_payload=[
+                CreateHelperWordPayload(helper_word_text=helper_word) for helper_word in helper_words
+            ],
+        )
+        service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
+        await service.execute(request_dto)
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
@@ -145,11 +149,3 @@ class CategoryAdminHandler:
         async with uow:
             all_categories = await uow.category_repo.all()
         return all_categories
-
-    @staticmethod
-    def __convert_category_to_dict(category: Category) -> dict[str, str | list[str]]:
-        return {
-            "category_uuid": str(category.get_uuid()),
-            "category_name": category.get_name(),
-            "helper_words": [helper_word.get_helper_word_text() for helper_word in category.get_helper_words()],
-        }

@@ -44,26 +44,6 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
 
     @override
-    async def handle_async_error(
-        self,
-        endpoint: Endpoint,
-        controller: Controller[PydanticSerializer],
-        exc: Exception,
-    ) -> HttpResponse:
-        if isinstance(exc, EntityIsNotFoundError):
-            return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
-                status_code=HTTPStatus.NOT_FOUND,
-            )
-        if isinstance(exc, EntityAlreadyExistsError):
-            return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
-                status_code=HTTPStatus.CONFLICT,
-            )
-
-        return await super().handle_async_error(endpoint, controller, exc)
-
-    @override
     def format_error(
         self,
         error: str | Exception,
@@ -98,6 +78,26 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
                 )
             ]
         }
+
+    @override
+    async def handle_async_error(
+        self,
+        endpoint: Endpoint,
+        controller: Controller[PydanticSerializer],
+        exc: Exception,
+    ) -> HttpResponse:
+        if isinstance(exc, EntityIsNotFoundError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.NOT_FOUND,
+            )
+        if isinstance(exc, EntityAlreadyExistsError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.CONFLICT,
+            )
+
+        return await super().handle_async_error(endpoint, controller, exc)
 
     def _build_pagination_links(
         self, current_url: str, offset: int, limit: int, total_count: int

@@ -22,18 +22,6 @@ class Entity:
         self._uuid_value_object: Final[UUIDValueObject] = uuid_value_object
         self._datetime_details = datetime_details
 
-    def get_uuid(self) -> UUID:
-        return self._uuid_value_object.value
-
-    def get_created_at(self) -> datetime:
-        return self._datetime_details.created_at
-
-    def get_updated_at(self) -> datetime:
-        return self._datetime_details.updated_at
-
-    def _touch(self) -> None:
-        self._datetime_details = self._datetime_details.renew_update_at(self._datetime_details)
-
     @override
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, type(self)):
@@ -51,3 +39,15 @@ class Entity:
             Hash of the entity UUID.
         """
         return hash(self._uuid_value_object.value)
+
+    def get_created_at(self) -> datetime:
+        return self._datetime_details.created_at
+
+    def get_updated_at(self) -> datetime:
+        return self._datetime_details.updated_at
+
+    def get_uuid(self) -> UUID:
+        return self._uuid_value_object.value
+
+    def _touch(self) -> None:
+        self._datetime_details = self._datetime_details.renew_update_at(self._datetime_details)

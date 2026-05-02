@@ -30,22 +30,22 @@ class Retailer(AggregateRootEntity):
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number
 
+    def get_home_page_url(self) -> str:
+        return self.__home_page_url
+
     def get_name(self) -> str:
         return str(self.__name)
 
-    def set_name(self, new_name: str) -> None:
-        self.__name = RetailersNames(new_name)
-        self._touch()
+    def get_phone_number(self) -> str:
+        return self.__phone_number
 
     def set_home_page_url(self, new_url: str) -> None:
         self.__home_page_url = new_url
         self._touch()
 
-    def get_home_page_url(self) -> str:
-        return self.__home_page_url
-
-    def get_phone_number(self) -> str:
-        return self.__phone_number
+    def set_name(self, new_name: str) -> None:
+        self.__name = RetailersNames(new_name)
+        self._touch()
 
     def set_phone_number(self, new_phone_number: str) -> None:
         self.__phone_number = new_phone_number

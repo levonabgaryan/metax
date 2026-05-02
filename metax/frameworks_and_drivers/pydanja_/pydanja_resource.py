@@ -110,6 +110,16 @@ class MetaxDANJAResource[ResourceT](DANJAResource[ResourceT]):
 
 
 class MetaxDANJAResourceList[ResourceT](DANJAResourceList[ResourceT]):
+    @classmethod
+    @override
+    def from_basemodel_list(
+        cls, resources: list[ResourceT], resource_name: str | None = None, resource_id: str | None = None
+    ) -> Self:
+        return cast(
+            Self,
+            super().from_basemodel_list(resources=resources, resource_name=resource_name, resource_id=resource_id),
+        )
+
     @model_validator(mode="wrap")
     @override
     @classmethod
@@ -121,13 +131,3 @@ class MetaxDANJAResourceList[ResourceT](DANJAResourceList[ResourceT]):
             del data_copy.included
 
         return handler(data_copy)
-
-    @classmethod
-    @override
-    def from_basemodel_list(
-        cls, resources: list[ResourceT], resource_name: str | None = None, resource_id: str | None = None
-    ) -> Self:
-        return cast(
-            Self,
-            super().from_basemodel_list(resources=resources, resource_name=resource_name, resource_id=resource_id),
-        )

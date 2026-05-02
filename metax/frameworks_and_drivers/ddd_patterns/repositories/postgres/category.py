@@ -230,6 +230,76 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await sync_to_async(_sync_version)(limit, offset)
 
     @override
+    async def _add(self, category: Category) -> None:
+        def _sync_version(_category: Category) -> None:
+            category_insert_query = """
+                INSERT INTO categories (category_uuid, name, created_at, updated_at)
+                VALUES (%s, %s, %s, %s)
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    sql=category_insert_query,
+                    params=[
+                        _category.get_uuid(),
+                        _category.get_name(),
+                        _category.get_created_at(),
+                        _category.get_updated_at(),
+                    ],
+                )
+
+                if _category.get_helper_words():
+                    helper_words_insert_query = """
+                        INSERT INTO category_helper_words
+                            (helper_word_uuid, helper_word_text, category_uuid, created_at, updated_at)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """
+                    cursor.executemany(
+                        sql=helper_words_insert_query,
+                        param_list=[
+                            (
+                                helper_word.get_uuid(),
+                                helper_word.get_helper_word_text(),
+                                _category.get_uuid(),
+                                helper_word.get_created_at(),
+                                helper_word.get_updated_at(),
+                            )
+                            for helper_word in _category.get_helper_words()
+                        ],
+                    )
+
+        try:
+            await sync_to_async(_sync_version)(category)
+        except IntegrityError as err:
+            field_name, field_value = extract_field_from_integrity_message(str(err))
+            raise EntityAlreadyExistsError(
+                entity_type="category",
+                entity_field_name=field_name,
+                entity_field_value=field_value,
+            ) from err
+
+    @override
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
+        def _sync_version(_category_uuid: UUID) -> UUID | None:
+            delete_helper_words_query = """
+                DELETE FROM category_helper_words
+                WHERE category_uuid = %s;
+            """
+            delete_category_query = """
+                DELETE FROM categories
+                WHERE category_uuid = %s;
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=delete_helper_words_query, params=[_category_uuid])
+                cursor.execute(sql=delete_category_query, params=[_category_uuid])
+                if cursor.rowcount == 0:
+                    return None
+                return _category_uuid
+
+        return await sync_to_async(_sync_version)(uuid_)
+
+    @override
     async def _get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category | None:
         def _sync_version(_helper_word_uuid: UUID) -> Category | None:
             query_ = """
@@ -294,23 +364,118 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
         return await sync_to_async(_sync_version)(helper_word_uuid)
 
     @override
-    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
-        def _sync_version(_category_uuid: UUID) -> UUID | None:
-            delete_helper_words_query = """
-                DELETE FROM category_helper_words
-                WHERE category_uuid = %s;
-            """
-            delete_category_query = """
-                DELETE FROM categories
-                WHERE category_uuid = %s;
+    async def _get_by_name(self, name: str) -> Category | None:
+        def _sync_version(category_name: str) -> Category | None:
+            category_select_query = """
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.helper_word_uuid,
+                    ch.helper_word_text,
+                    ch.created_at,
+                    ch.updated_at
+                FROM categories c
+                LEFT JOIN category_helper_words ch
+                ON c.category_uuid = ch.category_uuid
+                WHERE c.name = %s
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
-                cursor.execute(sql=delete_helper_words_query, params=[_category_uuid])
-                cursor.execute(sql=delete_category_query, params=[_category_uuid])
-                if cursor.rowcount == 0:
-                    return None
-                return _category_uuid
+                cursor.execute(sql=category_select_query, params=[category_name])
+                rows: list[
+                    tuple[
+                        UUID,
+                        CategoryName,
+                        datetime,
+                        datetime,
+                        UUID | None,
+                        str | None,
+                        datetime | None,
+                        datetime | None,
+                    ]
+                ] = cursor.fetchall()
+
+            if not rows:
+                return None
+
+            first_row = rows[0]
+            helper_words = [
+                CategoryHelperWord(
+                    uuid_=row[4],
+                    helper_word_text=row[5],
+                    created_at=row[6],
+                    updated_at=row[7],
+                )
+                for row in rows
+                if row[4] is not None and row[5] is not None and row[6] is not None and row[7] is not None
+            ]
+            return Category(
+                uuid_=first_row[0],
+                name=first_row[1],
+                helper_words=helper_words,
+                created_at=first_row[2],
+                updated_at=first_row[3],
+            )
+
+        return await sync_to_async(_sync_version)(name)
+
+    @override
+    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
+        def _sync_version(_category_uuid: UUID) -> Category | None:
+            category_select_query = """
+                SELECT
+                    c.category_uuid,
+                    c.name,
+                    c.created_at,
+                    c.updated_at,
+                    ch.helper_word_uuid,
+                    ch.helper_word_text,
+                    ch.created_at,
+                    ch.updated_at
+                FROM categories c
+                LEFT JOIN category_helper_words ch
+                ON c.category_uuid = ch.category_uuid
+                WHERE c.category_uuid = %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=category_select_query, params=[_category_uuid])
+                rows: list[
+                    tuple[
+                        UUID,
+                        CategoryName,
+                        datetime,
+                        datetime,
+                        UUID | None,
+                        str | None,
+                        datetime | None,
+                        datetime | None,
+                    ]
+                ] = cursor.fetchall()
+
+            if not rows:
+                return None
+
+            first_row = rows[0]
+            helper_words = [
+                CategoryHelperWord(
+                    uuid_=row[4],
+                    helper_word_text=row[5],
+                    created_at=row[6],
+                    updated_at=row[7],
+                )
+                for row in rows
+                if row[4] is not None and row[5] is not None and row[6] is not None and row[7] is not None
+            ]
+            return Category(
+                uuid_=first_row[0],
+                name=first_row[1],
+                helper_words=helper_words,
+                created_at=first_row[2],
+                updated_at=first_row[3],
+            )
 
         return await sync_to_async(_sync_version)(uuid_)
 
@@ -427,168 +592,3 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 entity_field_name=field_name,
                 entity_field_value=field_value,
             ) from err
-
-    @override
-    async def _add(self, category: Category) -> None:
-        def _sync_version(_category: Category) -> None:
-            category_insert_query = """
-                INSERT INTO categories (category_uuid, name, created_at, updated_at)
-                VALUES (%s, %s, %s, %s)
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(
-                    sql=category_insert_query,
-                    params=[
-                        _category.get_uuid(),
-                        _category.get_name(),
-                        _category.get_created_at(),
-                        _category.get_updated_at(),
-                    ],
-                )
-
-                if _category.get_helper_words():
-                    helper_words_insert_query = """
-                        INSERT INTO category_helper_words
-                            (helper_word_uuid, helper_word_text, category_uuid, created_at, updated_at)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """
-                    cursor.executemany(
-                        sql=helper_words_insert_query,
-                        param_list=[
-                            (
-                                helper_word.get_uuid(),
-                                helper_word.get_helper_word_text(),
-                                _category.get_uuid(),
-                                helper_word.get_created_at(),
-                                helper_word.get_updated_at(),
-                            )
-                            for helper_word in _category.get_helper_words()
-                        ],
-                    )
-
-        try:
-            await sync_to_async(_sync_version)(category)
-        except IntegrityError as err:
-            field_name, field_value = extract_field_from_integrity_message(str(err))
-            raise EntityAlreadyExistsError(
-                entity_type="category",
-                entity_field_name=field_name,
-                entity_field_value=field_value,
-            ) from err
-
-    @override
-    async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
-        def _sync_version(_category_uuid: UUID) -> Category | None:
-            category_select_query = """
-                SELECT
-                    c.category_uuid,
-                    c.name,
-                    c.created_at,
-                    c.updated_at,
-                    ch.helper_word_uuid,
-                    ch.helper_word_text,
-                    ch.created_at,
-                    ch.updated_at
-                FROM categories c
-                LEFT JOIN category_helper_words ch
-                ON c.category_uuid = ch.category_uuid
-                WHERE c.category_uuid = %s
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(sql=category_select_query, params=[_category_uuid])
-                rows: list[
-                    tuple[
-                        UUID,
-                        CategoryName,
-                        datetime,
-                        datetime,
-                        UUID | None,
-                        str | None,
-                        datetime | None,
-                        datetime | None,
-                    ]
-                ] = cursor.fetchall()
-
-            if not rows:
-                return None
-
-            first_row = rows[0]
-            helper_words = [
-                CategoryHelperWord(
-                    uuid_=row[4],
-                    helper_word_text=row[5],
-                    created_at=row[6],
-                    updated_at=row[7],
-                )
-                for row in rows
-                if row[4] is not None and row[5] is not None and row[6] is not None and row[7] is not None
-            ]
-            return Category(
-                uuid_=first_row[0],
-                name=first_row[1],
-                helper_words=helper_words,
-                created_at=first_row[2],
-                updated_at=first_row[3],
-            )
-
-        return await sync_to_async(_sync_version)(uuid_)
-
-    @override
-    async def _get_by_name(self, name: str) -> Category | None:
-        def _sync_version(category_name: str) -> Category | None:
-            category_select_query = """
-                SELECT
-                    c.category_uuid,
-                    c.name,
-                    c.created_at,
-                    c.updated_at,
-                    ch.helper_word_uuid,
-                    ch.helper_word_text,
-                    ch.created_at,
-                    ch.updated_at
-                FROM categories c
-                LEFT JOIN category_helper_words ch
-                ON c.category_uuid = ch.category_uuid
-                WHERE c.name = %s
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(sql=category_select_query, params=[category_name])
-                rows: list[
-                    tuple[
-                        UUID,
-                        CategoryName,
-                        datetime,
-                        datetime,
-                        UUID | None,
-                        str | None,
-                        datetime | None,
-                        datetime | None,
-                    ]
-                ] = cursor.fetchall()
-
-            if not rows:
-                return None
-
-            first_row = rows[0]
-            helper_words = [
-                CategoryHelperWord(
-                    uuid_=row[4],
-                    helper_word_text=row[5],
-                    created_at=row[6],
-                    updated_at=row[7],
-                )
-                for row in rows
-                if row[4] is not None and row[5] is not None and row[6] is not None and row[7] is not None
-            ]
-            return Category(
-                uuid_=first_row[0],
-                name=first_row[1],
-                helper_words=helper_words,
-                created_at=first_row[2],
-                updated_at=first_row[3],
-            )
-
-        return await sync_to_async(_sync_version)(name)

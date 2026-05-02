@@ -79,6 +79,6 @@ async def test_event_handler_shall_save_in_empty_read_model(
     )
     assert await discounted_product_read_model_repository.get_all_count() == 2
     read_model: DiscountedProductReadModel
-    async for read_model in discounted_product_read_model_repository.get_all():
+    async for read_model in discounted_product_read_model_repository.all():
         assert read_model["uuid_"] in {str(product.get_uuid()) for product in discounted_products}
         assert read_model["created_at"] == creation_data.isoformat()

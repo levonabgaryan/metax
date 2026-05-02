@@ -40,38 +40,38 @@ class DiscountedProduct(AggregateRootEntity):
         self.__name = name
         self.__url = url
 
-    def get_url(self) -> str:
-        return self.__url
-
-    def set_url(self, url: str) -> None:
-        self.__url = url
-        self._touch()
-
-    def get_name(self) -> str:
-        return self.__name
-
-    def set_name(self, name: str) -> None:
-        self.__name = name
-        self._touch()
-
-    def get_real_price(self) -> Decimal:
-        return self.__price_details.real_price
-
-    def get_discounted_price(self) -> Decimal:
-        return self.__price_details.discounted_price
-
-    def has_category(self) -> bool:
-        return self.__category_uuid_value_object is not None
-
     def get_category_uuid(self) -> UUID:
         if self.__category_uuid_value_object is None:
             msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
             raise AttributeError(msg)
         return self.__category_uuid_value_object.value
 
+    def get_discounted_price(self) -> Decimal:
+        return self.__price_details.discounted_price
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def get_real_price(self) -> Decimal:
+        return self.__price_details.real_price
+
+    def get_retailer_uuid(self) -> UUID:
+        return self.__retailer_uuid_value_object.value
+
+    def get_url(self) -> str:
+        return self.__url
+
+    def has_category(self) -> bool:
+        return self.__category_uuid_value_object is not None
+
     def set_category_uuid(self, category_uuid: UUID) -> None:
         self.__category_uuid_value_object = UUIDValueObject.create(category_uuid)
         self._touch()
 
-    def get_retailer_uuid(self) -> UUID:
-        return self.__retailer_uuid_value_object.value
+    def set_name(self, name: str) -> None:
+        self.__name = name
+        self._touch()
+
+    def set_url(self, url: str) -> None:
+        self.__url = url
+        self._touch()

@@ -81,9 +81,8 @@ async def test_update_category(
 
     # when
     category.set_name("category_new_name")
-    await repo.update_categories_by_category_uuid(
-        category_uuid=str(category.get_uuid()),
-        category=DiscountedProductCategoryReadModel(
+    await repo.update_categories(
+        DiscountedProductCategoryReadModel(
             uuid_=str(category.get_uuid()),
             created_at=category.get_created_at().isoformat(),
             updated_at=category.get_updated_at().isoformat(),
@@ -124,9 +123,8 @@ async def test_update_retailer(
     retailer.set_name(RetailersNames.SAS_AM.value)
     retailer.set_home_page_url("new_url")
     retailer.set_phone_number("new_phone_number")
-    await repo.update_retailers_by_retailer_uuid(
-        retailer_uuid=str(retailer.get_uuid()),
-        retailer=DiscountedProductRetailerReadModel(
+    await repo.update_retailers(
+        DiscountedProductRetailerReadModel(
             uuid_=str(retailer.get_uuid()),
             created_at=retailer.get_created_at().isoformat(),
             updated_at=retailer.get_updated_at().isoformat(),
@@ -168,7 +166,7 @@ async def test_get_all(
     )
 
     # when
-    got_discounted_product_read_models = repo.get_all()
+    got_discounted_product_read_models = repo.all()
 
     # then
     async for product in got_discounted_product_read_models:
@@ -184,45 +182,52 @@ async def test_get_all(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("query", ["gi", "gini", "գի", "գինի", "Blue Nun", "Gold Edition"])
-async def test_get_by_name_page(
+async def test_search_by_name_two_pages(
     query: str,
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
-    # given
+    # given — two products that should both match the same full-text query; others do not.
     metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
     repos = metax_container_for_integration_tests.repositories_container.container
     repo = await repos.discounted_product_read_model_repository.async_()
     created_at = datetime.now(tz=UTC)
-    discounted_product_read_model_ = make_discounted_product_read_model(
+    wine_gold = make_discounted_product_read_model(
         created_at=created_at,
         discounted_product_uuid=str(uuid.uuid7()),
         name="Փրփրուն գինի «Blue Nun Gold Edition» 0.75լ",
     )
-    discounted_product_read_models = [
+    wine_extra = make_discounted_product_read_model(
+        created_at=created_at,
+        discounted_product_uuid=str(uuid.uuid7()),
+        name="Գինի «Blue Nun Gold Edition» 0.5լ — երկրորդ տարաձև",
+    )
+    noise_products = [
         make_discounted_product_read_model(
             created_at=created_at,
             discounted_product_uuid=str(uuid.uuid7()),
         )
         for _ in range(15)
     ]
-    discounted_product_read_models.append(discounted_product_read_model_)
-    await repo.add_many(discounted_product_read_models)
+    await repo.add_many([*noise_products, wine_gold, wine_extra])
     await refresh_opensearch_index(
         metax_lifespan_manager_for_integration_tests, discounted_product_read_model.ALIAS_NAME
     )
+    expected_uuids = {wine_gold["uuid_"], wine_extra["uuid_"]}
+    expected_by_uuid = {wine_gold["uuid_"]: wine_gold, wine_extra["uuid_"]: wine_extra}
 
-    # when
-    found_products, scroll_id = await repo.get_by_name(name=query, chunk_size=1)
+    # when / then — first page
+    page1, total_first = await repo.search_by_name(name=query, offset=0, limit=1)
+    assert total_first == 2
+    assert len(page1) == 1
+    assert page1[0]["uuid_"] in expected_uuids
+    assert page1[0]["name"] == expected_by_uuid[page1[0]["uuid_"]]["name"]
 
-    # then
-    # first_page
-    assert scroll_id is not None
-    assert len(found_products) == 1
-    found_product = found_products[0]
-    assert found_product["uuid_"] == discounted_product_read_model_["uuid_"]
-    assert found_product["name"] == discounted_product_read_model_["name"]
+    # second page (same total; different hit than page 1)
+    page2, total_second = await repo.search_by_name(name=query, offset=1, limit=1)
+    assert total_second == 2
+    assert len(page2) == 1
+    assert page2[0]["uuid_"] in expected_uuids
+    assert page2[0]["name"] == expected_by_uuid[page2[0]["uuid_"]]["name"]
+    assert page1[0]["uuid_"] != page2[0]["uuid_"]
 
-    # second page
-    found_products, scroll_id = await repo.get_by_name(name=query, cursor_=scroll_id)
-    assert scroll_id is None
-    assert len(found_products) == 0
+    assert {page1[0]["uuid_"], page2[0]["uuid_"]} == expected_uuids

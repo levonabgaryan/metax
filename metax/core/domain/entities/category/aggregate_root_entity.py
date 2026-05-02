@@ -29,24 +29,6 @@ class Category(AggregateRootEntity):
         self.__name = name
         self.__helper_words = helper_words
 
-    def get_name(self) -> str:
-        return self.__name
-
-    def set_name(self, new_name: str) -> None:
-        self.__name = new_name
-        self._touch()
-
-    def get_helper_words(self) -> list[CategoryHelperWord]:
-        return self.__helper_words
-
-    def update_helper_word_text_by_uuid(self, helper_word_uuid: UUID, text: str) -> None:
-        self.__check_texts_uniqueness([text])
-        for helper_word in self.__helper_words:
-            if helper_word.get_uuid() == helper_word_uuid:
-                helper_word.set_helper_word_text(text)
-                break
-        self._touch()
-
     def add_new_helper_words(self, new_helper_words: list[CategoryHelperWord]) -> None:
         new_helper_words_texts = [helper_word.get_helper_word_text() for helper_word in new_helper_words]
         self.__check_texts_uniqueness(new_helper_words_texts)
@@ -58,6 +40,24 @@ class Category(AggregateRootEntity):
         self.__helper_words = [
             helper_word for helper_word in self.__helper_words if helper_word.get_uuid() not in uuids_to_delete
         ]
+        self._touch()
+
+    def get_helper_words(self) -> list[CategoryHelperWord]:
+        return self.__helper_words
+
+    def get_name(self) -> str:
+        return self.__name
+
+    def set_name(self, new_name: str) -> None:
+        self.__name = new_name
+        self._touch()
+
+    def update_helper_word_text_by_uuid(self, helper_word_uuid: UUID, text: str) -> None:
+        self.__check_texts_uniqueness([text])
+        for helper_word in self.__helper_words:
+            if helper_word.get_uuid() == helper_word_uuid:
+                helper_word.set_helper_word_text(text)
+                break
         self._touch()
 
     def __check_texts_uniqueness(self, texts: list[str]) -> None:

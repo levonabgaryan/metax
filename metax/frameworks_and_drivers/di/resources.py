@@ -8,7 +8,7 @@ from opensearchpy import AsyncOpenSearch
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
-    IDiscountedProductReadModelRepository,
+    DiscountedProductReadModelRepository,
 )
 
 
@@ -32,7 +32,7 @@ async def async_opensearch_client_resource(
 @asynccontextmanager
 async def event_bus_resource(
     unit_of_work_provider: IUnitOfWorkProvider,
-    discounted_product_read_model_repo: IDiscountedProductReadModelRepository,
+    discounted_product_read_model_repo: DiscountedProductReadModelRepository,
 ) -> AsyncIterator[EventBus]:
     event_bus = EventBus(
         unit_of_work_provider=unit_of_work_provider,

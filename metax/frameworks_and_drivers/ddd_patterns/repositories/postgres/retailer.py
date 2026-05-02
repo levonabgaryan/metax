@@ -97,22 +97,6 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         return await sync_to_async(_sync_version)(limit, offset)
 
     @override
-    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
-        def _sync_version(_retailer_uuid: UUID) -> UUID | None:
-            delete_query = """
-                DELETE FROM retailers
-                WHERE retailer_uuid = %s;
-            """
-            cursor: CursorWrapper
-            with connection.cursor() as cursor:
-                cursor.execute(sql=delete_query, params=[_retailer_uuid])
-                if cursor.rowcount == 0:
-                    return None
-                return _retailer_uuid
-
-        return await sync_to_async(_sync_version)(uuid_)
-
-    @override
     async def _add(self, retailer: Retailer) -> None:
         def _sync_version(_retailer: Retailer) -> None:
             insert_query = """
@@ -144,33 +128,18 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
             ) from err
 
     @override
-    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
-        def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
-            select_query = """
-                SELECT
-                    retailer_uuid,
-                    name,
-                    home_page_url,
-                    phone_number,
-                    created_at,
-                    updated_at
-                FROM retailers
-                WHERE retailer_uuid = %s
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
+        def _sync_version(_retailer_uuid: UUID) -> UUID | None:
+            delete_query = """
+                DELETE FROM retailers
+                WHERE retailer_uuid = %s;
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
-                cursor.execute(sql=select_query, params=[_retailer_uuid])
-                row = cursor.fetchone()
-                if row is None:
+                cursor.execute(sql=delete_query, params=[_retailer_uuid])
+                if cursor.rowcount == 0:
                     return None
-                return Retailer(
-                    uuid_=row[0],
-                    name=row[1],
-                    home_page_url=row[2],
-                    phone_number=row[3],
-                    created_at=row[4],
-                    updated_at=row[5],
-                )
+                return _retailer_uuid
 
         return await sync_to_async(_sync_version)(uuid_)
 
@@ -204,6 +173,37 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                 )
 
         return await sync_to_async(_sync_version)(name)
+
+    @override
+    async def _get_by_uuid(self, uuid_: UUID) -> Retailer | None:
+        def _sync_version(_retailer_uuid: UUID) -> Retailer | None:
+            select_query = """
+                SELECT
+                    retailer_uuid,
+                    name,
+                    home_page_url,
+                    phone_number,
+                    created_at,
+                    updated_at
+                FROM retailers
+                WHERE retailer_uuid = %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sql=select_query, params=[_retailer_uuid])
+                row = cursor.fetchone()
+                if row is None:
+                    return None
+                return Retailer(
+                    uuid_=row[0],
+                    name=row[1],
+                    home_page_url=row[2],
+                    phone_number=row[3],
+                    created_at=row[4],
+                    updated_at=row[5],
+                )
+
+        return await sync_to_async(_sync_version)(uuid_)
 
     @override
     async def _update(self, updated_retailer: Retailer) -> None:
