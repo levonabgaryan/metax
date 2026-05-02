@@ -212,7 +212,9 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     dp.created_at,
                     dp.updated_at,
                     c.name,
-                    r.name
+                    r.name,
+                    r.home_page_url,
+                    r.phone_number
                 FROM discounted_products dp
                 LEFT JOIN categories c ON dp.category_uuid = c.category_uuid
                 LEFT JOIN retailers r ON dp.retailer_uuid = r.retailer_uuid
@@ -235,12 +237,16 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     datetime,
                     CategoryName,
                     RetailerName,
+                    str,
+                    str,
                 ]
             ] = cursor.fetchall()
             return [
                 DiscountedProductWithDetails(
                     category_name=row[9],
                     retailer_name=row[10],
+                    retailer_home_page_url=row[11],
+                    retailer_phone_number=row[12],
                     entity=DiscountedProduct(
                         uuid_=row[0],
                         real_price=row[1],

@@ -15,6 +15,8 @@ class DiscountedProductWithDetails:
     entity: DiscountedProduct
     category_name: str | None
     retailer_name: str
+    retailer_home_page_url: str
+    retailer_phone_number: str
 
 
 class DiscountedProductRepository(ABC):

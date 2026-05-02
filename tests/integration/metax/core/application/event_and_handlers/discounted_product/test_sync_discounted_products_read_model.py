@@ -82,3 +82,5 @@ async def test_event_handler_shall_save_in_empty_read_model(
     async for read_model in discounted_product_read_model_repository.all():
         assert read_model["uuid_"] in {str(product.get_uuid()) for product in discounted_products}
         assert read_model["created_at"] == creation_data.isoformat()
+        assert read_model["retailer"]["home_page_url"] == retailer.get_home_page_url()
+        assert read_model["retailer"]["phone_number"] == retailer.get_phone_number()

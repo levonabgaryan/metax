@@ -349,6 +349,8 @@ async def test_get_by_created_at(
     for row in rows:
         assert row.category_name == "JoinedCategoryName"
         assert row.retailer_name == str(retailer.get_name())
+        assert row.retailer_home_page_url == retailer.get_home_page_url()
+        assert row.retailer_phone_number == retailer.get_phone_number()
         assert row.entity.get_created_at() == created_at
         assert row.entity.get_retailer_uuid() == retailer.get_uuid()
         assert row.entity.get_category_uuid() == category.get_uuid()

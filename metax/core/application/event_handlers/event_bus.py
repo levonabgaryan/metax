@@ -219,8 +219,8 @@ def to_read_model(discounted_product_with_details: DiscountedProductWithDetails)
             "created_at": created_at,
             "updated_at": updated_at,
             "name": discounted_product_with_details.retailer_name,
-            "home_page_url": "",
-            "phone_number": "",
+            "home_page_url": discounted_product_with_details.retailer_home_page_url,
+            "phone_number": discounted_product_with_details.retailer_phone_number,
         },
     }
     if entity.has_category():
