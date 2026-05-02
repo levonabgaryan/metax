@@ -24,6 +24,9 @@ from django_framework.metax.views.category_helper_word.collection_controller imp
     CategoryHelperWordCollectionController,
 )
 from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
+from django_framework.metax.views.discounted_product.collection_controller import (
+    DiscountedProductCollectionController,
+)
 from django_framework.metax.views.health.controllers import HealthCheckView
 from django_framework.metax.views.openapi_json import DanjaOpenAPIJsonView
 from django_framework.metax.views.retailer.collection_controller import (
@@ -37,6 +40,7 @@ from dmr.routing import Router, path
 from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
     RESOURCE_TYPE_CATEGORY,
     RESOURCE_TYPE_CATEGORY_HELPER_WORD,
+    RESOURCE_TYPE_DISCOUNTED_PRODUCT,
     RESOURCE_TYPE_RETAILER,
 )
 
@@ -49,6 +53,7 @@ api_router = Router(
         path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/", CategoryHelperWordCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_RETAILER}/", RetailerCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>/", RetailerResourceController.as_view()),
+        path(f"{RESOURCE_TYPE_DISCOUNTED_PRODUCT}", DiscountedProductCollectionController.as_view()),
         path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )

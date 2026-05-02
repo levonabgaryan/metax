@@ -17,7 +17,7 @@ class DiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
-    async def add_one(self, discounted_product: DiscountedProductReadModel) -> None:
+    async def add(self, discounted_product: DiscountedProductReadModel) -> None:
         pass
 
     @staticmethod
@@ -35,8 +35,7 @@ class DiscountedProductReadModelRepository(ABC):
 
     @abstractmethod
     def all(self) -> AsyncIterator[DiscountedProductReadModel]:
-        """Concrete implementations use ``async def`` + ``yield`` (async generator)."""
-        ...
+        pass
 
     @abstractmethod
     async def get_all_count(self) -> int:
@@ -50,8 +49,7 @@ class DiscountedProductReadModelRepository(ABC):
         offset: int = 0,
         limit: int = 50,
     ) -> tuple[list[DiscountedProductReadModel], int]:
-        """Return a page of products matching ``name`` and the total hit count for the query."""
-        ...
+        pass
 
     @abstractmethod
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:

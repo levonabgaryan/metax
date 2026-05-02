@@ -7,7 +7,7 @@ from typing import Annotated
 
 from typer import Exit, Option, Typer, echo
 
-from metax_configs import configuration_factory
+from metax_bootstrap import METAX_CONFIGS
 
 migrations = Typer(name="migrations")
 
@@ -36,14 +36,14 @@ def _django_migration_name_slug(user_part: str, timestamp: str) -> str:
 def migrate_postgres(
     migration_name: Annotated[str, Option(prompt=True)],
 ) -> None:
-    metax_configs = configuration_factory()
+
     timestamp = datetime.now(tz=UTC).strftime("%Y_%m_%d_%H_%M")
     full_migration_name = _django_migration_name_slug(migration_name, timestamp)
-    manage_py = Path(metax_configs.django_dir) / "manage.py"
+    manage_py = Path(METAX_CONFIGS.django_dir) / "manage.py"
     echo("STARTUP | Task: Postgres Migrations | Status: Started")
     make = subprocess.run(  # noqa: S603
         [sys.executable, str(manage_py), "makemigrations", "metax", "--name", full_migration_name],
-        cwd=metax_configs.django_dir,
+        cwd=METAX_CONFIGS.django_dir,
         check=False,
     )
     if make.returncode != 0:
@@ -52,7 +52,7 @@ def migrate_postgres(
 
     apply = subprocess.run(  # noqa: S603
         [sys.executable, str(manage_py), "migrate", "metax"],
-        cwd=metax_configs.django_dir,
+        cwd=METAX_CONFIGS.django_dir,
         check=False,
     )
     if apply.returncode != 0:

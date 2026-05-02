@@ -16,6 +16,7 @@ from metax.core.application.ports.ddd_patterns.repository.errors import (
     EntityAlreadyExistsError,
     EntityIsNotFoundError,
 )
+from metax_main_error import MetaxError
 
 
 def _to_json_api_pointer(loc: list[int | str] | None) -> str | None:
@@ -96,6 +97,11 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
                 raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
                 status_code=HTTPStatus.CONFLICT,
             )
+        if isinstance(exc, MetaxError):
+            return self.to_error(
+                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
 
         return await super().handle_async_error(endpoint, controller, exc)
 
@@ -148,3 +154,6 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
 
 
 # discounted product API
+# asyncio, Open-search, subprocess(sync and async)
+# best practise for docker containers (testing, local launch, for deployment)
+# django admin

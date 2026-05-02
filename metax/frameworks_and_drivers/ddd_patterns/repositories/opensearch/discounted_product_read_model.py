@@ -41,7 +41,7 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
             raise RuntimeError(msg)
 
     @override
-    async def add_one(self, discounted_product: DiscountedProductReadModel) -> None:
+    async def add(self, discounted_product: DiscountedProductReadModel) -> None:
         # https://github.com/opensearch-project/opensearch-py/blob/main/guides/async.md#index-documents
         doc_id = discounted_product["uuid_"]
         doc_body = self._document_body_for_index(discounted_product)
