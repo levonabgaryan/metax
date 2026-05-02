@@ -13,7 +13,7 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
     CollectDiscountedProducts,
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
-from metax.core.domain.entities.retailer.value_objects import RetailersNames
+from metax.core.domain.entities.retailer.value_objects import RetailersNames, parse_retailer_name
 from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_collector_service_creators import (
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
@@ -41,7 +41,7 @@ async def collect_discounted_products_from_all_retailers(
     for retailer in retailers:
         retailer_key = retailer.get_name()
         collector_service_creator_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP[
-            RetailersNames(retailer_key)
+            parse_retailer_name(retailer_key)
         ]
 
         collector_service_creator: DiscountedProductCollectorServiceCreator

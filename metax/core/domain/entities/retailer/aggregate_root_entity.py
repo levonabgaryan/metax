@@ -6,7 +6,7 @@ from uuid import UUID
 from metax.core.domain.ddd_patterns.aggregate import AggregateRootEntity
 from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
 
-from .value_objects import RetailersNames
+from .value_objects import parse_retailer_name
 
 
 class Retailer(AggregateRootEntity):
@@ -26,7 +26,7 @@ class Retailer(AggregateRootEntity):
                 updated_at=updated_at,
             ),
         )
-        self.__name = RetailersNames(name)
+        self.__name = parse_retailer_name(name)
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number
 
@@ -44,7 +44,7 @@ class Retailer(AggregateRootEntity):
         self._touch()
 
     def set_name(self, new_name: str) -> None:
-        self.__name = RetailersNames(new_name)
+        self.__name = parse_retailer_name(new_name)
         self._touch()
 
     def set_phone_number(self, new_phone_number: str) -> None:

@@ -59,12 +59,13 @@ class CategoryResourceController(MetaxJsonApiController):
         )
 
         if parsed_query.include is not None:
-            self.__apply_helper_words_include(category=category, response_body=response_body)
+            self.__fill_included_field(category=category, response_body=response_body)
 
         return response_body
 
     @staticmethod
-    def __apply_helper_words_include(response_body: CategoryResponseBody, category: Category) -> None:
+    def __fill_included_field(response_body: CategoryResponseBody, category: Category) -> None:
+        """Fill included field in response body by helper words resources."""
         helper_word_resources_identifiers: list[DANJAResourceIdentifier] = []
         included: list[
             DANJASingleResource[CategoryResource] | DANJASingleResource[CategoryHelperWordResource]

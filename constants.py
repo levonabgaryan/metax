@@ -14,3 +14,4 @@ class ErrorCodes(StrEnum):
     UPDATE_BEFORE_CREATION = auto()
     INVALID_URL_FOR_SCRAPING = auto()
     NO_RETAILERS = auto()
+    INVALID_RETAILER_NAME = auto()

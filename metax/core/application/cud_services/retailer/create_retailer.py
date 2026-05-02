@@ -20,16 +20,16 @@ class CreateRetailerService(CUDService[CreateRetailerRequestDTO]):
             retailer_uuid,
         )
         uow = await self._unit_of_work_provider.provide()
+        now = datetime.now(tz=UTC)
+        retailer = Retailer(
+            uuid_=retailer_uuid,
+            name=request.name,
+            phone_number=request.phone_number,
+            home_page_url=request.url,
+            created_at=now,
+            updated_at=now,
+        )
         async with uow:
-            now = datetime.now(tz=UTC)
-            retailer = Retailer(
-                uuid_=retailer_uuid,
-                name=request.name,
-                phone_number=request.phone_number,
-                home_page_url=request.url,
-                created_at=now,
-                updated_at=now,
-            )
             await uow.retailer_repo.add(retailer)
             await uow.commit()
         logger.info(

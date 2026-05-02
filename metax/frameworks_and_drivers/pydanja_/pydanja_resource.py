@@ -126,7 +126,6 @@ class MetaxDANJAResourceList[ResourceT](DANJAResourceList[ResourceT]):
     def ignore_included(cls, data: Any, handler: ModelWrapValidatorHandler[Self]) -> Self:
         data_copy = deepcopy(data)
 
-        # Exclude included resource types
         if hasattr(data_copy, "included"):
             del data_copy.included
 

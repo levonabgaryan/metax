@@ -16,6 +16,7 @@ from metax.core.application.ports.ddd_patterns.repository.errors import (
     EntityAlreadyExistsError,
     EntityIsNotFoundError,
 )
+from metax.core.domain.entities.retailer.errors import InvalidRetailerNameError
 from metax_main_error import MetaxError
 
 
@@ -37,6 +38,24 @@ def _to_json_api_pointer(loc: list[int | str] | None) -> str | None:
 
 class JsonApiErrorModel(TypedDict):
     errors: list[DANJAError]
+
+
+def json_api_single_error(*, exc: MetaxError, status: HTTPStatus) -> JsonApiErrorModel:
+    """JSON:API error document with one object (:attr:`error_model` / :meth:`to_error`).
+
+    Returns:
+        A mapping with an ``errors`` array — do not pass a bare ``DANJAError`` to :meth:`to_error`.
+    """
+    return {
+        "errors": [
+            DANJAError(
+                code=exc.error_code,
+                title=exc.title,
+                detail=exc.details,
+                status=str(status.value),
+            )
+        ]
+    }
 
 
 class MetaxJsonApiController(Controller[PydanticSerializer]):
@@ -89,17 +108,22 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
     ) -> HttpResponse:
         if isinstance(exc, EntityIsNotFoundError):
             return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                raw_data=json_api_single_error(exc=exc, status=HTTPStatus.NOT_FOUND),
                 status_code=HTTPStatus.NOT_FOUND,
             )
         if isinstance(exc, EntityAlreadyExistsError):
             return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                raw_data=json_api_single_error(exc=exc, status=HTTPStatus.CONFLICT),
                 status_code=HTTPStatus.CONFLICT,
+            )
+        if isinstance(exc, InvalidRetailerNameError):
+            return self.to_error(
+                raw_data=json_api_single_error(exc=exc, status=HTTPStatus.BAD_REQUEST),
+                status_code=HTTPStatus.BAD_REQUEST,
             )
         if isinstance(exc, MetaxError):
             return self.to_error(
-                raw_data=DANJAError(code=exc.error_code, title=exc.title, detail=exc.details),
+                raw_data=json_api_single_error(exc=exc, status=HTTPStatus.INTERNAL_SERVER_ERROR),
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
             )
 
@@ -153,7 +177,7 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
         ))
 
 
-# discounted product API
+# Endpoints included, relationship builders
 # asyncio, Open-search, subprocess(sync and async)
 # best practise for docker containers (testing, local launch, for deployment)
 # django admin
