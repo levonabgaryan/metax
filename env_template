@@ -32,6 +32,6 @@ YEREVAN_CITY_PRODUCTS_DETAILS_URL=
 SAS_AM_MAIN_PAGE_URL=
 SAS_AM_DATA_SOURCE_URL=
 
-# Infrastructure
-FLUENT_BIT_HOST=
-FLUENT_BIT_PORT=
+# Infrastructure (use metax-fluent-bit when running via metax.docker-compose.yml)
+FLUENT_BIT_HOST=metax-fluent-bit
+FLUENT_BIT_PORT=24224

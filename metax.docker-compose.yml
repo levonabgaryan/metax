@@ -1,4 +1,13 @@
 services:
+  # Receives container logs from Docker's `fluentd` logging driver (forward protocol).
+  metax-fluent-bit:
+    image: fluent/fluent-bit:3.2.5
+    container_name: metax-fluent-bit
+    volumes:
+      - ./docker/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+    networks:
+      - metax-net
+
   metax:
     build:
       dockerfile: ./Dockerfile.base
@@ -15,6 +24,8 @@ services:
       retries: 10
       start_period: 20s
     depends_on:
+      metax-fluent-bit:
+        condition: service_started
       metax-opensearch-db:
         condition: service_healthy
       metax-redis:
@@ -114,6 +125,8 @@ services:
     networks:
       - metax-net
     depends_on:
+      metax-fluent-bit:
+        condition: service_started
       metax:
         condition: service_healthy
     logging:

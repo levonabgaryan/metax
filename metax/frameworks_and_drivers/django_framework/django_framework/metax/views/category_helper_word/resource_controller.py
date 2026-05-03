@@ -24,7 +24,7 @@ from metax_bootstrap import get_metax_lifespan_manager
 class CategoryHelperWordResourceController(MetaxJsonApiController):
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
-        tags=["Retailer"],
+        tags=["Category Helper word"],
         extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
     )
     async def delete(self, parsed_path: Path[CategoryHelperWordPath]) -> None:
@@ -39,7 +39,7 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
 
     @modify(
         status_code=HTTPStatus.OK,
-        tags=["Retailer"],
+        tags=["Category Helper word"],
         extra_responses=[
             ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError),
             ResponseSpec(status_code=HTTPStatus.CONFLICT, return_type=DANJAError),

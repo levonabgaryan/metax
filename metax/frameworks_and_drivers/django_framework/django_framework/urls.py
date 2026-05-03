@@ -23,6 +23,9 @@ from django_framework.metax.views.category.resource_controller import CategoryRe
 from django_framework.metax.views.category_helper_word.collection_controller import (
     CategoryHelperWordCollectionController,
 )
+from django_framework.metax.views.category_helper_word.resource_controller import (
+    CategoryHelperWordResourceController,
+)
 from django_framework.metax.views.celery.tasks import CollectDiscountedProductsFromRetailersController
 from django_framework.metax.views.discounted_product.collection_controller import (
     DiscountedProductCollectionController,
@@ -51,6 +54,10 @@ api_router = Router(
         path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_CATEGORY}/<uuid:category_uuid>/", CategoryResourceController.as_view()),
         path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/", CategoryHelperWordCollectionController.as_view()),
+        path(
+            f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/<uuid:helper_word_path>/",
+            CategoryHelperWordResourceController.as_view(),
+        ),
         path(f"{RESOURCE_TYPE_RETAILER}/", RetailerCollectionController.as_view()),
         path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>/", RetailerResourceController.as_view()),
         path(f"{RESOURCE_TYPE_DISCOUNTED_PRODUCT}", DiscountedProductCollectionController.as_view()),
