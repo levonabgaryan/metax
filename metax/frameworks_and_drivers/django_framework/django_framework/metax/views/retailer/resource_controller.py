@@ -1,6 +1,7 @@
 from http import HTTPStatus
 from typing import Annotated
 
+from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from django_framework.metax.views.retailer.resources import (
     RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE,
     RetailerPatchRequestBody,
@@ -8,16 +9,15 @@ from django_framework.metax.views.retailer.resources import (
     RetailerResource,
     RetailerResponseBody,
 )
-from dmr import Body, Controller, Path, ResponseSpec, modify
+from dmr import Body, Path, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
-from dmr.plugins.pydantic import PydanticSerializer
 from pydanja import DANJAError
 
 from metax.core.application.cud_services.retailer import UpdateRetailerRequestDTO, UpdateRetailerService
 from metax_bootstrap import get_metax_lifespan_manager
 
 
-class RetailerResourceController(Controller[PydanticSerializer]):
+class RetailerResourceController(MetaxJsonApiController):
     @modify(
         status_code=HTTPStatus.NO_CONTENT,
         tags=["Retailer"],
