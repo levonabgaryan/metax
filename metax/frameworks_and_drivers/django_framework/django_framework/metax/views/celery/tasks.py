@@ -18,11 +18,10 @@ class CollectDiscountedProductsFromRetailersController(MetaxJsonApiController):
         ],
     )
     async def post(self) -> None:
-        container = get_metax_lifespan_manager().get_di_container()
-        patterns = container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
-        category_classifier_service = patterns.category_classifier_service()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
+        category_classifier_service = container.get_category_classifier_service()
         now = datetime.now(tz=UTC)
         await collect_discounted_products_from_all_retailers(
             start_date_of_collecting=now,

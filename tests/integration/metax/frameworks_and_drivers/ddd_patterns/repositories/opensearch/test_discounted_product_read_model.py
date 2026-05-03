@@ -23,9 +23,8 @@ async def test_delete_older_than_and_return_deleted_count(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    repos = metax_container_for_integration_tests.repositories_container.container
-    repo = await repos.discounted_product_read_model_repository.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    repo = await metax_container.get_discounted_product_read_model_repository()
     creation_date = datetime.now(tz=UTC)
 
     discounted_products_read_models = [
@@ -62,9 +61,8 @@ async def test_update_category(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    repos = metax_container_for_integration_tests.repositories_container.container
-    repo = await repos.discounted_product_read_model_repository.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    repo = await metax_container.get_discounted_product_read_model_repository()
     created_at = datetime.now(tz=UTC)
     category = make_category_entity()
     discounted_product_read_model_ = make_discounted_product_read_model(
@@ -103,9 +101,8 @@ async def test_update_retailer(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    repos = metax_container_for_integration_tests.repositories_container.container
-    repo = await repos.discounted_product_read_model_repository.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    repo = await metax_container.get_discounted_product_read_model_repository()
     retailer = make_retailer_entity()
     created_at = datetime.now(tz=UTC)
     discounted_product_read_model_ = make_discounted_product_read_model(
@@ -149,9 +146,8 @@ async def test_get_all(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    repos = metax_container_for_integration_tests.repositories_container.container
-    repo = await repos.discounted_product_read_model_repository.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    repo = await metax_container.get_discounted_product_read_model_repository()
     created_at = datetime.now(tz=UTC)
     discounted_product_read_models = [
         make_discounted_product_read_model(
@@ -187,9 +183,8 @@ async def test_search_by_name_two_pages(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given — two products that should both match the same full-text query; others do not.
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    repos = metax_container_for_integration_tests.repositories_container.container
-    repo = await repos.discounted_product_read_model_repository.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    repo = await metax_container.get_discounted_product_read_model_repository()
     created_at = datetime.now(tz=UTC)
     wine_gold = make_discounted_product_read_model(
         created_at=created_at,

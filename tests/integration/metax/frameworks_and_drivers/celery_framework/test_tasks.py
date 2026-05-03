@@ -42,10 +42,10 @@ async def test_collect_discounted_products_from_all_retailers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
     started_time = datetime.now(tz=UTC)
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
+    unit_of_work = metax_container.get_unit_of_work()
+    event_bus = await metax_container.get_event_bus()
     retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
     async with unit_of_work as uow:
         await uow.retailer_repo.add(retailer)
@@ -87,8 +87,8 @@ async def test_collect_discounted_products_from_all_retailers(
 
     # when
     await collect_discounted_products_from_all_retailers(
-        unit_of_work_provider=metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider(),
-        category_classifier_service=metax_container_for_integration_tests.patterns_container.container.category_classifier_service(),
+        unit_of_work_provider=metax_container.get_unit_of_work_provider(),
+        category_classifier_service=metax_container.get_category_classifier_service(),
         start_date_of_collecting=started_time,
         event_bus=event_bus,
     )

@@ -24,8 +24,8 @@ class RetailerCollectionController(MetaxJsonApiController):
         tags=["Retailer"],
     )
     async def get(self, parsed_query: Query[QueryParamsForCollection]) -> RetailerListResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = container.get_unit_of_work()
         async with unit_of_work as uow:
             total_count, paginated_list_retailers = await uow.retailer_repo.list_paginated_and_total_count(
                 limit=parsed_query.limit, offset=parsed_query.offset
@@ -68,10 +68,9 @@ class RetailerCollectionController(MetaxJsonApiController):
             Body[RetailerPostRequestBody], MediaTypeMetadata(example=RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE)
         ],
     ) -> RetailerResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        patterns = container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
 
         retailer_name = parsed_body.data.attributes.name
         home_page_url = parsed_body.data.attributes.home_page_url

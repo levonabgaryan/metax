@@ -11,7 +11,7 @@ async def app_lifespan_manager() -> AsyncIterator[State]:
     manager = get_metax_lifespan_manager()
 
     metax_lifespan_manager = get_metax_lifespan_manager()
-    await metax_lifespan_manager.init_di_container_resources()
+    await metax_lifespan_manager.init_metax_container_resources()
     metax_lifespan_manager.configure_logger()
     metax_lifespan_manager.configure_django_app()
     await metax_lifespan_manager.run_entrypoints()
@@ -21,4 +21,4 @@ async def app_lifespan_manager() -> AsyncIterator[State]:
     try:
         yield state
     finally:
-        await manager.shutdown_di_container_resources()
+        await manager.shutdown_metax_container_resources()

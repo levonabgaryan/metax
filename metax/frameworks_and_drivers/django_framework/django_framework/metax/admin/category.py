@@ -77,10 +77,9 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __add_new_helper_words(category_name: str, new_helper_words: list[str]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        patterns = di_container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await di_container.resources_container.container.event_bus.async_()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = metax_container.get_unit_of_work_provider()
+        event_bus = await metax_container.get_event_bus()
 
         uow = await unit_of_work_provider.provide()
         async with uow:
@@ -104,10 +103,9 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __create_category(category_name: str, helper_words: list[str]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        patterns = di_container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await di_container.resources_container.container.event_bus.async_()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = metax_container.get_unit_of_work_provider()
+        event_bus = await metax_container.get_event_bus()
 
         request_dto = CreateCategoryRequestDTO(
             name=category_name,
@@ -120,10 +118,9 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __delete_helper_words(category_name: str, words_to_delete: list[str]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        patterns = di_container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await di_container.resources_container.container.event_bus.async_()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = metax_container.get_unit_of_work_provider()
+        event_bus = await metax_container.get_event_bus()
 
         uow = await unit_of_work_provider.provide()
         async with uow:
@@ -142,9 +139,8 @@ class CategoryAdminHandler:
 
     @staticmethod
     async def __get__all_categories() -> list[Category]:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        patterns = di_container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = metax_container.get_unit_of_work_provider()
         uow = await unit_of_work_provider.provide()
         async with uow:
             all_categories = await uow.category_repo.all()

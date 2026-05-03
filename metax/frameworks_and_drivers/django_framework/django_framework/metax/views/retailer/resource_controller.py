@@ -25,8 +25,8 @@ class RetailerResourceController(MetaxJsonApiController):
     )
     async def delete(self, parsed_path: Path[RetailerPath]) -> None:
         retailer_uuid = parsed_path.retailer_uuid
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = container.get_unit_of_work()
         async with unit_of_work as uow:
             await uow.retailer_repo.delete_by_uuid(retailer_uuid)
             await uow.commit()
@@ -37,8 +37,8 @@ class RetailerResourceController(MetaxJsonApiController):
         extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
     )
     async def get(self, parsed_path: Path[RetailerPath]) -> RetailerResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = container.patterns_container.container.unit_of_work()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = container.get_unit_of_work()
         async with unit_of_work as uow:
             retailer = await uow.retailer_repo.get_by_uuid(parsed_path.retailer_uuid)
             await uow.commit()
@@ -69,9 +69,9 @@ class RetailerResourceController(MetaxJsonApiController):
             Body[RetailerPatchRequestBody], MediaTypeMetadata(example=RETAILER_POST_AND_PATCH_OPENAPI_EXAMPLE)
         ],
     ) -> RetailerResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work_provider = container.patterns_container.container.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
 
         cud_service = UpdateRetailerService(
             unit_of_work_provider=unit_of_work_provider,

@@ -32,8 +32,8 @@ class CategoryResourceController(MetaxJsonApiController):
     )
     async def delete(self, parsed_path: Path[CategoryPath]) -> None:
         category_uuid = parsed_path.category_uuid
-        di_container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = di_container.patterns_container.container.unit_of_work()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = metax_container.get_unit_of_work()
 
         async with unit_of_work as uow:
             await uow.category_repo.delete_by_uuid(category_uuid)
@@ -47,8 +47,8 @@ class CategoryResourceController(MetaxJsonApiController):
     async def get(
         self, parsed_path: Path[CategoryPath], parsed_query: Query[QueryParamsForResource]
     ) -> CategoryResponseBody:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = di_container.patterns_container.container.unit_of_work()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = metax_container.get_unit_of_work()
 
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_uuid(parsed_path.category_uuid)
@@ -83,9 +83,9 @@ class CategoryResourceController(MetaxJsonApiController):
             Body[CategoryPatchRequestBody], MediaTypeMetadata(example=CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE)
         ],
     ) -> CategoryResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work_provider = container.patterns_container.container.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
 
         cud_service = UpdateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         request_dto = UpdateCategoryRequestDTO(

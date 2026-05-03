@@ -34,7 +34,7 @@ def init_celery_app(**kwargs: Any) -> None:  # noqa: ARG001
 async def _init_celery_app() -> None:
     metax_application_manager = get_metax_lifespan_manager()
     # Run startup pipeline in strict order.
-    await metax_application_manager.init_di_container_resources()
+    await metax_application_manager.init_metax_container_resources()
     metax_application_manager.configure_django_app()
     # Django setup may override logging config, so apply ours after it.
     metax_application_manager.configure_logger()
@@ -52,7 +52,7 @@ def shutdown_handler(**kwargs: Any) -> None:  # noqa: ARG001
 
 async def _shutdown_handler() -> None:
     metax_application_manager = get_metax_lifespan_manager()
-    await metax_application_manager.shutdown_di_container_resources()
+    await metax_application_manager.shutdown_metax_container_resources()
 
 
 @setup_logging.connect

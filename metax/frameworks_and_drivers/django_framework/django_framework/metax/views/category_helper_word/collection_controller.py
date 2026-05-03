@@ -34,10 +34,9 @@ class CategoryHelperWordCollectionController(MetaxJsonApiController):
             MediaTypeMetadata(example=CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE),
         ],
     ) -> CategoryHelperWordResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        patterns = container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
 
         unit_of_work = await unit_of_work_provider.provide()
 

@@ -16,9 +16,9 @@ async def test_event_handler_shall_delete_old_data(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
-    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
+    event_bus = await metax_container_for_integration_tests.get_event_bus()
     retailer = make_retailer_entity()
     old_discounted_product_created_date = datetime.now(UTC)
     old_discounted_product = make_discounted_product_entity(

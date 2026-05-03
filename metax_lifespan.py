@@ -30,9 +30,9 @@ class MetaxAppLifespanManager:
     def __init__(
         self,
         metax_configs: BaseConfigs,
-        metax_di_container: MetaxContainer,
+        metax_container: MetaxContainer,
     ) -> None:
-        self.__metax_di_container = metax_di_container
+        self.__metax_di_container = metax_container
         self.__metax_configs = metax_configs
 
         self.__is_resources_initialized = False
@@ -59,28 +59,19 @@ class MetaxAppLifespanManager:
     def configure_logger(self) -> None:
         init_logger(metax_configs=self.__metax_configs)
 
-    def get_di_container(self) -> MetaxContainer:
+    def get_metax_container(self) -> MetaxContainer:
         if not self.__is_resources_initialized:
             msg = "Di container has not been initialized yet"
             raise RuntimeError(msg)
         return self.__metax_di_container
 
-    async def init_di_container_resources(self) -> None:
-        metax_di_container = self.__metax_di_container
-        metax_di_container.config.from_pydantic(self.__metax_configs)
-
-        init_task = metax_di_container.init_resources()
-        if init_task:
-            await init_task
+    async def init_metax_container_resources(self) -> None:
+        await self.__metax_di_container.init_di_container_resources()
         self.__is_resources_initialized = True
 
     async def run_entrypoints(self) -> None:
-        opensearch_async_client = (
-            await self.get_di_container().resources_container.container.opensearch_async_client.async_()
-        )
+        opensearch_async_client = await self.get_metax_container().get_opensearch_async_client()
         await run_entrypoint(client=opensearch_async_client, metax_configs=self.__metax_configs)
 
-    async def shutdown_di_container_resources(self) -> None:
-        shutdown_task = self.get_di_container().shutdown_resources()
-        if shutdown_task:
-            await shutdown_task
+    async def shutdown_metax_container_resources(self) -> None:
+        await self.__metax_di_container.shutdown_di_container_resources()

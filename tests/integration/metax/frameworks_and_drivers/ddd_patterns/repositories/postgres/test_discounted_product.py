@@ -30,8 +30,8 @@ async def test_add_many_discounted_products(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     created_data = datetime.now(tz=UTC)
     category_uuid = uuid7()
@@ -134,8 +134,8 @@ async def test_discounted_products_is_not_found_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     random_uuid = uuid7()
     # expect
@@ -155,8 +155,8 @@ async def test_delete_older_than_and_return_deleted_count(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     creation_date = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
@@ -188,8 +188,8 @@ async def test_get_all_when_no_discounted_products(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     # when
     async with unit_of_work as uow:
@@ -205,8 +205,8 @@ async def test_get_all_returns_all_products_ordered_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = datetime(2026, 6, 15, 12, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     category = make_category_entity(name="CategoryForGetAll")
@@ -261,8 +261,8 @@ async def test_get_all_chunk_size(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = datetime(2026, 7, 1, 8, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     uuids = sorted([uuid7() for _ in range(5)], key=lambda u: u.bytes)
@@ -296,8 +296,8 @@ async def test_get_by_created_at_returns_empty_when_no_rows_for_date(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     query_date = datetime(2026, 8, 1, 0, 0, 0, tzinfo=UTC)
 
     # when
@@ -314,8 +314,8 @@ async def test_get_by_created_at(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = datetime(2026, 9, 10, 15, 30, 0, tzinfo=UTC)
     category = make_category_entity(name="JoinedCategoryName")
     retailer = make_retailer_entity()
@@ -363,8 +363,8 @@ async def test_get_by_created_at_filters_by_created_at(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     date_a = datetime(2026, 10, 1, 10, 0, 0, tzinfo=UTC)
     date_b = datetime(2026, 10, 2, 10, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
@@ -394,8 +394,8 @@ async def test_get_by_created_at_without_category_returns_none_category_name(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = datetime(2026, 11, 5, 12, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     product = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=created_at)
@@ -422,8 +422,8 @@ async def test_by_created_at_chunk_size(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = datetime(2026, 12, 1, 0, 0, 0, tzinfo=UTC)
     retailer = make_retailer_entity()
     products = [

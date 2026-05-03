@@ -30,9 +30,8 @@ type _IncludedSingleResourceUnion = DANJASingleResource[CategoryResource] | DANJ
 class DiscountedProductCollectionController(MetaxJsonApiController):
     @modify(status_code=HTTPStatus.OK, tags=["Discounted product"], auth=None)
     async def get(self, parsed_query: Query[QueryParamsForCollection]) -> DiscountedProductListResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        repos = container.repositories_container.container
-        read_repo = await repos.discounted_product_read_model_repository.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        read_repo = await container.get_discounted_product_read_model_repository()
         discounted_product_read_models, total_matching_documents_count = await read_repo.search_by_name(
             name=parsed_query.filter,
             offset=parsed_query.offset,

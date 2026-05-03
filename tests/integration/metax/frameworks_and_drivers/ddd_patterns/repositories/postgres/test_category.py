@@ -28,9 +28,9 @@ def _make_helper_word(text: str) -> CategoryHelperWord:
 async def test_category_repo_add_and_get(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
     category = make_category_entity()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    unit_of_work = metax_container.get_unit_of_work()
 
     async with unit_of_work as uow:
         await uow.category_repo.add(category)
@@ -52,8 +52,8 @@ async def test_category_repo_add_and_get(
 async def test_category_repo_update_name(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category = make_category_entity()
 
     async with unit_of_work as uow:
@@ -75,8 +75,8 @@ async def test_category_repo_update_helper_words_via_diff(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category = make_category_entity()
 
     async with unit_of_work as uow:
@@ -113,8 +113,8 @@ async def test_category_is_not_found_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     random_uuid = uuid7()
 
     # expect
@@ -129,8 +129,8 @@ async def test_category_is_not_found_by_name(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
 
     # expect
     async with unit_of_work as uow:
@@ -144,8 +144,8 @@ async def test_category_repo_list_paginated_returns_full_entities(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category_a = make_category_entity(
         name="A",
         helper_words=[
@@ -189,8 +189,8 @@ async def test_category_repo_get_by_helper_word_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category = make_category_entity()
     helper_word_uuid = category.get_helper_words()[0].get_uuid()
 
@@ -215,8 +215,8 @@ async def test_category_is_not_found_by_helper_word_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
 
     # expect
     async with unit_of_work as uow:
@@ -230,8 +230,8 @@ async def test_category_repo_delete_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category = make_category_entity()
     helper_word_uuids = [helper_word.get_uuid() for helper_word in category.get_helper_words()]
 
@@ -259,8 +259,8 @@ async def test_category_repo_delete_by_uuid_not_found(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     random_uuid = uuid7()
 
     # expect
@@ -280,8 +280,8 @@ async def test_category_repo_add_duplicate_name_raises_entity_already_exists(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     existing = make_category_entity(name="duplicate-category-name")
     duplicate_name = make_category_entity(name="duplicate-category-name")
 
@@ -306,8 +306,8 @@ async def test_category_repo_update_duplicate_name_raises_entity_already_exists(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     category_a = make_category_entity(
         name="category-a-unique",
         helper_words=[_make_helper_word("category-a-word-1"), _make_helper_word("category-a-word-2")],

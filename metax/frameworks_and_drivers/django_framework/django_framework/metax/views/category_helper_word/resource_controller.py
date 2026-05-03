@@ -28,8 +28,8 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
         extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
     )
     async def delete(self, parsed_path: Path[CategoryHelperWordPath]) -> None:
-        di_container = get_metax_lifespan_manager().get_di_container()
-        unit_of_work = di_container.patterns_container.container.unit_of_work()
+        metax_container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work = metax_container.get_unit_of_work()
 
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_helper_word_uuid(parsed_path.helper_word_uuid)
@@ -52,10 +52,9 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
             MediaTypeMetadata(example=CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE),
         ],
     ) -> CategoryHelperWordResponseBody:
-        container = get_metax_lifespan_manager().get_di_container()
-        patterns = container.patterns_container.container
-        unit_of_work_provider = patterns.unit_of_work_provider()
-        event_bus = await container.resources_container.container.event_bus.async_()
+        container = get_metax_lifespan_manager().get_metax_container()
+        unit_of_work_provider = container.get_unit_of_work_provider()
+        event_bus = await container.get_event_bus()
 
         category_identifier = parsed_body.category_identifier
         category_uuid = category_identifier.id

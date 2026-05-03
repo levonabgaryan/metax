@@ -15,11 +15,9 @@ async def test_create_category_service(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work_provider = (
-        metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
-    )
-    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work_provider = metax_container.get_unit_of_work_provider()
+    event_bus = await metax_container.get_event_bus()
     request_dto = CreateCategoryRequestDTO(
         name="Test Category",
         helper_words_payload=[
@@ -51,11 +49,9 @@ async def test_create_category_service_without_helper_words(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work_provider = (
-        metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
-    )
-    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work_provider = metax_container.get_unit_of_work_provider()
+    event_bus = await metax_container.get_event_bus()
     request_dto = CreateCategoryRequestDTO(
         name="Category Without Helper Words",
     )

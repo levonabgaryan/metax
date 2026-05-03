@@ -46,8 +46,8 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     started_at = datetime.now(tz=UTC)
     retailer = make_retailer_entity()
 
@@ -71,12 +71,12 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
     ]
     creator = _FakeDiscountedProductsCreator(started_at=started_at, items=products_to_collect)
 
-    category_classifier = metax_container.patterns_container.container.category_classifier_service()
+    category_classifier = metax_container.get_category_classifier_service()
     monkeypatch.setattr(category_classifier, "classify_category", AsyncMock(return_value=None))
-    event_bus = await metax_container.resources_container.container.event_bus.async_()
+    event_bus = await metax_container.get_event_bus()
 
     use_case = CollectDiscountedProducts(
-        unit_of_work_provider=metax_container.patterns_container.container.unit_of_work_provider(),
+        unit_of_work_provider=metax_container.get_unit_of_work_provider(),
         event_bus=event_bus,
         discounted_product_collector_service_creator=creator,
         category_classifier_service=category_classifier,

@@ -16,12 +16,10 @@ async def test_update_retailer_service(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work_provider = (
-        metax_container_for_integration_tests.patterns_container.container.unit_of_work_provider()
-    )
-    event_bus = await metax_container_for_integration_tests.resources_container.container.event_bus.async_()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work_provider = metax_container_for_integration_tests.get_unit_of_work_provider()
+    event_bus = await metax_container_for_integration_tests.get_event_bus()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     retailer = make_retailer_entity()
     request_dto = UpdateRetailerRequestDTO(

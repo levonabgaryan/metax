@@ -16,10 +16,10 @@ async def test_add_new_helper_words_service(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    di_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work_provider = di_container.patterns_container.container.unit_of_work_provider()
-    event_bus = await di_container.resources_container.container.event_bus.async_()
-    unit_of_work = di_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work_provider = metax_container.get_unit_of_work_provider()
+    event_bus = await metax_container.get_event_bus()
+    unit_of_work = metax_container.get_unit_of_work()
     category = make_category_entity()
     async with unit_of_work as uow:
         await uow.category_repo.add(category)

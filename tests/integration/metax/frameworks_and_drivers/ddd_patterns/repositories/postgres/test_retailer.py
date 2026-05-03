@@ -18,8 +18,8 @@ async def test_retailer_repo_add_and_get(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     retailer = make_retailer_entity()
 
@@ -45,8 +45,8 @@ async def test_retailer_repo_update(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     retailer = make_retailer_entity()
 
@@ -76,8 +76,8 @@ async def test_retailer_is_not_found_by_uuid(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     random_uuid = uuid7()
     # expect
@@ -97,8 +97,8 @@ async def test_retailer_is_not_found_by_name(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
 
     test_name = RetailersNames.SAS_AM.value
 
@@ -119,8 +119,8 @@ async def test_retailer_repo_get_all(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     r_sas = make_retailer_entity(
         name=RetailersNames.SAS_AM.value,
         url="https://repo-get-all-sas.example",
@@ -151,8 +151,8 @@ async def test_retailer_repo_list_paginated(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container_for_integration_tests.patterns_container.container.unit_of_work()
+    metax_container_for_integration_tests = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     r_sas = make_retailer_entity(
         name=RetailersNames.SAS_AM.value,
         url="https://repo-get-all-sas.example",
@@ -189,8 +189,8 @@ async def test_retailer_repo_add_duplicate_name_raises_entity_already_exists(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     existing = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
     duplicate_name = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
 
@@ -217,8 +217,8 @@ async def test_retailer_repo_update_duplicate_name_raises_entity_already_exists(
     metax_lifespan_manager_for_integration_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
-    metax_container = metax_lifespan_manager_for_integration_tests.get_di_container()
-    unit_of_work = metax_container.patterns_container.container.unit_of_work()
+    metax_container = metax_lifespan_manager_for_integration_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
     retailer_a = make_retailer_entity(name=RetailersNames.YEREVAN_CITY.value)
     retailer_b = make_retailer_entity(name=RetailersNames.SAS_AM.value)
 
