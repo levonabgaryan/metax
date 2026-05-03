@@ -19,22 +19,23 @@ from metax_bootstrap import METAX_CONFIGS
 
 DEBUG = METAX_CONFIGS.debug
 
-# django-modern-rest OpenAPI / Swagger UI metadata (default title is "Django Modern Rest").
+_OPENAPI_DESCRIPTION = (
+    "Use these schemas under **Components → Schemas** (other names in the list are "
+    "auxiliary, e.g. JSON:API envelopes):\n\n"
+    "- `CategoryHelperWordPatchRequestBody`, `CategoryHelperWordPostRequestBody`, "
+    "`CategoryHelperWordResponseBody`\n\n"
+    "- `CategoryListResponseBody`, `CategoryPatchRequestBody`, `CategoryPostRequestBody`, "
+    "`CategoryResponseBody`\n\n"
+    "- `RetailerListResponseBody`, `RetailerPatchRequestBody`, `RetailerPostRequestBody`, "
+    "`RetailerResponseBody`\n\n"
+    "- `HealthCheckResponseBody`"
+)
+
 DMR_SETTINGS = {
     DmrSettings.openapi_config: OpenAPIConfig(
         title="Metax API",
         version="0.1.0",
-        description=(
-            "Use these schemas under **Components → Schemas** (other names in the list are "
-            "auxiliary, e.g. JSON:API envelopes):\n\n"
-            "- `CategoryHelperWordPatchRequestBody`, `CategoryHelperWordPostRequestBody`, "
-            "`CategoryHelperWordResponseBody`\n\n"
-            "- `CategoryListResponseBody`, `CategoryPatchRequestBody`, `CategoryPostRequestBody`, "
-            "`CategoryResponseBody`\n\n"
-            "- `RetailerListResponseBody`, `RetailerPatchRequestBody`, `RetailerPostRequestBody`, "
-            "`RetailerResponseBody`\n\n"
-            "- `HealthCheckResponseBody`"
-        ),
+        description=_OPENAPI_DESCRIPTION,
     ),
 }
 
@@ -133,6 +134,10 @@ USE_TZ = True
 
 STATIC_ROOT = str(f"{BASE_DIR}/staticfiles")
 STATIC_URL = "/static/"
+
+# With DEBUG off, WhiteNoise otherwise only serves STATIC_ROOT (needs collectstatic).
+WHITENOISE_USE_FINDERS = True
+
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
