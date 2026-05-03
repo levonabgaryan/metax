@@ -4,12 +4,14 @@ from typing import ClassVar, TypedDict, override
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 from django.http import HttpResponse
+from django_framework.metax.admin.admin_auth import AdminJWTAsyncAuth
 from django_framework.metax.views.json_parsers import JsonApiParser, JsonApiRenderer
-from dmr import Controller
+from dmr import APIError, Controller
 from dmr.endpoint import Endpoint
 from dmr.errors import ErrorType
 from dmr.exceptions import ValidationError
 from dmr.plugins.pydantic import PydanticSerializer
+from dmr.security.base import AsyncAuth
 from pydanja import DANJAError, DANJALink, DANJASource
 
 from metax.core.application.ports.ddd_patterns.repository.errors import (
@@ -40,18 +42,56 @@ class JsonApiErrorModel(TypedDict):
     errors: list[DANJAError]
 
 
-def json_api_single_error(*, exc: MetaxError, status: HTTPStatus) -> JsonApiErrorModel:
-    """JSON:API error document with one object (:attr:`error_model` / :meth:`to_error`).
+def json_api_single_error(
+    *, exc: Exception, status: HTTPStatus = HTTPStatus.INTERNAL_SERVER_ERROR
+) -> JsonApiErrorModel:
+    if isinstance(exc, MetaxError):
+        return {
+            "errors": [
+                DANJAError(
+                    code=exc.error_code,
+                    title=exc.title,
+                    detail=exc.details,
+                    status=str(status.value),
+                )
+            ]
+        }
 
-    Returns:
-        A mapping with an ``errors`` array — do not pass a bare ``DANJAError`` to :meth:`to_error`.
-    """
+    if isinstance(exc, APIError):
+        st = exc.status_code
+        detail = str(exc).strip() or st.phrase
+        return {
+            "errors": [
+                DANJAError(
+                    code=type(exc).__name__,
+                    title=st.phrase,
+                    detail=detail,
+                    status=str(st.value),
+                )
+            ]
+        }
+
+    sc = getattr(exc, "status_code", None)
+    if isinstance(sc, HTTPStatus):
+        detail = str(exc).strip() or sc.phrase
+        return {
+            "errors": [
+                DANJAError(
+                    code=type(exc).__name__,
+                    title=sc.phrase,
+                    detail=detail,
+                    status=str(sc.value),
+                )
+            ]
+        }
+
+    detail = str(exc).strip() or status.phrase
     return {
         "errors": [
             DANJAError(
-                code=exc.error_code,
-                title=exc.title,
-                detail=exc.details,
+                code=type(exc).__name__,
+                title=status.phrase,
+                detail=detail,
                 status=str(status.value),
             )
         ]
@@ -62,6 +102,7 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
     error_model: ClassVar[type[JsonApiErrorModel]] = JsonApiErrorModel
     parsers: ClassVar[list[JsonApiParser]] = [JsonApiParser()]
     renderers: ClassVar[list[JsonApiRenderer]] = [JsonApiRenderer()]
+    auth: ClassVar[list[AsyncAuth]] = [AdminJWTAsyncAuth()]
 
     @override
     def format_error(
@@ -85,6 +126,9 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
                     )
                 )
             return {"errors": items}
+
+        if isinstance(error, Exception):
+            return json_api_single_error(exc=error)
 
         msg = str(error)
         code = str(error_type or "internal_error")
@@ -125,6 +169,11 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
             return self.to_error(
                 raw_data=json_api_single_error(exc=exc, status=HTTPStatus.INTERNAL_SERVER_ERROR),
                 status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            )
+        if isinstance(exc, APIError):
+            return self.to_error(
+                raw_data=json_api_single_error(exc=exc, status=exc.status_code),
+                status_code=exc.status_code,
             )
 
         return await super().handle_async_error(endpoint, controller, exc)
@@ -185,4 +234,3 @@ class MetaxJsonApiController(Controller[PydanticSerializer]):
 
 # to implement
 # django admin
-#

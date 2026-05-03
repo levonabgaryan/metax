@@ -174,4 +174,4 @@ CATEGORY_HELPER_WORD_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
 
 
 class CategoryHelperWordPath(BaseModel):
-    helper_word_path: UUID
+    helper_word_uuid: UUID

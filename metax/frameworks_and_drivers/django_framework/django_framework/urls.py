@@ -50,25 +50,25 @@ from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
 api_router = Router(
     prefix="api/",
     urls=[
-        path("health-check/", HealthCheckView.as_view()),
-        path(f"{RESOURCE_TYPE_CATEGORY}/", CategoryCollectionController.as_view()),
-        path(f"{RESOURCE_TYPE_CATEGORY}/<uuid:category_uuid>/", CategoryResourceController.as_view()),
-        path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/", CategoryHelperWordCollectionController.as_view()),
+        path("health", HealthCheckView.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY}", CategoryCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY}/<uuid:category_uuid>", CategoryResourceController.as_view()),
+        path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}", CategoryHelperWordCollectionController.as_view()),
         path(
-            f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/<uuid:helper_word_path>/",
+            f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/<uuid:helper_word_uuid>",
             CategoryHelperWordResourceController.as_view(),
         ),
-        path(f"{RESOURCE_TYPE_RETAILER}/", RetailerCollectionController.as_view()),
-        path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>/", RetailerResourceController.as_view()),
+        path(f"{RESOURCE_TYPE_RETAILER}", RetailerCollectionController.as_view()),
+        path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>", RetailerResourceController.as_view()),
         path(f"{RESOURCE_TYPE_DISCOUNTED_PRODUCT}", DiscountedProductCollectionController.as_view()),
-        path("celery-collect-discounted-products/", CollectDiscountedProductsFromRetailersController.as_view()),
+        path("celery-collect-discounted-products", CollectDiscountedProductsFromRetailersController.as_view()),
     ],
 )
 api_schema = build_schema(api_router)
 
 urlpatterns = [
     path("admin/", admin_site.urls),
-    path(api_router.prefix, include((api_router.urls, "api"))),
+    path(api_router.prefix, include(api_router.urls)),
     path(
         "docs/openapi.json/",
         DanjaOpenAPIJsonView.as_view(api_schema),
@@ -76,5 +76,5 @@ urlpatterns = [
     ),
     path("docs/swagger/", SwaggerView.as_view(api_schema)),
     path("docs/redoc/", RedocView.as_view(api_schema)),
-    path("docs/openapi.json/", DanjaOpenAPIJsonView.as_view(api_schema), name="openapi"),
+    path("docs/openapi.json/", DanjaOpenAPIJsonView.as_view(api_schema), name="metax-openapi"),
 ]

@@ -32,8 +32,8 @@ class CategoryHelperWordResourceController(MetaxJsonApiController):
         unit_of_work = di_container.patterns_container.container.unit_of_work()
 
         async with unit_of_work as uow:
-            category = await uow.category_repo.get_by_helper_word_uuid(parsed_path.helper_word_path)
-            category.delete_helper_words_by_uuids(uuids=[parsed_path.helper_word_path])
+            category = await uow.category_repo.get_by_helper_word_uuid(parsed_path.helper_word_uuid)
+            category.delete_helper_words_by_uuids(uuids=[parsed_path.helper_word_uuid])
             await uow.category_repo.update(category)
             await uow.commit()
 
