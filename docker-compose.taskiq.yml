@@ -1,7 +1,7 @@
 # Service skeleton for the taskiq worker.
 #
-# Reuses the metax application image but overrides the entrypoint and disables
-# the HTTP healthcheck (the worker does not expose an HTTP port).
+# Reuses the metax application image but overrides the entrypoint to run the
+# worker instead of the HTTP server.
 
 services:
   metax-taskiq:
@@ -9,6 +9,15 @@ services:
       file: docker-compose.metax.yml
       service: metax
     entrypoint: ["python", "run_metax_taskiq_app.py"]
+    # The worker exposes no HTTP endpoint, so we replace metax's HTTP healthcheck
+    # with a liveness-only probe: a responsive Python interpreter inside the
+    # container. This is the only meaningful signal we have without taskiq itself
+    # exposing health (and that's the same semantics a disabled healthcheck would
+    # imply) — but in a form `docker compose up --wait` actually understands.
+    # `disable: true` causes `--wait` to error out with "no healthcheck configured".
     healthcheck:
-      test: ["NONE"]
-      disable: true
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

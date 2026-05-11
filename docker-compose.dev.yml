@@ -5,11 +5,11 @@
 # host (`python run_metax_http_server.py`, `python run_metax_taskiq_app.py`) and connect via localhost.
 #
 # Hardcoded values here MUST stay in sync with `DevConfigs` in metax_configs.py.
-# This file is fully self-contained: it does NOT consume `.env`. Each service
-# overrides the `${VAR}`-style placeholders defined in fluent-bit-compose.base.yml.
+# This file is fully self-contained: it does NOT consume `.env`. All concrete
+# values live here; docker-compose.base.yml only provides structural skeletons.
 
 # Run with:
-#   fluent-bit compose -f fluent-bit-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml up -d
 
 x-postgres-db-env: &postgres-db-env
   POSTGRES_USER: p_user
@@ -31,9 +31,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-postgres-db
-    env_file:
-      - path: .env
-        required: false
     environment: *postgres-db-env
     ports:
       - "127.0.0.1:5432:5432"
@@ -46,9 +43,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-opensearch-db
-    env_file:
-      - path: .env
-        required: false
     environment: *opensearch-db-env
     ports:
       - "127.0.0.1:9200:9200"
@@ -61,9 +55,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-redis
-    env_file:
-      - path: .env
-        required: false
     environment: *redis-env
     ports:
       - "127.0.0.1:6379:6379"

@@ -1,42 +1,22 @@
-# Adds a fluent-bit log aggregator and wires the metax / taskiq services to
-# forward their stdout/stderr through it via the Docker `fluentd` log driver.
+# Fluent Bit service skeleton.
 #
-# Not runnable on its own. Used as a base via `extends:` from docker-compose.prod.yml
-# (and similar stacks).
+# Not runnable on its own. Used as a base via `extends:` from runnable top-level
+# compose files (docker-compose.prod.yml, docker-compose.test.yml). This file
+# contains ONLY structural config (image, comments about healthcheck). All
+# concrete values — env_file, environment, ports, volumes, networks, and the
+# `logging:` driver wiring on metax / metax-taskiq services — live in the
+# runnable file that uses this skeleton.
 #
-# fluentd-address must use the host-published port (127.0.0.1 + FLUENT_BIT_PORT): the
-# Docker daemon resolves names with the host DNS — Compose service names are unknown there.
+# Note on fluentd logging driver address: the Docker daemon resolves
+# logging-driver addresses on the HOST (Compose service names are unknown
+# there). So the runnable compose file must (1) publish fluent-bit's internal
+# port 24224 on the host loopback and (2) point `fluentd-address` at that host
+# port.
 
 services:
   metax-fluent-bit:
     image: fluent/fluent-bit:3.2.5
-    ports:
-      - "${FLUENT_BIT_PORT}:24224"
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q -O- http://localhost:2020/api/v1/health || exit 1"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-      start_period: 5s
-
-  metax:
-    extends:
-      file: docker-compose.metax.yml
-      service: metax
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
-        fluentd-async: "true"
-        tag: "metax"
-
-  metax-taskiq:
-    extends:
-      file: docker-compose.taskiq.yml
-      service: metax-taskiq
-    logging:
-      driver: fluentd
-      options:
-        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
-        fluentd-async: "true"
-        tag: "metax-taskiq"
+    # No healthcheck: the official image is distroless (no shell/wget/curl) so we
+    # can't probe /api/v1/health from inside. Misconfigured fluent-bit exits at
+    # startup anyway, which `condition: service_started` is enough to catch.
+    # Config syntax is validated separately via `fluent-bit --dry-run` in CI.

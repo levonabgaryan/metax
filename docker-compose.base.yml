@@ -1,15 +1,19 @@
 # Base service skeletons (postgres, opensearch, redis).
 #
 # This file is NOT runnable on its own. It is consumed via `extends:` from
-# fluent-bit-compose.dev.yml / fluent-bit-compose.prod.yml / fluent-bit-compose.test.yml,
+# docker-compose.dev.yml / docker-compose.prod.yml / docker-compose.test.yml,
 # each of which is responsible for providing concrete values (either by
 # hardcoding `environment:` overrides or by adding `env_file: .env`).
+#
+# Healthcheck values reference env vars with `$$VAR` so Compose passes them
+# through and the container shell expands them at runtime (single `$` would
+# be substituted by Compose at parse time and leak host vars / blank values).
 
 services:
   metax-postgres-db:
     image: postgres:18.1-alpine3.23
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5

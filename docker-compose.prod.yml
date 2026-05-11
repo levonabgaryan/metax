@@ -26,11 +26,26 @@ x-redis-env: &redis-env
 
 x-metax-env: &metax-env
   ENV: prod
+  # Postgres
   POSTGRES_HOST: ${POSTGRES_HOST}
   POSTGRES_PORT: ${POSTGRES_PORT}
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_DB: ${POSTGRES_DB}
+  # OpenSearch
+  OPENSEARCH_HOST: ${OPENSEARCH_HOST}
+  OPENSEARCH_NODE_PORT: ${OPENSEARCH_NODE_PORT}
+  OPENSEARCH_USERNAME: ${OPENSEARCH_USERNAME}
+  OPENSEARCH_ADMIN_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
+  # Redis
+  REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
+  REDIS_PORT: ${REDIS_PORT}
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  # Django / gunicorn
   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
   DJANGO_SERVER_HOST: ${DJANGO_SERVER_HOST}
   DJANGO_SERVER_PORT: ${DJANGO_SERVER_PORT}
+  # Fluent-bit (Python doesn't read these but BaseConfigs declares them as required)
   FLUENT_BIT_HOST: ${FLUENT_BIT_HOST}
   FLUENT_BIT_PORT: ${FLUENT_BIT_PORT}
 
@@ -45,7 +60,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-postgres-db
-    env_file: .env
     environment: *postgres-env
     restart: unless-stopped
     volumes:
@@ -57,7 +71,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-opensearch-db
-    env_file: .env
     environment: *opensearch-db-env
     restart: unless-stopped
     volumes:
@@ -69,7 +82,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-redis
-    env_file: .env
     environment: *redis-env
     restart: unless-stopped
     volumes:
@@ -81,10 +93,13 @@ services:
     extends:
       file: docker-compose.logging.yml
       service: metax-fluent-bit
-    env_file: .env
     environment: *metax-fluent-bit-env
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Required: Docker daemon's fluentd logging driver connects to 127.0.0.1:24224
+    # on the HOST, so fluent-bit's internal 24224 must be published on loopback.
+    ports:
+      - "127.0.0.1:${FLUENT_BIT_PORT}:24224"
     restart: unless-stopped
     volumes:
       - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
@@ -96,9 +111,8 @@ services:
 
   metax:
     extends:
-      file: docker-compose.logging.yml
+      file: docker-compose.metax.yml
       service: metax
-    env_file: .env
     environment: *metax-env
     ports:
       - "${DJANGO_SERVER_PORT}:8000"  # for nginx
@@ -114,12 +128,17 @@ services:
         condition: service_healthy
       metax-opensearch-db:
         condition: service_healthy
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
+        fluentd-async: "true"
+        tag: "metax"
 
   metax-taskiq:
     extends:
-      file: docker-compose.logging.yml
+      file: docker-compose.taskiq.yml
       service: metax-taskiq
-    env_file: .env
     environment: *metax-env
     restart: unless-stopped
     networks:
@@ -127,6 +146,12 @@ services:
     depends_on:
       metax:
         condition: service_healthy
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
+        fluentd-async: "true"
+        tag: "metax-taskiq"
 
 volumes:
   pgdata:

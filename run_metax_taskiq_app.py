@@ -42,12 +42,3 @@ if __name__ == "__main__":
         asyncio.run(run_metax_taskiq_app())
     except KeyboardInterrupt:
         sys.exit(0)
-
-
-# to relearn
-# Endpoints included, relationship builders
-# asyncio, Open-search, subprocess(sync and async), signals
-
-# to implement
-# CI/CD UPDATE.
-# API tests
