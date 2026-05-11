@@ -1,0 +1,15 @@
+import pytest
+
+from metax_lifespan import MetaxAppLifespanManager
+
+
+@pytest.mark.asyncio
+async def test_message_buss_is_singleton(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    metax_container_for_integration_tests = metax_lifespan_manager_for_tests.get_metax_container()
+    event_bus_1 = await metax_container_for_integration_tests.get_event_bus()
+    event_bus_2 = await metax_container_for_integration_tests.get_event_bus()
+    event_bus_3 = await metax_container_for_integration_tests.get_event_bus()
+
+    assert event_bus_1 is event_bus_2 is event_bus_3

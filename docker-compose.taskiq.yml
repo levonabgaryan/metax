@@ -1,0 +1,14 @@
+# Service skeleton for the taskiq worker.
+#
+# Reuses the metax application image but overrides the entrypoint and disables
+# the HTTP healthcheck (the worker does not expose an HTTP port).
+
+services:
+  metax-taskiq:
+    extends:
+      file: docker-compose.metax.yml
+      service: metax
+    entrypoint: ["python", "run_metax_taskiq_app.py"]
+    healthcheck:
+      test: ["NONE"]
+      disable: true

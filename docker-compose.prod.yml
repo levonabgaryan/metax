@@ -1,0 +1,139 @@
+# Production stack (full Docker deployment).
+#
+# Brings up every service: postgres + opensearch + redis + metax + taskiq
+# + fluent-bit. Every service reads its environment from `.env` (which must be
+# created at deploy time and is intentionally NOT committed to the repository).
+# `ENV=prod` is forced for the metax / taskiq containers so the application
+# always picks `ProdConfigs` regardless of what `.env` says.
+
+# Run with:
+#    docker compose -f docker-compose.prod.yml up -d --build
+
+x-postgres-env: &postgres-env
+  POSTGRES_USER: ${POSTGRES_USER}
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  POSTGRES_DB: ${POSTGRES_DB}
+
+x-opensearch-db-env: &opensearch-db-env
+  discovery.type: single-node
+  cluster.name: metax-cluster
+  bootstrap.memory_lock: "true"
+  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+  OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
+
+x-redis-env: &redis-env
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+x-metax-env: &metax-env
+  ENV: prod
+  POSTGRES_HOST: ${POSTGRES_HOST}
+  POSTGRES_PORT: ${POSTGRES_PORT}
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+  DJANGO_SERVER_HOST: ${DJANGO_SERVER_HOST}
+  DJANGO_SERVER_PORT: ${DJANGO_SERVER_PORT}
+  FLUENT_BIT_HOST: ${FLUENT_BIT_HOST}
+  FLUENT_BIT_PORT: ${FLUENT_BIT_PORT}
+
+x-metax-fluent-bit-env: &metax-fluent-bit-env
+  LOG_SERVER_HOST: ${LOG_SERVER_HOST}
+  LOG_SERVER_PORT: ${LOG_SERVER_PORT}
+  LOG_SERVER_USER: ${LOG_SERVER_USER}
+  LOG_SERVER_PASSWORD: ${LOG_SERVER_PASSWORD}
+
+services:
+  metax-postgres-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-postgres-db
+    env_file: .env
+    environment: *postgres-env
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - metax-net
+
+  metax-opensearch-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-opensearch-db
+    env_file: .env
+    environment: *opensearch-db-env
+    restart: unless-stopped
+    volumes:
+      - os_data:/usr/share/opensearch/data
+    networks:
+      - metax-net
+
+  metax-redis:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-redis
+    env_file: .env
+    environment: *redis-env
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - metax-net
+
+  metax-fluent-bit:
+    extends:
+      file: docker-compose.logging.yml
+      service: metax-fluent-bit
+    env_file: .env
+    environment: *metax-fluent-bit-env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    volumes:
+      - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+      - fb_buffer:/var/log/fluent-bit/buffer
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - metax-net
+
+  metax:
+    extends:
+      file: docker-compose.logging.yml
+      service: metax
+    env_file: .env
+    environment: *metax-env
+    ports:
+      - "${DJANGO_SERVER_PORT}:8000"  # for nginx
+    restart: unless-stopped
+    networks:
+      - metax-net
+    depends_on:
+      metax-fluent-bit:
+        condition: service_started
+      metax-postgres-db:
+        condition: service_healthy
+      metax-redis:
+        condition: service_healthy
+      metax-opensearch-db:
+        condition: service_healthy
+
+  metax-taskiq:
+    extends:
+      file: docker-compose.logging.yml
+      service: metax-taskiq
+    env_file: .env
+    environment: *metax-env
+    restart: unless-stopped
+    networks:
+      - metax-net
+    depends_on:
+      metax:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  os_data:
+  redis_data:
+  fb_buffer:
+
+networks:
+  metax-net:
+    name: metax-net

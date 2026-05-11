@@ -1,0 +1,20 @@
+# Service skeleton for the metax HTTP application.
+#
+# Not runnable on its own. Top-level compose files (prod / test) are responsible
+# for providing environment values (`env_file:` and/or `environment:`).
+
+services:
+  metax:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.base
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).getcode() == 200 else 1)"
+      interval: 30s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

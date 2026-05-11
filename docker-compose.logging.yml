@@ -1,0 +1,36 @@
+# Adds a fluent-bit log aggregator and wires the metax / taskiq services to
+# forward their stdout/stderr through it via the Docker `fluentd` log driver.
+#
+# Not runnable on its own. Used as a base via `extends:` from docker-compose.prod.yml
+# (and similar stacks).
+#
+# fluentd-address must use the host-published port (127.0.0.1 + FLUENT_BIT_PORT): the
+# Docker daemon resolves names with the host DNS — Compose service names are unknown there.
+
+services:
+  metax-fluent-bit:
+    image: fluent/fluent-bit:3.2.5
+    ports:
+      - "${FLUENT_BIT_PORT}:24224"
+
+  metax:
+    extends:
+      file: docker-compose.metax.yml
+      service: metax
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
+        fluentd-async: "true"
+        tag: "metax"
+
+  metax-taskiq:
+    extends:
+      file: docker-compose.taskiq.yml
+      service: metax-taskiq
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
+        fluentd-async: "true"
+        tag: "metax-taskiq"

@@ -1,0 +1,42 @@
+# Base service skeletons (postgres, opensearch, redis).
+#
+# This file is NOT runnable on its own. It is consumed via `extends:` from
+# fluent-bit-compose.dev.yml / fluent-bit-compose.prod.yml / fluent-bit-compose.test.yml,
+# each of which is responsible for providing concrete values (either by
+# hardcoding `environment:` overrides or by adding `env_file: .env`).
+
+services:
+  metax-postgres-db:
+    image: postgres:18.1-alpine3.23
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  metax-opensearch-db:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.opensearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k -s -f -u admin:$$OPENSEARCH_INITIAL_ADMIN_PASSWORD https://localhost:9200/_cluster/health | grep -qE 'green|yellow' || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  metax-redis:
+    image: redis:8.4.0-alpine
+    command: ["sh", "-c", "exec redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

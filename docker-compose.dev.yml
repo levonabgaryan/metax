@@ -1,0 +1,81 @@
+# Local development on the host.
+#
+# Brings up ONLY the database containers (postgres, opensearch, redis) with
+# their ports exposed to 127.0.0.1. The metax and taskiq applications themselves run on the
+# host (`python run_metax_http_server.py`, `python run_metax_taskiq_app.py`) and connect via localhost.
+#
+# Hardcoded values here MUST stay in sync with `DevConfigs` in metax_configs.py.
+# This file is fully self-contained: it does NOT consume `.env`. Each service
+# overrides the `${VAR}`-style placeholders defined in fluent-bit-compose.base.yml.
+
+# Run with:
+#   fluent-bit compose -f fluent-bit-compose.dev.yml up -d
+
+x-postgres-db-env: &postgres-db-env
+  POSTGRES_USER: p_user
+  POSTGRES_PASSWORD: pass111
+  POSTGRES_DB: metax
+
+x-opensearch-db-env: &opensearch-db-env
+  discovery.type: single-node
+  cluster.name: metax-cluster
+  bootstrap.memory_lock: "true"
+  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+  OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Os_Super_Secret_Pass_2026!"
+
+x-redis-env: &redis-env
+  REDIS_PASSWORD: "R_Super_Secret_Pass_2026!"
+
+services:
+  metax-postgres-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-postgres-db
+    env_file:
+      - path: .env
+        required: false
+    environment: *postgres-db-env
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - metax-net
+
+  metax-opensearch-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-opensearch-db
+    env_file:
+      - path: .env
+        required: false
+    environment: *opensearch-db-env
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - os_data:/usr/share/opensearch/data
+    networks:
+      - metax-net
+
+  metax-redis:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-redis
+    env_file:
+      - path: .env
+        required: false
+    environment: *redis-env
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - metax-net
+
+volumes:
+  pgdata:
+  os_data:
+  redis_data:
+
+networks:
+  metax-net:

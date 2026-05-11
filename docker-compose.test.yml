@@ -1,0 +1,109 @@
+# CI / integration test stack (full Docker deployment, no logging aggregator).
+#
+# Every value is hardcoded so the file works without any `.env` on disk - this
+# is critical for reproducible CI runs. The hardcoded values match the defaults
+# in `TestConfigs` (metax_configs.py).
+#
+# Run with:
+#   fluent-bit compose -f fluent-bit-compose.test.yml up -d --build
+
+x-postgres-db-env: &postgres-db-env
+  POSTGRES_USER: p_user_test
+  POSTGRES_PASSWORD: pass_test_111
+  POSTGRES_DB: metax_test
+
+x-opensearch-db-env: &opensearch-db-env
+  discovery.type: single-node
+  cluster.name: metax-cluster
+  bootstrap.memory_lock: "true"
+  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
+  OPENSEARCH_HOST: metax-opensearch-db
+  OPENSEARCH_NODE_PORT: "9200"
+  OPENSEARCH_USERNAME: admin
+  OPENSEARCH_ADMIN_PASSWORD: "Os_Test_Secret_2026!"
+
+x-redis-env: &redis-env
+  REDIS_SERVER_HOST: metax-redis
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD: "R_Test_Secret_2026!"
+
+x-metax-env: &metax-env
+  ENV: test
+  POSTGRES_HOST: metax-postgres-db
+  POSTGRES_PORT: "5432"
+  DJANGO_SECRET_KEY: "django-ci-test-key-not-for-production-0123456789abcdef"
+  DJANGO_SERVER_HOST: "0.0.0.0"
+  DJANGO_SERVER_PORT: "8000"
+  FLUENT_BIT_HOST: mock
+  FLUENT_BIT_PORT: "0"
+
+
+services:
+  metax-postgres-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-postgres-db
+    env_file:
+      - path: .env
+        required: false
+    environment: *postgres-db-env
+    networks:
+      - metax-net
+
+  metax-opensearch-db:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-opensearch-db
+    env_file:
+      - path: .env
+        required: false
+    environment: *opensearch-db-env
+    networks:
+      - metax-net
+
+  metax-redis:
+    extends:
+      file: docker-compose.base.yml
+      service: metax-redis
+    env_file:
+      - path: .env
+        required: false
+    environment: *redis-env
+    networks:
+        - metax-net
+
+  metax:
+    extends:
+      file: docker-compose.metax.yml
+      service: metax
+    env_file:
+      - path: .env
+        required: false
+    environment: *metax-env
+    depends_on:
+      metax-postgres-db:
+        condition: service_healthy
+      metax-opensearch-db:
+        condition: service_healthy
+      metax-redis:
+        condition: service_healthy
+    networks:
+      - metax-net
+
+  metax-taskiq:
+    extends:
+      file: docker-compose.taskiq.yml
+      service: metax-taskiq
+    env_file:
+      - path: .env
+        required: false
+    environment: *metax-env
+    depends_on:
+      metax:
+        condition: service_healthy
+    networks:
+      - metax-net
+
+networks:
+  metax-net:
+    name: metax-net

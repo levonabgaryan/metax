@@ -1,0 +1,103 @@
+# Git
+.git
+.gitignore
+.gitattributes
+.github
+
+# Docker (compose files and Dockerfiles are NEVER needed inside the image)
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+fluent-bit/
+
+# IDE / editor
+.idea/
+.vscode/
+**/.ropeproject
+**/*.swp
+
+# Byte-compiled / cache
+**/__pycache__/
+**/*.py[cod]
+*.so
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual envs / build artifacts
+.Python
+.venv/
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.uv_cache/
+.tox/
+.nox/
+
+# Coverage / test artifacts
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environments / secrets
+.env
+.env.*
+.envrc
+
+# Project-local
+README.md
+.pre-commit-config.yaml
+celerybeat-schedule
+celerybeat-schedule-shm
+celerybeat-schedule-wal
+
+# Tests are not shipped in the runtime image
+tests/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Translations
+*.mo
+*.pot
+
+# Django logs
+*.log
+
+# Sphinx
+docs/_build/
+
+# PyBuilder
+target/

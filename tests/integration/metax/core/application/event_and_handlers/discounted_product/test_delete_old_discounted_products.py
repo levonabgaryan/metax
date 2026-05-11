@@ -1,0 +1,48 @@
+import datetime as dt
+
+import pytest
+
+from metax.core.application.event_handlers.discounted_product.events import (
+    NewDiscountedProductsFromRetailerCollected,
+)
+from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
+from metax_lifespan import MetaxAppLifespanManager
+from tests.utils import make_discounted_product_entity, make_retailer_entity
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_event_handler_shall_delete_old_data(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container_for_integration_tests = metax_lifespan_manager_for_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
+    event_bus = await metax_container_for_integration_tests.get_event_bus()
+    retailer = make_retailer_entity()
+    old_discounted_product_created_date = dt.datetime.now(dt.UTC)
+    old_discounted_product = make_discounted_product_entity(
+        retailer_uuid=retailer.get_uuid(), created_at=old_discounted_product_created_date
+    )
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.discounted_product_repo.add_many([old_discounted_product])
+        await uow.commit()
+
+    async with unit_of_work as uow:
+        discounted_product = await uow.discounted_product_repo.get_by_uuid(old_discounted_product.get_uuid())
+        await uow.commit()
+        assert discounted_product.get_uuid() == old_discounted_product.get_uuid()
+
+    new_products_created_date = old_discounted_product_created_date + dt.timedelta(days=1)
+    event = NewDiscountedProductsFromRetailerCollected(new_products_created_date)
+
+    # when
+    await event_bus.emit_and_wait(event)
+
+    # expect
+    async with unit_of_work as uow:
+        with pytest.raises(EntityIsNotFoundError):
+            await uow.discounted_product_repo.get_by_uuid(old_discounted_product.get_uuid())
+        await uow.commit()

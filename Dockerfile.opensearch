@@ -1,0 +1,2 @@
+FROM opensearchproject/opensearch:3.4.0
+RUN /usr/share/opensearch/bin/opensearch-plugin install --batch analysis-icu # https://docs.opensearch.org/1.3/install-and-configure/plugins/#:~:text=%24%20sudo%20./opensearch%2Dplugin%20install%20analysis%2Dicu

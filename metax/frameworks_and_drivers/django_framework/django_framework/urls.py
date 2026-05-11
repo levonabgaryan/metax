@@ -1,0 +1,81 @@
+"""URL configuration for django_framework project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/6.0/topics/http/urls/
+
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+
+"""
+
+from django.conf import settings
+from django.contrib import admin
+from django.urls import URLPattern, URLResolver, include
+from dmr.openapi import build_schema
+from dmr.openapi.views import RedocView, SwaggerView
+from dmr.routing import Router, path
+
+from django_framework.metax.views.category.collection_controller import CategoryCollectionController
+from django_framework.metax.views.category.resource_controller import CategoryResourceController
+from django_framework.metax.views.category_helper_word.collection_controller import (
+    CategoryHelperWordCollectionController,
+)
+from django_framework.metax.views.category_helper_word.resource_controller import (
+    CategoryHelperWordResourceController,
+)
+from django_framework.metax.views.dev.dev_admin_access_token_controller import DevAdminAccessTokenController
+from django_framework.metax.views.discounted_product.collection_controller import (
+    DiscountedProductCollectionController,
+)
+from django_framework.metax.views.health.controllers import HealthCheckView
+from django_framework.metax.views.openapi_json import DanjaOpenAPIJsonView
+from django_framework.metax.views.retailer.collection_controller import (
+    RetailerCollectionController,
+)
+from django_framework.metax.views.retailer.resource_controller import RetailerResourceController
+from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
+    RESOURCE_TYPE_CATEGORY,
+    RESOURCE_TYPE_CATEGORY_HELPER_WORD,
+    RESOURCE_TYPE_DISCOUNTED_PRODUCT,
+    RESOURCE_TYPE_RETAILER,
+)
+
+_api_urls = [
+    path("health", HealthCheckView.as_view()),
+    path(f"{RESOURCE_TYPE_CATEGORY}", CategoryCollectionController.as_view()),
+    path(f"{RESOURCE_TYPE_CATEGORY}/<uuid:category_uuid>", CategoryResourceController.as_view()),
+    path(f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}", CategoryHelperWordCollectionController.as_view()),
+    path(
+        f"{RESOURCE_TYPE_CATEGORY_HELPER_WORD}/<uuid:helper_word_uuid>",
+        CategoryHelperWordResourceController.as_view(),
+    ),
+    path(f"{RESOURCE_TYPE_RETAILER}", RetailerCollectionController.as_view()),
+    path(f"{RESOURCE_TYPE_RETAILER}/<uuid:retailer_uuid>", RetailerResourceController.as_view()),
+    path(f"{RESOURCE_TYPE_DISCOUNTED_PRODUCT}", DiscountedProductCollectionController.as_view()),
+]
+
+if settings.DEBUG:
+    _api_urls.append(path("dev/admin-access-token", DevAdminAccessTokenController.as_view()))
+
+api_router = Router(prefix="api/", urls=_api_urls)
+api_schema = build_schema(api_router)
+
+urlpatterns: list[URLPattern | URLResolver] = [
+    path("admin/", admin.site.urls),
+    path(api_router.prefix, include(api_router.urls)),
+    path(
+        "docs/openapi.json/",
+        DanjaOpenAPIJsonView.as_view(api_schema),
+        name="metax-openapi",
+    ),
+    path("docs/swagger/", SwaggerView.as_view(api_schema)),
+    path("docs/redoc/", RedocView.as_view(api_schema)),
+]

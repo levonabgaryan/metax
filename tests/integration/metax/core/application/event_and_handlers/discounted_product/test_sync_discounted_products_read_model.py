@@ -1,0 +1,81 @@
+import datetime as dt
+
+import pytest
+
+from metax.core.application.event_handlers.discounted_product.events import (
+    OldDiscountedProductsDeleted,
+)
+from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
+from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
+from metax_lifespan import MetaxAppLifespanManager
+from tests.conftest import refresh_opensearch_index
+from tests.utils import (
+    make_discounted_product_entity,
+    make_retailer_entity,
+)
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_event_handler_shall_save_in_empty_read_model(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
+    discounted_product_read_model_repository = await metax_container.get_discounted_product_read_model_repository()
+    event_bus = await metax_container.get_event_bus()
+    creation_data = dt.datetime.now(tz=dt.UTC)
+    retailer = make_retailer_entity()
+    discounted_products = [
+        make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=creation_data),
+        make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=creation_data),
+    ]
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.discounted_product_repo.add_many(discounted_products)
+        await uow.commit()
+
+    discounted_product_read_models_: list[DiscountedProductReadModel] = []
+    for product in discounted_products:
+        created_iso = product.get_created_at().isoformat()
+        updated_iso = product.get_updated_at().isoformat()
+        discounted_product_read_models_.append(
+            DiscountedProductReadModel(
+                uuid_=str(product.get_uuid()),
+                name=product.get_name(),
+                real_price=float(product.get_real_price()),
+                discounted_price=float(product.get_discounted_price()),
+                created_at=created_iso,
+                updated_at=updated_iso,
+                url=product.get_url(),
+                retailer={
+                    "uuid_": str(retailer.get_uuid()),
+                    "created_at": retailer.get_created_at().isoformat(),
+                    "updated_at": retailer.get_updated_at().isoformat(),
+                    "name": retailer.get_name(),
+                    "home_page_url": retailer.get_home_page_url(),
+                    "phone_number": retailer.get_phone_number(),
+                },
+            )
+        )
+
+    await discounted_product_read_model_repository.add_many(discounted_product_read_models_)
+
+    await refresh_opensearch_index(metax_lifespan_manager_for_tests, discounted_product_read_model.ALIAS_NAME)
+    event = OldDiscountedProductsDeleted(
+        new_discounted_products_creation_date=creation_data,
+    )
+
+    # when
+    await event_bus.emit_and_wait(event)
+
+    # then
+    await refresh_opensearch_index(metax_lifespan_manager_for_tests, discounted_product_read_model.ALIAS_NAME)
+    assert await discounted_product_read_model_repository.get_all_count() == 2
+    read_model: DiscountedProductReadModel
+    async for read_model in discounted_product_read_model_repository.all():
+        assert read_model["uuid_"] in {str(product.get_uuid()) for product in discounted_products}
+        assert read_model["created_at"] == creation_data.isoformat()
+        assert read_model["retailer"]["home_page_url"] == retailer.get_home_page_url()
+        assert read_model["retailer"]["phone_number"] == retailer.get_phone_number()
