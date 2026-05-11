@@ -12,6 +12,12 @@ services:
     image: fluent/fluent-bit:3.2.5
     ports:
       - "${FLUENT_BIT_PORT}:24224"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:2020/api/v1/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
   metax:
     extends:

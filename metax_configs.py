@@ -140,8 +140,8 @@ class TestConfigs(BaseConfigs):
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = 1
 
-    fluent_bit_host: str = "mock"
-    fluent_bit_port: int = 0
+    fluent_bit_host: str = "metax-fluent-bit"
+    fluent_bit_port: int = 24224
 
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
