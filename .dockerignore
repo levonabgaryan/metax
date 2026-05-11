@@ -78,9 +78,6 @@ celerybeat-schedule
 celerybeat-schedule-shm
 celerybeat-schedule-wal
 
-# Tests are not shipped in the runtime image
-tests/
-
 # PyInstaller
 *.manifest
 *.spec

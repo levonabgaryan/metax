@@ -5,7 +5,7 @@
 # in `TestConfigs` (metax_configs.py).
 #
 # Run with:
-#   fluent-bit compose -f fluent-bit-compose.test.yml up -d --build
+#   docker compose -f docker-compose.test.yml up -d --build --wait
 
 x-postgres-db-env: &postgres-db-env
   POSTGRES_USER: p_user_test
@@ -17,25 +17,10 @@ x-opensearch-db-env: &opensearch-db-env
   cluster.name: metax-cluster
   bootstrap.memory_lock: "true"
   OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-  OPENSEARCH_HOST: metax-opensearch-db
-  OPENSEARCH_NODE_PORT: "9200"
-  OPENSEARCH_USERNAME: admin
-  OPENSEARCH_ADMIN_PASSWORD: "Os_Test_Secret_2026!"
+  OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Os_Test_Secret_2026!"
 
 x-redis-env: &redis-env
-  REDIS_SERVER_HOST: metax-redis
-  REDIS_PORT: "6379"
   REDIS_PASSWORD: "R_Test_Secret_2026!"
-
-x-metax-env: &metax-env
-  ENV: test
-  POSTGRES_HOST: metax-postgres-db
-  POSTGRES_PORT: "5432"
-  DJANGO_SECRET_KEY: "django-ci-test-key-not-for-production-0123456789abcdef"
-  DJANGO_SERVER_HOST: "0.0.0.0"
-  DJANGO_SERVER_PORT: "8000"
-  FLUENT_BIT_HOST: "metax-fluent-bit"
-  FLUENT_BIT_PORT: "24224"
 
 # Fluent-bit substitutes these into fluent-bit.conf. The metax/taskiq apps don't use them.
 x-metax-fluent-bit-env: &metax-fluent-bit-env
@@ -44,14 +29,14 @@ x-metax-fluent-bit-env: &metax-fluent-bit-env
   LOG_SERVER_USER: "mock"
   LOG_SERVER_PASSWORD: "mock"
 
+x-metax-env: &metax-env
+  ENV: test
+
 services:
   metax-postgres-db:
     extends:
       file: docker-compose.base.yml
       service: metax-postgres-db
-    env_file:
-      - path: .env
-        required: false
     environment: *postgres-db-env
     networks:
       - metax-net
@@ -60,9 +45,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-opensearch-db
-    env_file:
-      - path: .env
-        required: false
     environment: *opensearch-db-env
     networks:
       - metax-net
@@ -71,9 +53,6 @@ services:
     extends:
       file: docker-compose.base.yml
       service: metax-redis
-    env_file:
-      - path: .env
-        required: false
     environment: *redis-env
     networks:
         - metax-net
@@ -82,12 +61,13 @@ services:
     extends:
       service: metax-fluent-bit
       file: docker-compose.logging.yml
-    env_file:
-      - path: .env
-        required: false
     environment: *metax-fluent-bit-env
     networks:
       - metax-net
+    # No `ports:` — in test the metax service does not use the fluentd logging
+    # driver (it extends docker-compose.metax.yml directly), so nothing needs to
+    # reach fluent-bit from the host. Containers on metax-net talk by service
+    # name on the internal 24224 port if ever needed.
     volumes:
       - ./fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
       - ./fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
@@ -96,9 +76,6 @@ services:
     extends:
       file: docker-compose.metax.yml
       service: metax
-    env_file:
-      - path: .env
-        required: false
     environment: *metax-env
     depends_on:
       metax-postgres-db:
@@ -108,7 +85,7 @@ services:
       metax-redis:
         condition: service_healthy
       metax-fluent-bit:
-        condition: service_healthy
+        condition: service_started
     networks:
       - metax-net
 
@@ -116,10 +93,6 @@ services:
     extends:
       file: docker-compose.taskiq.yml
       service: metax-taskiq
-    env_file:
-      - path: .env
-        required: false
-    environment: *metax-env
     depends_on:
       metax:
         condition: service_healthy

@@ -3,17 +3,22 @@
 Three environments are supported, selected via the ``ENV`` environment variable:
 
 * ``dev``  - run the metax application on the host (outside Docker). Database
-             containers are spun up via ``fluent-bit-compose.dev.yml``.
-             ``DevConfigs`` does NOT read any ``.env`` file: all values are the
-             class-level defaults below and they must stay in sync with
-             ``fluent-bit-compose.dev.yml``.
+             containers are spun up via ``docker-compose.dev.yml``. ``DevConfigs``
+             does NOT read any ``.env`` file: class-level defaults below are the
+             single source of truth and they must stay in sync with
+             ``docker-compose.dev.yml``.
 * ``test`` - CI / integration tests. The whole stack runs in Docker via
-             ``fluent-bit-compose.test.yml`` and all values are passed in by Compose
-             as container environment variables. ``TestConfigs`` provides
-             defaults that match ``fluent-bit-compose.test.yml``.
+             ``docker-compose.test.yml``; every required env var is hardcoded in
+             that file's ``x-metax-env`` block and pushed into the container.
+             ``TestConfigs`` keeps class-level defaults as a safety net for unit
+             tests that import the config directly (no compose involved); the
+             defaults must mirror ``docker-compose.test.yml``.
 * ``prod`` - production. The whole stack runs in Docker via
-             ``fluent-bit-compose.prod.yml``. ``ProdConfigs`` reads ``.env``
-             (mounted/created at deploy time) and has no defaults for secrets.
+             ``docker-compose.prod.yml``; every required env var is interpolated
+             from the host ``.env`` into the container via the ``environment:``
+             block. ``ProdConfigs`` has NO defaults for app-level values: any
+             missing variable triggers a Pydantic ValidationError at startup —
+             this is intentional ("fail loudly").
 """
 
 import multiprocessing
@@ -74,7 +79,7 @@ class BaseConfigs(BaseSettings):
 class DevConfigs(BaseConfigs):
     """Local development on the host.
 
-    Values must stay in sync with ``fluent-bit-compose.dev.yml``. ``.env`` is NOT
+    Values must stay in sync with ``docker-compose.dev.yml``. ``.env`` is NOT
     consulted - the class defaults below are the single source of truth for dev.
     """
 
@@ -111,9 +116,11 @@ class DevConfigs(BaseConfigs):
 class TestConfigs(BaseConfigs):
     """CI / test configuration.
 
-    Defaults match the values hardcoded in ``fluent-bit-compose.test.yml``. When
-    the metax container starts inside the Compose network, those values are
-    re-set as container env vars and Pydantic picks them up from ``os.environ``.
+    Defaults below must mirror the hardcoded values in ``docker-compose.test.yml``
+    (``x-metax-env`` block). In the containerized test stack Pydantic reads
+    everything from ``os.environ`` (compose sets it), so these defaults are
+    effectively a safety net for unit tests that instantiate the config without
+    Docker.
     """
 
     debug: bool = False
@@ -138,7 +145,7 @@ class TestConfigs(BaseConfigs):
     django_secret_key: str = "django-ci-test-key-not-for-production-0123456789abcdef"  # noqa: S105
 
     gunicorn_reload: bool = False
-    gunicorn_workers_count: int = 1
+    gunicorn_workers_count: int = 2
 
     fluent_bit_host: str = "metax-fluent-bit"
     fluent_bit_port: int = 24224
@@ -149,16 +156,18 @@ class TestConfigs(BaseConfigs):
 class ProdConfigs(BaseConfigs):
     """Production configuration.
 
-    Reads values exclusively from environment / ``.env``. No defaults for
-    secrets - the application will fail loudly at startup if anything required
-    is missing.
+    Reads values exclusively from ``os.environ``. The container's environment is
+    populated by ``docker-compose.prod.yml`` (which in turn interpolates secrets
+    from the host ``.env`` via ``${VAR}`` at compose parse time). No defaults
+    for app-level values — any missing variable triggers a Pydantic
+    ``ValidationError`` at startup, by design.
     """
 
     debug: bool = False
     gunicorn_reload: bool = False
     gunicorn_workers_count: int = (multiprocessing.cpu_count() * 2) + 1
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_ignore_empty=True)
+    model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
 
 def _read_env_name_from_dotenv() -> str | None:

@@ -8,13 +8,23 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile.base
+    # Timings explained:
+    #   - urllib inner timeout 10s: /api/health is trivial code-wise, but the
+    #     request passes through 8 legacy SYNC Django middlewares (each wrapped
+    #     by asgiref.sync_to_async = a thread-pool hop). Under load or during
+    #     startup migrations this can take >3s. A 10s ceiling avoids spurious
+    #     CancelledError tracebacks in the metax logs from urllib closing the
+    #     socket mid-response.
+    #   - Docker timeout 15s: outer cap, must exceed inner timeout.
+    #   - start_period 60s: failed probes during this window do NOT count
+    #     toward `retries`; lets migrations / opensearch readiness finish.
     healthcheck:
       test:
         - "CMD"
         - "python"
         - "-c"
-        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=3).getcode() == 200 else 1)"
+        - "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health', timeout=10).getcode() == 200 else 1)"
       interval: 30s
-      timeout: 5s
+      timeout: 15s
       retries: 10
-      start_period: 30s
+      start_period: 60s
