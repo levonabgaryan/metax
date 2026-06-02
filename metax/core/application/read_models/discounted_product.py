@@ -33,3 +33,4 @@ class DiscountedProductReadModel(TypedDict):
     url: Required[str]
     retailer: Required[DiscountedProductRetailerReadModel]
     category: NotRequired[DiscountedProductCategoryReadModel]
+    image_url: NotRequired[str]

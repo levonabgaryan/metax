@@ -5,7 +5,9 @@ import datetime as dt
 import logging
 import uuid
 
-from metax.core.application.ddd_patterns.services.category_classifier_service import CategoryClassifierService
+from metax.core.application.ddd_patterns.services.ollama_category_classifier_service import (
+    OllamaCategoryClassifierService,
+)
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
@@ -20,7 +22,7 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     SasAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
-from metax_bootstrap import METAX_LIFESPAN_MANAGER
+from metax_bootstrap import METAX_CONFIGS, METAX_LIFESPAN_MANAGER
 from metax_logger.request_id_filter import request_id_scope
 
 from .broker import broker_
@@ -32,8 +34,8 @@ logger = logging.getLogger(__name__)
 async def collect_discounted_products_from_all_retailers(
     unit_of_work_provider: IUnitOfWorkProvider,
     event_bus: EventBus,
-    category_classifier_service: CategoryClassifierService,
     start_date_of_collecting: dt.datetime,
+    category_classifier: OllamaCategoryClassifierService | None = None,
 ) -> None:
     uow = await unit_of_work_provider.provide()
     async with uow:
@@ -59,53 +61,51 @@ async def collect_discounted_products_from_all_retailers(
                 start_date_of_collecting=start_date_of_collecting,
                 retailer=retailer,
             )
-
         else:
-            msg = f"Unsupported discounted product collector service creator: {collector_service_creator_class!r}"
+            msg = f"Unsupported collector: {collector_service_creator_class!r}"
             raise NotImplementedError(msg)
 
-        use_case_request = CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
         use_case = CollectDiscountedProducts(
             unit_of_work_provider=unit_of_work_provider,
             discounted_product_collector_service_creator=collector_service_creator,
-            category_classifier_service=category_classifier_service,
             event_bus=event_bus,
+            category_classifier=category_classifier,
         )
-        tasks.append(use_case.handle_use_case(request=use_case_request))
+        tasks.append(use_case.handle_use_case(request=CollectDiscountedProductsRequest(
+            start_date_of_collecting=start_date_of_collecting
+        )))
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
     for result in results:
         if isinstance(result, Exception):
-            logger.error(f"Error during collection: {result}", exc_info=result)
+            logger.error("Error during collection: %s", result, exc_info=result)
 
 
 async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str | None = None) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
-
     with request_id_scope(effective_id):
-        metax_application_manager = METAX_LIFESPAN_MANAGER
-        container = metax_application_manager.get_metax_container()
-        unit_of_work_provider = container.get_unit_of_work_provider()
-        category_classifier_service = container.get_category_classifier_service()
-        event_bus = await container.get_event_bus()
+        container = METAX_LIFESPAN_MANAGER.get_metax_container()
 
-        started_time = dt.datetime.now(tz=dt.UTC)
+        classifier: OllamaCategoryClassifierService | None = None
+        if METAX_CONFIGS.ollama_enabled:
+            classifier = OllamaCategoryClassifierService(
+                host=METAX_CONFIGS.ollama_host,
+                model=METAX_CONFIGS.ollama_model,
+                concurrency=METAX_CONFIGS.ollama_concurrency,
+            )
+            logger.info("Ollama classifier enabled | model=%s host=%s", METAX_CONFIGS.ollama_model, METAX_CONFIGS.ollama_host)
 
         await collect_discounted_products_from_all_retailers(
-            unit_of_work_provider=unit_of_work_provider,
-            category_classifier_service=category_classifier_service,
-            start_date_of_collecting=started_time,
-            event_bus=event_bus,
+            unit_of_work_provider=container.get_unit_of_work_provider(),
+            event_bus=await container.get_event_bus(),
+            start_date_of_collecting=dt.datetime.now(tz=dt.UTC),
+            category_classifier=classifier,
         )
 
 
 @broker_.task(
     task_name="CollectDiscountedProducts",
-    schedule=[
-        {
-            "cron": "0 21 * * *",  # 21:00 on UTC (01:00 in Armenia)
-            "args": [None],
-        }
-    ],
+    schedule=[{"cron": "0 21 * * *", "args": [None]}],
 )
 async def taskiq_collect_discounted_products_from_all_retailers(request_id: str | None = None) -> None:
     await _taskiq_collect_discounted_products_from_all_retailers(request_id=request_id)

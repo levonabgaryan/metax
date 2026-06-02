@@ -1,5 +1,5 @@
 import datetime as dt
-from typing import Annotated, Any, Literal, Self, override
+from typing import Annotated, Any, Self, override
 from uuid import UUID
 
 from pydanja import DANJASingleResource
@@ -7,7 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from pydantic.json_schema import SkipJsonSchema
 
-from django_framework.metax.views.category_helper_word.resources import CategoryHelperWordResource
 from metax.frameworks_and_drivers.pydanja_.pydanja_resource import (
     RESOURCE_TYPE_CATEGORY,
     MetaxDANJAResource,
@@ -24,11 +23,7 @@ class CategoryResource(BaseModel):
     category_uuid: Annotated[
         UUID | None,
         SkipJsonSchema(),
-        Field(
-            default=None,
-            json_schema_extra={"resource_id": True},
-            exclude=True,
-        ),
+        Field(default=None, json_schema_extra={"resource_id": True}, exclude=True),
     ]
     created_at: dt.datetime
     updated_at: dt.datetime
@@ -44,11 +39,7 @@ class __CategoryPostRequestResource(BaseModel):
     category_uuid: Annotated[
         UUID | None,
         SkipJsonSchema(),
-        Field(
-            default=None,
-            json_schema_extra={"resource_id": True},
-            exclude=True,
-        ),
+        Field(default=None, json_schema_extra={"resource_id": True}, exclude=True),
     ]
     name: str
 
@@ -62,11 +53,7 @@ class __CategoryPatchRequestResource(BaseModel):
     category_uuid: Annotated[
         UUID | None,
         SkipJsonSchema(),
-        Field(
-            default=None,
-            json_schema_extra={"resource_id": True},
-            exclude=True,
-        ),
+        Field(default=None, json_schema_extra={"resource_id": True}, exclude=True),
     ]
     name: str | None = None
 
@@ -89,9 +76,7 @@ class CategoryResponseBody(MetaxDANJAResource[CategoryResource]):
 
 
 class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
-    included: (
-        list[DANJASingleResource[CategoryResource] | DANJASingleResource[CategoryHelperWordResource]] | None
-    ) = None
+    included: list[DANJASingleResource[CategoryResource]] | None = None
 
     @classmethod
     @override
@@ -106,11 +91,10 @@ class CategoryListResponseBody(MetaxDANJAResourceList[CategoryResource]):
 class QueryParamsForCollection(BaseModel):
     offset: Annotated[int, Field(ge=0, alias="page[offset]")]
     limit: Annotated[int, Field(ge=1, alias="page[limit]")]
-    include: Annotated[Literal["categoryHelperWord"] | None, Field(alias="include")] = "categoryHelperWord"
 
 
 class QueryParamsForResource(BaseModel):
-    include: Annotated[Literal["categoryHelperWord"] | None, Field(alias="include")] = None
+    pass
 
 
 class CategoryPath(BaseModel):
@@ -120,8 +104,6 @@ class CategoryPath(BaseModel):
 CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE: dict[str, Any] = {
     "data": {
         "type": RESOURCE_TYPE_CATEGORY,
-        "attributes": {
-            "name": "Electronics",
-        },
+        "attributes": {"name": "Electronics"},
     },
 }

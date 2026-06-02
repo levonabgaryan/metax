@@ -24,7 +24,7 @@ async def run_metax_taskiq_app() -> None:
 
     try:
         await process.wait()
-    except asyncio.CancelledError, KeyboardInterrupt:
+    except (asyncio.CancelledError, KeyboardInterrupt):
         if process.returncode is None:
             logger.info("SHUTDOWN | Waiting for Taskiq to stop gracefully...")
             try:

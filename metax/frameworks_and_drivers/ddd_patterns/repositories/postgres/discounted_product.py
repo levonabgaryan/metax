@@ -109,12 +109,13 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price,
                     name,
                     url,
+                    image_url,
                     category_uuid,
                     retailer_uuid,
                     created_at,
                     updated_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
@@ -127,6 +128,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                             discounted_product.get_discounted_price(),
                             discounted_product.get_name(),
                             discounted_product.get_url(),
+                            discounted_product.get_image_url(),
                             discounted_product.get_category_uuid() if discounted_product.has_category() else None,
                             discounted_product.get_retailer_uuid(),
                             discounted_product.get_created_at(),
@@ -155,6 +157,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price,
                     name,
                     url,
+                    image_url,
                     category_uuid,
                     retailer_uuid,
                     created_at,
@@ -173,10 +176,11 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         discounted_price=row[1],
                         name=row[2],
                         url=row[3],
-                        category_uuid=row[4],
-                        retailer_uuid=row[5],
-                        created_at=row[6],
-                        updated_at=row[7],
+                        image_url=row[4],
+                        category_uuid=row[5],
+                        retailer_uuid=row[6],
+                        created_at=row[7],
+                        updated_at=row[8],
                     )
             return None
 
@@ -194,6 +198,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price,
                     name,
                     url,
+                    image_url,
                     category_uuid,
                     retailer_uuid,
                     created_at,
@@ -205,7 +210,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 [limit, offset],
             )
             rows: list[
-                tuple[UUID, Decimal, Decimal, str, str, CategoryUUID, RetailerUUID, dt.datetime, dt.datetime]
+                tuple[UUID, Decimal, Decimal, str, str, str | None, CategoryUUID, RetailerUUID, dt.datetime, dt.datetime]
             ] = cursor.fetchall()
             return [
                 DiscountedProduct(
@@ -214,10 +219,11 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price=row[2],
                     name=row[3],
                     url=row[4],
-                    category_uuid=row[5],
-                    retailer_uuid=row[6],
-                    created_at=row[7],
-                    updated_at=row[8],
+                    image_url=row[5],
+                    category_uuid=row[6],
+                    retailer_uuid=row[7],
+                    created_at=row[8],
+                    updated_at=row[9],
                 )
                 for row in rows
             ]
@@ -236,6 +242,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     dp.discounted_price,
                     dp.name,
                     dp.url,
+                    dp.image_url,
                     dp.category_uuid,
                     dp.retailer_uuid,
                     dp.created_at,
@@ -268,6 +275,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price,
                     dp_name,
                     url,
+                    dp_image_url,
                     category_uuid,
                     retailer_uuid,
                     dp_created_at,
@@ -288,6 +296,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     discounted_price=discounted_price,
                     name=dp_name,
                     url=url,
+                    image_url=dp_image_url,
                     category_uuid=category_uuid,
                     retailer_uuid=retailer_uuid,
                     created_at=dp_created_at,
@@ -307,7 +316,6 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                         uuid_=cat_uuid,
                         created_at=cat_created_at,
                         updated_at=cat_updated_at,
-                        helper_words=[],
                         name=cat_name,
                     )
                 result.append(DiscountedProductWithRelations(entity=entity, retailer=retailer, category=category))

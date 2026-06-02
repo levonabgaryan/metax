@@ -34,7 +34,8 @@ csrf_protect_m = method_decorator(csrf_protect)
 @admin.register(RetailerModel)
 class RetailerAdmin(_ModelAdminBase):
     list_display = ("uuid", "name", "home_page_url", "phone_number", "created_at", "updated_at")
-    list_display_links = ("name", "home_page_url", "phone_number")
+    list_display_links = ("name",)
+    search_fields = ("name", "home_page_url", "phone_number")
 
     @csrf_protect_m
     @override

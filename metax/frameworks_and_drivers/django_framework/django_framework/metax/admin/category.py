@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING, Any, cast, override
 
 from asgiref.sync import async_to_sync
@@ -29,8 +31,9 @@ csrf_protect_m = method_decorator(csrf_protect)
 
 @admin.register(CategoryModel)
 class CategoryAdmin(_ModelAdminBase):
-    list_display = ("uuid", "name")
+    list_display = ("uuid", "name", "name_hy", "name_ru", "created_at", "updated_at")
     list_display_links = ("name",)
+    search_fields = ("name", "name_hy", "name_ru")
 
     @csrf_protect_m
     @override
@@ -41,9 +44,6 @@ class CategoryAdmin(_ModelAdminBase):
         form_url: str = "",
         extra_context: dict[str, Any] | None = None,
     ) -> HttpResponse:
-        # ``ModelAdmin.changeform_view`` wraps ``_changeform_view`` in ``transaction.atomic()``.
-        # ``super().changeform_view`` keeps that wrapper → connection/pool issues with services.
-        # Call the parent implementation of the inner view only (no extra ``atomic`` here).
         return cast(
             HttpResponse,
             self._changeform_view(request, object_id, form_url, extra_context),  # type: ignore[attr-defined]
@@ -73,22 +73,28 @@ class CategoryAdmin(_ModelAdminBase):
         event_bus = async_to_sync(metax_container.get_event_bus)()
 
         if change:
-            request_dto_ = UpdateCategoryRequestDTO(
+            async_to_sync(
+                UpdateCategoryService(
+                    unit_of_work_provider=unit_of_work_provider,
+                    event_bus=event_bus,
+                ).execute
+            )(UpdateCategoryRequestDTO(
                 category_uuid=obj.uuid,
                 new_name=form.cleaned_data["name"],
-            )
-            cud_service_ = UpdateCategoryService(
-                unit_of_work_provider=unit_of_work_provider,
-                event_bus=event_bus,
-            )
-            async_to_sync(cud_service_.execute)(request_dto_)
+                new_name_hy=form.cleaned_data.get("name_hy", ""),
+                new_name_ru=form.cleaned_data.get("name_ru", ""),
+            ))
         else:
-            request_dto = CreateCategoryRequestDTO(name=form.cleaned_data["name"])
-            cud_service = CreateCategoryService(
-                unit_of_work_provider=unit_of_work_provider,
-                event_bus=event_bus,
-            )
-            response_dto = async_to_sync(cud_service.execute)(request_dto)
+            response_dto = async_to_sync(
+                CreateCategoryService(
+                    unit_of_work_provider=unit_of_work_provider,
+                    event_bus=event_bus,
+                ).execute
+            )(CreateCategoryRequestDTO(
+                name=form.cleaned_data["name"],
+                name_hy=form.cleaned_data.get("name_hy", ""),
+                name_ru=form.cleaned_data.get("name_ru", ""),
+            ))
             obj.uuid = response_dto.category_uuid
 
         obj.refresh_from_db()
@@ -98,9 +104,9 @@ class CategoryAdmin(_ModelAdminBase):
         metax_container = METAX_LIFESPAN_MANAGER.get_metax_container()
         unit_of_work_provider = metax_container.get_unit_of_work_provider()
         event_bus = async_to_sync(metax_container.get_event_bus)()
-        cud_service = DeleteCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        request_dto = DeleteCategoryRequestDTO(category_uuid=obj.uuid)
-        async_to_sync(cud_service.execute)(request_dto)
+        async_to_sync(
+            DeleteCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus).execute
+        )(DeleteCategoryRequestDTO(category_uuid=obj.uuid))
 
     @override
     def delete_queryset(self, request: HttpRequest, queryset: QuerySet[CategoryModel]) -> None:

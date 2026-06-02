@@ -3,7 +3,6 @@ from __future__ import annotations
 from dependency_injector import containers, providers
 from opensearchpy import AsyncOpenSearch
 
-from metax.core.application.ddd_patterns.services.category_classifier_service import CategoryClassifierService
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
@@ -66,9 +65,6 @@ class MetaxContainer:
 
     def get_unit_of_work_provider(self) -> IUnitOfWorkProvider:
         return self.__metax_container.patterns_container.container.unit_of_work_provider()
-
-    def get_category_classifier_service(self) -> CategoryClassifierService:
-        return self.__metax_container.patterns_container.container.category_classifier_service()
 
     async def get_event_bus(self) -> EventBus:
         return await self.__metax_container.resources_container.container.event_bus.async_()

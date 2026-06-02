@@ -48,14 +48,15 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                 else:
                     url_ = f"{self.product_link_base_url}/?LIMIT={self.DATA_SOURCE_URL_LIMIT_PARAM}&offset={offset_param}"  # noqa: E501
 
-                response = await client.get(url=url_)
                 try:
+                    response = await client.get(url=url_)
                     response.raise_for_status()
                 except httpx.InvalidURL as err:
                     logger.error(err)
-                    InvalidUrlForScrappingError(invalid_url=url_)
+                    raise InvalidUrlForScrappingError(invalid_url=url_) from err
                 except Exception as err:
                     logger.error("Request to SAS AM Failed", exc_info=err)
+                    continue
 
                 soup = BeautifulSoup(response.text, "lxml")
 
@@ -104,12 +105,22 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                         continue
 
                     raw_product_url = f"{self.sas_am_main_page_url}{href}" if href.startswith("/") else href
+
+                    image_url: str | None = None
+                    img_tag = a_tag.find("img")
+                    if img_tag is not None:
+                        # Prefer data-src: lazy-loaded pages put the real URL there while src holds a placeholder.
+                        src = img_tag.get("data-src") or img_tag.get("src")
+                        if isinstance(src, str) and src and not src.startswith("data:"):
+                            image_url = f"{self.sas_am_main_page_url}{src}" if src.startswith("/") else src
+
                     yield DiscountedProduct(
                         uuid_=uuid.uuid7(),
                         name=self.clean_discounted_product_name(text=name),
                         real_price=Decimal(self.clean_discounted_product_price(old_span.text.strip())),
                         discounted_price=Decimal(self.clean_discounted_product_price(new_span.text.strip())),
                         url=raw_product_url,
+                        image_url=image_url,
                         created_at=start_date_of_collecting,
                         updated_at=start_date_of_collecting,
                         retailer_uuid=self._retailer.get_uuid(),

@@ -22,8 +22,6 @@ DEBUG = METAX_CONFIGS.debug
 _OPENAPI_DESCRIPTION = (
     "Use these schemas under **Components → Schemas** (other names in the list are "
     "auxiliary, e.g. JSON:API envelopes):\n\n"
-    "- `CategoryHelperWordPatchRequestBody`, `CategoryHelperWordPostRequestBody`, "
-    "`CategoryHelperWordResponseBody`\n\n"
     "- `CategoryListResponseBody`, `CategoryPatchRequestBody`, `CategoryPostRequestBody`, "
     "`CategoryResponseBody`\n\n"
     "- `RetailerListResponseBody`, `RetailerPatchRequestBody`, `RetailerPostRequestBody`, "

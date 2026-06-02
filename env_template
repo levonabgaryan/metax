@@ -37,8 +37,11 @@ OPENSEARCH_NODE_PORT=
 FLUENT_BIT_HOST=
 FLUENT_BIT_PORT=
 
-# Log server
-LOG_SERVER_HOST=
-LOG_SERVER_PORT=
-LOG_SERVER_USER=
-LOG_SERVER_PASSWORD=
+# Ollama (optional — enables AI product categorisation during crawling)
+OLLAMA_ENABLED=false
+OLLAMA_HOST=http://localhost:11434
+OLLAMA_MODEL=qwen2.5:1.5b
+OLLAMA_CONCURRENCY=6
+
+# Telegram Bot (optional — only required when running run_metax_telegram_bot.py)
+TELEGRAM_BOT_TOKEN=

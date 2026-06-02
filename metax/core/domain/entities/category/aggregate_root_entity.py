@@ -5,9 +5,6 @@ from uuid import UUID
 
 from metax.core.domain.ddd_patterns import AggregateRootEntity
 from metax.core.domain.ddd_patterns.general_value_objects import EntityDateTimeDetails, UUIDValueObject
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
-
-from .errors import DuplicateCategoryHelperWordsError
 
 
 class Category(AggregateRootEntity):
@@ -16,8 +13,9 @@ class Category(AggregateRootEntity):
         uuid_: UUID,
         created_at: dt.datetime,
         updated_at: dt.datetime,
-        helper_words: list[CategoryHelperWord],
         name: str,
+        name_hy: str = "",
+        name_ru: str = "",
     ) -> None:
         super().__init__(
             uuid_value_object=UUIDValueObject.create(uuid_),
@@ -27,50 +25,26 @@ class Category(AggregateRootEntity):
             ),
         )
         self.__name = name
-        self.__helper_words = helper_words
-
-    def add_new_helper_words(self, new_helper_words: list[CategoryHelperWord]) -> None:
-        new_helper_words_texts = [helper_word.get_helper_word_text() for helper_word in new_helper_words]
-        self.__check_texts_uniqueness(new_helper_words_texts)
-        self.__helper_words.extend(new_helper_words)
-        self._touch()
-
-    def delete_helper_words_by_uuids(self, uuids: list[UUID]) -> None:
-        uuids_to_delete = frozenset(uuids)
-        self.__helper_words = [
-            helper_word for helper_word in self.__helper_words if helper_word.get_uuid() not in uuids_to_delete
-        ]
-        self._touch()
-
-    def get_helper_words(self) -> list[CategoryHelperWord]:
-        return self.__helper_words
+        self.__name_hy = name_hy
+        self.__name_ru = name_ru
 
     def get_name(self) -> str:
         return self.__name
+
+    def get_name_hy(self) -> str:
+        return self.__name_hy
+
+    def get_name_ru(self) -> str:
+        return self.__name_ru
 
     def set_name(self, new_name: str) -> None:
         self.__name = new_name
         self._touch()
 
-    def update_helper_word_text_by_uuid(self, helper_word_uuid: UUID, text: str) -> None:
-        self.__check_texts_uniqueness([text])
-        for helper_word in self.__helper_words:
-            if helper_word.get_uuid() == helper_word_uuid:
-                helper_word.set_helper_word_text(text)
-                break
+    def set_name_hy(self, new_name_hy: str) -> None:
+        self.__name_hy = new_name_hy
         self._touch()
 
-    def __check_texts_uniqueness(self, texts: list[str]) -> None:
-        """Checks if texts already has been contained in current helper words.
-
-        Raises:
-            DuplicateCategoryHelperWordsError: If any text already exists in category helper words.
-        """
-        current_helper_words_texts = frozenset(
-            helper_word.get_helper_word_text() for helper_word in self.__helper_words
-        )
-        new_helper_words_texts = frozenset(texts)
-        duplicate_texts = current_helper_words_texts.intersection(new_helper_words_texts)
-
-        if duplicate_texts:
-            raise DuplicateCategoryHelperWordsError(frozenset(duplicate_texts))
+    def set_name_ru(self, new_name_ru: str) -> None:
+        self.__name_ru = new_name_ru
+        self._touch()

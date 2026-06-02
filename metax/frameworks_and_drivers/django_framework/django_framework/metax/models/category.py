@@ -11,6 +11,8 @@ from .base_model import BaseDbModel
 class CategoryModel(BaseDbModel):
     uuid = models.UUIDField(primary_key=True, editable=False)
     name = models.CharField(unique=True, max_length=64, null=False)
+    name_hy = models.CharField(max_length=128, blank=True, default="")
+    name_ru = models.CharField(max_length=128, blank=True, default="")
 
     class Meta(TypedModelMeta):
         db_table = "categories"

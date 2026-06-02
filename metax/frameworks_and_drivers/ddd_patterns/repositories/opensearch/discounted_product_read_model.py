@@ -178,6 +178,31 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
         return items, total
 
     @override
+    async def search_by_category_uuid(
+        self,
+        category_uuid: str,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], int]:
+        search_body: dict[str, Any] = {
+            "query": {"bool": {"filter": [{"term": {"category.uuid_": category_uuid}}]}},
+            "from": offset,
+            "size": limit,
+            "sort": [
+                {"discounted_price": {"order": "asc"}},
+                {"_id": {"order": "asc"}},
+            ],
+        }
+        response = await self.__opensearch_async_client.search(
+            index=self.__alias_name,
+            body=search_body,
+        )
+        total = self.__total_hits_value(response["hits"]["total"])
+        hits = response["hits"]["hits"]
+        items = [self.__convert_opensearch_source_to_read_model(hit["_id"], hit["_source"]) for hit in hits]
+        return items, total
+
+    @override
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         # https://docs.opensearch.org/latest/api-reference/document-apis/get-documents/#example-request
         response = await self.__opensearch_async_client.get(id=uuid_, index=self.__alias_name)
@@ -257,6 +282,8 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
                 "phone_number": retailer["phone_number"],
             },
         }
+        if "image_url" in read_model:
+            body["image_url"] = read_model["image_url"]
         if "category" in read_model:
             category = read_model["category"]
             body["category"] = {
@@ -298,6 +325,8 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
                 "phone_number": src_retailer["phone_number"],
             },
         }
+        if "image_url" in source:
+            item["image_url"] = source["image_url"]
         if "category" in source:
             category_src = source["category"]
             c_created = category_src["created_at"]
@@ -311,60 +340,50 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
         return item
 
     async def __make_search_query_for_name(self, name: str) -> dict[str, Any]:
-        translit_res = await self.__opensearch_async_client.indices.analyze(
-            body={
-                "tokenizer": "keyword",
-                "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
-                "text": name,
-            }
-        )
-        armenian_query = translit_res["tokens"][0]["token"]
-        return {
-            "bool": {
-                "should": [
-                    {
-                        "multi_match": {
-                            "query": name,
-                            "fields": ["name.eng", "name.rus", "name.arm"],
-                            "type": "most_fields",
-                        }
-                    },
-                    {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
-                ]
-            }
-        }
+        return await self.__build_name_query(name)
 
     async def __make_search_query_for_name_and_category_uuid(
         self, name: str, category_uuid: str
     ) -> dict[str, Any]:
-        translit_res = await self.__opensearch_async_client.indices.analyze(
-            body={
-                "tokenizer": "keyword",
-                "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
-                "text": name,
-            }
-        )
-        armenian_query = translit_res["tokens"][0]["token"]
-        name_part: dict[str, Any] = {
-            "bool": {
-                "should": [
-                    {
-                        "multi_match": {
-                            "query": name,
-                            "fields": ["name.eng", "name.rus", "name.arm"],
-                            "type": "most_fields",
-                        }
-                    },
-                    {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
-                ]
-            }
-        }
+        name_part = await self.__build_name_query(name)
         return {
             "bool": {
                 "must": [name_part],
                 "filter": [{"term": {"category.uuid_": category_uuid}}],
             }
         }
+
+    async def __build_name_query(self, name: str) -> dict[str, Any]:
+        """Build a multi-field name query with Latin-to-Armenian transliteration boost."""
+        base_query: dict[str, Any] = {
+            "multi_match": {
+                "query": name,
+                "fields": ["name.eng", "name.rus", "name.arm"],
+                "type": "most_fields",
+            }
+        }
+        try:
+            translit_res = await self.__opensearch_async_client.indices.analyze(
+                body={
+                    "tokenizer": "keyword",
+                    "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
+                    "text": name,
+                }
+            )
+            tokens = translit_res.get("tokens", [])
+            if tokens:
+                armenian_query: str = tokens[0]["token"]
+                return {
+                    "bool": {
+                        "should": [
+                            base_query,
+                            {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
+                        ]
+                    }
+                }
+        except Exception:
+            pass
+        return base_query
 
     @staticmethod
     def __total_hits_value(total: Any) -> int:

@@ -21,6 +21,7 @@ class DiscountedProduct(AggregateRootEntity):
         discounted_price: Decimal,
         name: str,
         url: str,
+        image_url: str | None = None,
     ) -> None:
         super().__init__(
             uuid_value_object=UUIDValueObject.create(uuid_),
@@ -39,6 +40,7 @@ class DiscountedProduct(AggregateRootEntity):
         )
         self.__name = name
         self.__url = url
+        self.__image_url = image_url
 
     def get_category_uuid(self) -> UUID:
         if self.__category_uuid_value_object is None:
@@ -60,6 +62,9 @@ class DiscountedProduct(AggregateRootEntity):
 
     def get_url(self) -> str:
         return self.__url
+
+    def get_image_url(self) -> str | None:
+        return self.__image_url
 
     def has_category(self) -> bool:
         return self.__category_uuid_value_object is not None

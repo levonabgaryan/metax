@@ -59,6 +59,13 @@ class BaseConfigs(BaseSettings):
     fluent_bit_host: Annotated[str, Field(alias="FLUENT_BIT_HOST")]
     fluent_bit_port: Annotated[int, Field(alias="FLUENT_BIT_PORT")]
 
+    ollama_enabled: Annotated[bool, Field(alias="OLLAMA_ENABLED")] = False
+    ollama_host: Annotated[str, Field(alias="OLLAMA_HOST")] = "http://localhost:11434"
+    ollama_model: Annotated[str, Field(alias="OLLAMA_MODEL")] = "qwen2.5:3b"
+    ollama_concurrency: Annotated[int, Field(alias="OLLAMA_CONCURRENCY")] = 6
+
+    telegram_bot_token: Annotated[str | None, Field(alias="TELEGRAM_BOT_TOKEN")] = None
+
     # By default, no .env file is read. Subclasses opt in explicitly.
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
@@ -109,6 +116,11 @@ class DevConfigs(BaseConfigs):
 
     fluent_bit_host: str = "mock"
     fluent_bit_port: int = 0
+
+    ollama_enabled: bool = True
+    ollama_host: str = "http://localhost:11434"
+    ollama_model: str = "qwen2.5:1.5b"
+    ollama_concurrency: int = 6
 
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 

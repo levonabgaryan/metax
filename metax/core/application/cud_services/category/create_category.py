@@ -7,10 +7,8 @@ from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import (
     CreateCategoryRequestDTO,
     CreateCategoryResponseDTO,
-    HelperWordPayloadRequestDTO,
 )
 from metax.core.domain.entities.category.aggregate_root_entity import Category
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +25,15 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
                 category_uuid,
             )
             now = dt.datetime.now(tz=dt.UTC)
-            helper_words = [
-                CategoryHelperWord(
-                    uuid_=uuid.uuid7(),
-                    created_at=now,
-                    updated_at=now,
-                    helper_word_text=helper_word_payload.helper_word_text,
-                )
-                for helper_word_payload in request.helper_words_payload
-            ]
             category = Category(
                 uuid_=category_uuid,
                 name=request.name,
-                helper_words=helper_words,
+                name_hy=request.name_hy,
+                name_ru=request.name_ru,
                 created_at=now,
                 updated_at=now,
             )
-            repo = uow.category_repo
-            await repo.add(category)
+            await uow.category_repo.add(category)
             await uow.commit()
         logger.info(
             "[RequestDTO: %s] | Status: SUCCESS | Target UUID: [%s]",
@@ -56,13 +45,6 @@ class CreateCategoryService(CUDService[CreateCategoryRequestDTO]):
             created_at=category.get_created_at(),
             updated_at=category.get_updated_at(),
             name=category.get_name(),
-            helper_words_payload=[
-                HelperWordPayloadRequestDTO(
-                    helper_word_text=helper_word.get_helper_word_text(),
-                    helper_word_uuid=helper_word.get_uuid(),
-                    created_at=helper_word.get_created_at(),
-                    updated_at=helper_word.get_updated_at(),
-                )
-                for helper_word in category.get_helper_words()
-            ],
+            name_hy=category.get_name_hy(),
+            name_ru=category.get_name_ru(),
         )

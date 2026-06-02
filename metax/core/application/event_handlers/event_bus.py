@@ -200,13 +200,13 @@ class EventBus:
                 except Exception as error:
                     errors.append(error)
         if errors:
+            msg = f"One or more handlers failed for {type(event).__name__}"
             for handled_error in errors:
                 logger.exception(
                     "Event handler failed for %r: %r",
                     type(event).__name__,
                     repr(handled_error),
                 )
-                msg = f"One or more handlers failed for {type(event).__name__}"
             raise RuntimeError(msg)
 
     async def __update_category_in_discounted_product_read_models(self, event: Event) -> None:
@@ -305,6 +305,9 @@ def to_read_model(discounted_product_with_details: DiscountedProductWithRelation
             "phone_number": retailer_entity.get_phone_number(),
         },
     }
+    image_url = entity.get_image_url()
+    if image_url is not None:
+        result["image_url"] = image_url
     category_entity = discounted_product_with_details.category
     if category_entity is not None:
         result["category"] = DiscountedProductCategoryReadModel(

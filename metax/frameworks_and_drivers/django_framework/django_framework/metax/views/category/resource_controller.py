@@ -3,7 +3,7 @@ from typing import Annotated
 
 from dmr import Body, Path, Query, ResponseSpec, modify
 from dmr.openapi.objects import MediaTypeMetadata
-from pydanja import DANJAError, DANJARelationship, DANJAResourceIdentifier, DANJASingleResource
+from pydanja import DANJAError
 
 from django_framework.metax.views.category.resources import (
     CATEGORY_POST_AND_PATCH_OPENAPI_EXAMPLE,
@@ -13,10 +13,6 @@ from django_framework.metax.views.category.resources import (
     CategoryResponseBody,
     QueryParamsForResource,
 )
-from django_framework.metax.views.category_helper_word.resources import (
-    CategoryHelperWordResource,
-    CategoryHelperWordResponseBody,
-)
 from django_framework.metax.views.json_api_controller import MetaxJsonApiController
 from metax.core.application.cud_services.category import (
     DeleteCategoryRequestDTO,
@@ -24,8 +20,6 @@ from metax.core.application.cud_services.category import (
     UpdateCategoryRequestDTO,
     UpdateCategoryService,
 )
-from metax.core.domain.entities.category.aggregate_root_entity import Category
-from metax.frameworks_and_drivers.pydanja_.pydanja_resource import RESOURCE_TYPE_CATEGORY_HELPER_WORD
 from metax_bootstrap import METAX_LIFESPAN_MANAGER
 
 
@@ -37,10 +31,10 @@ class CategoryResourceController(MetaxJsonApiController):
     )
     async def delete(self, parsed_path: Path[CategoryPath]) -> None:
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        unit_of_work_provider = container.get_unit_of_work_provider()
-        event_bus = await container.get_event_bus()
-        cud_service = DeleteCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        await cud_service.execute(DeleteCategoryRequestDTO(category_uuid=parsed_path.category_uuid))
+        await DeleteCategoryService(
+            unit_of_work_provider=container.get_unit_of_work_provider(),
+            event_bus=await container.get_event_bus(),
+        ).execute(DeleteCategoryRequestDTO(category_uuid=parsed_path.category_uuid))
 
     @modify(
         status_code=HTTPStatus.OK,
@@ -50,14 +44,11 @@ class CategoryResourceController(MetaxJsonApiController):
     async def get(
         self, parsed_path: Path[CategoryPath], parsed_query: Query[QueryParamsForResource]
     ) -> CategoryResponseBody:
-        metax_container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        unit_of_work = metax_container.get_unit_of_work()
-
+        unit_of_work = METAX_LIFESPAN_MANAGER.get_metax_container().get_unit_of_work()
         async with unit_of_work as uow:
             category = await uow.category_repo.get_by_uuid(parsed_path.category_uuid)
             await uow.commit()
-
-        response_body = CategoryResponseBody.from_basemodel(
+        return CategoryResponseBody.from_basemodel(
             resource=CategoryResource(
                 category_uuid=category.get_uuid(),
                 name=category.get_name(),
@@ -65,11 +56,6 @@ class CategoryResourceController(MetaxJsonApiController):
                 updated_at=category.get_updated_at(),
             )
         )
-
-        if parsed_query.include is not None:
-            self.__fill_included_field(category=category, response_body=response_body)
-
-        return response_body
 
     @modify(
         status_code=HTTPStatus.OK,
@@ -87,15 +73,15 @@ class CategoryResourceController(MetaxJsonApiController):
         ],
     ) -> CategoryResponseBody:
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        unit_of_work_provider = container.get_unit_of_work_provider()
-        event_bus = await container.get_event_bus()
-
-        cud_service = UpdateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
-        request_dto = UpdateCategoryRequestDTO(
-            category_uuid=parsed_path.category_uuid, new_name=parsed_body.data.attributes.name
+        response_dto = await UpdateCategoryService(
+            unit_of_work_provider=container.get_unit_of_work_provider(),
+            event_bus=await container.get_event_bus(),
+        ).execute(
+            UpdateCategoryRequestDTO(
+                category_uuid=parsed_path.category_uuid,
+                new_name=parsed_body.data.attributes.name,
+            )
         )
-        response_dto = await cud_service.execute(request_dto)
-
         return CategoryResponseBody.from_basemodel(
             resource=CategoryResource(
                 category_uuid=response_dto.category_uuid,
@@ -104,33 +90,3 @@ class CategoryResourceController(MetaxJsonApiController):
                 updated_at=response_dto.updated_at,
             )
         )
-
-    @staticmethod
-    def __fill_included_field(response_body: CategoryResponseBody, category: Category) -> None:
-        """Fill included field in response body by helper words resources."""
-        helper_word_resources_identifiers: list[DANJAResourceIdentifier] = []
-        included: list[
-            DANJASingleResource[CategoryResource] | DANJASingleResource[CategoryHelperWordResource]
-        ] = []
-
-        for helper_word in category.get_helper_words():
-            helper_word_resources_identifiers.append(
-                DANJAResourceIdentifier(
-                    id=str(helper_word.get_uuid()),
-                    type=RESOURCE_TYPE_CATEGORY_HELPER_WORD,
-                )
-            )
-            included.append(
-                CategoryHelperWordResponseBody.from_basemodel(
-                    resource=CategoryHelperWordResource(
-                        helper_word_uuid=helper_word.get_uuid(),
-                        helper_word_text=helper_word.get_helper_word_text(),
-                        created_at=helper_word.get_created_at(),
-                        updated_at=helper_word.get_updated_at(),
-                    )
-                ).data
-            )
-        response_body.data.relationships = {
-            RESOURCE_TYPE_CATEGORY_HELPER_WORD: DANJARelationship(data=helper_word_resources_identifiers)
-        }
-        response_body.included = included

@@ -53,6 +53,7 @@ INDEX_BODY = {
             "real_price": {"type": "scaled_float", "scaling_factor": 100},
             "discounted_price": {"type": "scaled_float", "scaling_factor": 100},
             "url": {"type": "keyword"},
+            "image_url": {"type": "keyword", "index": False},
             "created_at": {"type": "date"},
             "updated_at": {"type": "date"},
             # Same nested keys as ``DiscountedProductCategoryReadModel`` / ``DiscountedProductRetailerReadModel``.

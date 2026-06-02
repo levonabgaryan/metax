@@ -24,16 +24,6 @@ class CategoryRepository(ABC):
                 searched_field_value=str(uuid_),
             )
 
-    async def get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category:
-        category = await self._get_by_helper_word_uuid(helper_word_uuid=helper_word_uuid)
-        if category is None:
-            raise EntityIsNotFoundError(
-                entity_type="category",
-                searched_field_name="helper_word_uuid",
-                searched_field_value=str(helper_word_uuid),
-            )
-        return category
-
     async def get_by_name(self, name: str) -> Category:
         category = await self._get_by_name(name=name)
         if category is None:
@@ -56,25 +46,17 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def list_paginated_and_total_count(self, limit: int, offset: int) -> tuple[TotalCount, list[Category]]:
-        """Returns list of category by params, and whole count of categories in the repository."""
+        """Returns list of categories with total count for pagination."""
 
     async def update(self, updated_category: Category) -> None:
         await self._update(updated_category=updated_category)
 
     @abstractmethod
     async def _add(self, category: Category) -> None:
-        """Adds a category entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
-
-    @abstractmethod
-    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         pass
 
     @abstractmethod
-    async def _get_by_helper_word_uuid(self, helper_word_uuid: UUID) -> Category | None:
+    async def _delete_by_uuid_and_return_uuid(self, uuid_: UUID) -> UUID | None:
         pass
 
     @abstractmethod
@@ -87,8 +69,4 @@ class CategoryRepository(ABC):
 
     @abstractmethod
     async def _update(self, updated_category: Category) -> None:
-        """Updates a category entity.
-
-        Raises:
-            EntityAlreadyExistsError: If unique constraint is violated.
-        """
+        pass

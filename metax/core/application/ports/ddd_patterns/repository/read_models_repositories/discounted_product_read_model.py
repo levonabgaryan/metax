@@ -71,6 +71,15 @@ class DiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
+    async def search_by_category_uuid(
+        self,
+        category_uuid: str,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], int]:
+        """Return all products in a category, sorted by discounted price ascending."""
+
+    @abstractmethod
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         pass
 

@@ -48,17 +48,21 @@ class YerevanCityCollectorService(DiscountedProductCollectorService, DiscountedP
                 raise InvalidUrlForScrappingError(invalid_url=self.discounted_products_page_url) from e
             except Exception:
                 logger.exception("Request to Yerevan city failed")
+                return
 
         data = response.json()
         raw_products: list[dict[str, Any]] = data.get("data", {}).get("list", [])
 
         for raw_product in raw_products:
+            raw_image = raw_product.get("imageUrl") or raw_product.get("image") or raw_product.get("photo")
+            image_url: str | None = str(raw_image) if raw_image else None
             yield DiscountedProduct(
                 uuid_=uuid.uuid7(),
                 name=self.clean_discounted_product_name(text=raw_product["name"]),
                 real_price=Decimal(self.clean_discounted_product_price(raw_product["price"])),
                 discounted_price=Decimal(self.clean_discounted_product_price(raw_product["discountedPrice"])),
                 url=f"{self.product_page_base_url}/{raw_product['id']}",
+                image_url=image_url,
                 created_at=start_date_of_collecting,
                 updated_at=start_date_of_collecting,
                 retailer_uuid=self._retailer.get_uuid(),
