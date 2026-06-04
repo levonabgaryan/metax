@@ -28,6 +28,27 @@ _ROOT = Path(__file__).resolve().parent
 _COMPOSE_FILE = _ROOT / "docker-compose.dev.yml"
 _ENV = {**os.environ, "ENV": "dev"}
 
+
+def _venv_python() -> str:
+    candidates = (
+        _ROOT / ".venv" / ("Scripts" if os.name == "nt" else "bin") / ("python.exe" if os.name == "nt" else "python"),
+        _ROOT / ".venv" / "bin" / "python",
+        _ROOT / ".venv" / "Scripts" / "python.exe",
+    )
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate)
+    return sys.executable
+
+
+def _runner_env() -> dict[str, str]:
+    env = dict(_ENV)
+    venv_bin = _ROOT / ".venv" / ("Scripts" if os.name == "nt" else "bin")
+    if venv_bin.exists():
+        existing_path = env.get("PATH", "")
+        env["PATH"] = f"{venv_bin}{os.pathsep}{existing_path}" if existing_path else str(venv_bin)
+    return env
+
 _SERVICES = [
     ("HTTP server",     "run_metax_http_server.py"),
     ("Taskiq worker",   "run_metax_taskiq_app.py"),
@@ -75,12 +96,12 @@ async def _wait_healthy() -> None:
 
 async def _spawn(label: str, script: str) -> asyncio.subprocess.Process:
     proc = await asyncio.create_subprocess_exec(
-        sys.executable,
+        _venv_python(),
         str(_ROOT / script),
         cwd=str(_ROOT),
         stdout=sys.stdout,
         stderr=sys.stderr,
-        env=_ENV,
+        env=_runner_env(),
     )
     logger.info("%-16s started  (pid %d)", label, proc.pid)
     return proc

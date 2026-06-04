@@ -6,7 +6,9 @@ logger = logging.getLogger(__name__)
 
 
 async def run_metax_taskiq_app() -> None:
-    taskiq_worker_launch_command = [
+    process = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "-m",
         "taskiq",
         "worker",
         "--no-configure-logging",
@@ -14,10 +16,6 @@ async def run_metax_taskiq_app() -> None:
         "2",
         "metax.frameworks_and_drivers.taskiq_framework.broker:broker_",
         "metax.frameworks_and_drivers.taskiq_framework.tasks",
-    ]
-
-    process = await asyncio.create_subprocess_exec(
-        *taskiq_worker_launch_command,
         stdout=sys.stdout,
         stderr=sys.stderr,
     )
