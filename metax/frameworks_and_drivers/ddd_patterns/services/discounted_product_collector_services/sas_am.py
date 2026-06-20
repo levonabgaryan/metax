@@ -4,6 +4,8 @@ import logging
 import uuid
 from collections.abc import AsyncIterator
 from decimal import Decimal
+from json import loads
+from urllib.parse import urljoin
 from typing import ClassVar, override
 
 import httpx
@@ -107,12 +109,26 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                     raw_product_url = f"{self.sas_am_main_page_url}{href}" if href.startswith("/") else href
 
                     image_url: str | None = None
-                    img_tag = a_tag.find("img")
-                    if img_tag is not None:
-                        # Prefer data-src: lazy-loaded pages put the real URL there while src holds a placeholder.
-                        src = img_tag.get("data-src") or img_tag.get("src")
-                        if isinstance(src, str) and src and not src.startswith("data:"):
-                            image_url = f"{self.sas_am_main_page_url}{src}" if src.startswith("/") else src
+                    picture_tag = p_wrap.find("v-picture")
+                    if picture_tag is not None:
+                        sources_payload = picture_tag.get(":sources") or picture_tag.get("sources")
+                        if isinstance(sources_payload, str) and sources_payload:
+                            try:
+                                sources = loads(sources_payload)
+                            except ValueError:
+                                sources = {}
+                            for candidate_key in ("big_2x", "big", "middle_2x", "middle", "small_2x", "small"):
+                                candidate_url = sources.get(candidate_key)
+                                if isinstance(candidate_url, str) and candidate_url:
+                                    image_url = urljoin(self.sas_am_main_page_url, candidate_url)
+                                    break
+                    if image_url is None:
+                        img_tag = a_tag.find("img")
+                        if img_tag is not None:
+                            # Prefer data-src: lazy-loaded pages put the real URL there while src holds a placeholder.
+                            src = img_tag.get("data-src") or img_tag.get("src")
+                            if isinstance(src, str) and src and not src.startswith("data:"):
+                                image_url = urljoin(self.sas_am_main_page_url, src)
 
                     yield DiscountedProduct(
                         uuid_=uuid.uuid7(),

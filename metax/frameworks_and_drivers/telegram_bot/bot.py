@@ -7,19 +7,12 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import BotCommand
 
 from metax.frameworks_and_drivers.telegram_bot.handlers import callbacks, commands, fallback
+from metax.frameworks_and_drivers.telegram_bot.localization import SUPPORTED_LANGUAGES, bot_commands_for_language
 from metax.frameworks_and_drivers.telegram_bot.middleware import ThrottleMiddleware
 
 logger = logging.getLogger(__name__)
-
-_BOT_COMMANDS = [
-    BotCommand(command="start", description="Запустить бота"),
-    BotCommand(command="search", description="Поиск товаров со скидками"),
-    BotCommand(command="categories", description="Просмотр по категориям"),
-    BotCommand(command="help", description="Справка"),
-]
 
 
 async def run_bot(token: str) -> None:
@@ -34,7 +27,9 @@ async def run_bot(token: str) -> None:
     dp.include_router(callbacks.router)
     dp.include_router(fallback.router)
 
-    await bot.set_my_commands(_BOT_COMMANDS)
+    for language_code in SUPPORTED_LANGUAGES:
+        await bot.set_my_commands(bot_commands_for_language(language_code), language_code=language_code)
+    await bot.set_my_commands(bot_commands_for_language("en"))
 
     logger.info("STARTUP | Task: Telegram Bot | Status: RUNNING")
     try:

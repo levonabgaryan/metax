@@ -61,6 +61,16 @@ class DiscountedProductReadModelRepository(ABC):
         pass
 
     @abstractmethod
+    async def search_by_name_and_by_retailer_uuid(
+        self,
+        name: str,
+        retailer_uuid: str,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], int]:
+        pass
+
+    @abstractmethod
     async def search_by_name_and_by_category_uuid(
         self,
         name: str,

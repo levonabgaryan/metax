@@ -149,6 +149,33 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
         return items, total
 
     @override
+    async def search_by_name_and_by_retailer_uuid(
+        self,
+        name: str,
+        retailer_uuid: str,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> tuple[list[DiscountedProductReadModel], int]:
+        query = await self.__make_search_query_for_name_and_retailer_uuid(name=name, retailer_uuid=retailer_uuid)
+        search_body: dict[str, Any] = {
+            "query": query,
+            "from": offset,
+            "size": limit,
+            "sort": [
+                {"_score": {"order": "desc"}},
+                {"_id": {"order": "asc"}},
+            ],
+        }
+        response = await self.__opensearch_async_client.search(
+            index=self.__alias_name,
+            body=search_body,
+        )
+        total = self.__total_hits_value(response["hits"]["total"])
+        hits = response["hits"]["hits"]
+        items = [self.__convert_opensearch_source_to_read_model(hit["_id"], hit["_source"]) for hit in hits]
+        return items, total
+
+    @override
     async def search_by_name_and_by_category_uuid(
         self,
         name: str,
@@ -350,6 +377,17 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
             "bool": {
                 "must": [name_part],
                 "filter": [{"term": {"category.uuid_": category_uuid}}],
+            }
+        }
+
+    async def __make_search_query_for_name_and_retailer_uuid(
+        self, name: str, retailer_uuid: str
+    ) -> dict[str, Any]:
+        name_part = await self.__build_name_query(name)
+        return {
+            "bool": {
+                "must": [name_part],
+                "filter": [{"term": {"retailer.uuid_": retailer_uuid}}],
             }
         }
 

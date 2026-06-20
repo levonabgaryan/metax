@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import html
 import logging
+from uuid import UUID
 
 from aiogram import Router
 from aiogram.enums import ParseMode
@@ -14,13 +15,15 @@ from aiogram.types import LinkPreviewOptions, Message
 from metax.core.application.read_models.discounted_product import DiscountedProductReadModel
 from metax.frameworks_and_drivers.telegram_bot.formatters import format_product
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
-    CATEGORIES_BTN,
-    HELP_BTN,
     PAGE_SIZE,
-    categories_keyboard,
     clamp_query,
-    main_menu_keyboard,
-    search_nav_keyboard,
+    language_keyboard,
+    search_result_keyboard,
+)
+from metax.frameworks_and_drivers.telegram_bot.localization import (
+    get_user_language,
+    get_user_retailer_filter,
+    t,
 )
 from metax_bootstrap import METAX_LIFESPAN_MANAGER
 
@@ -37,6 +40,8 @@ async def send_product_page(
     total: int,
     offset: int,
     header: str,
+    summary_label: str,
+    page_label: str,
     keyboard,
 ) -> None:
     for n, p in enumerate(products, start=offset + 1):
@@ -80,7 +85,7 @@ async def send_product_page(
     page = offset // PAGE_SIZE + 1
     total_pages = max(1, (total + PAGE_SIZE - 1) // PAGE_SIZE)
     await reply_target.answer(
-        f"{header} — найдено: {total} • Стр. {page}/{total_pages}",
+        f"{header} — {summary_label}: {total} • {page_label} {page}/{total_pages}",
         parse_mode=ParseMode.HTML,
         reply_markup=keyboard,
         link_preview_options=_LINK_PREVIEW_DISABLED,
@@ -88,88 +93,86 @@ async def send_product_page(
 
 
 async def run_search(message: Message, raw_query: str) -> None:
+    lang = get_user_language(message.from_user.id if message.from_user else None)
+    retailer_uuid = get_user_retailer_filter(message.from_user.id if message.from_user else None)
+    selected_retailer_name: str | None = None
     display_query = raw_query.strip()
     if not display_query:
         await message.answer(
-            "Напишите название товара.\nПример: <code>телефон</code>",
+            f"{t(lang, 'search_prompt')}\n{t(lang, 'search_example')}",
             parse_mode=ParseMode.HTML,
         )
         return
 
     search_query = clamp_query(display_query)
-    status = await message.answer("🔍 Ищу…")
+    status = await message.answer(t(lang, "search_loading"))
 
     try:
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
         read_repo = await container.get_discounted_product_read_model_repository()
-        products, total = await read_repo.search_by_name(name=search_query, offset=0, limit=PAGE_SIZE)
+        if retailer_uuid is None:
+            products, total = await read_repo.search_by_name(name=search_query, offset=0, limit=PAGE_SIZE)
+        else:
+            uow_provider = container.get_unit_of_work_provider()
+            uow = await uow_provider.provide()
+            async with uow:
+                retailer = await uow.retailer_repo.get_by_uuid(UUID(retailer_uuid))
+            selected_retailer_name = retailer.get_name()
+            products, total = await read_repo.search_by_name_and_by_retailer_uuid(
+                name=search_query,
+                retailer_uuid=retailer_uuid,
+                offset=0,
+                limit=PAGE_SIZE,
+            )
     except Exception:
         logger.exception("Search failed for query %r", search_query)
-        await status.edit_text("⚠️ Ошибка при поиске. Попробуйте позже.")
+        await status.edit_text(t(lang, "search_error"))
         return
 
     if not products:
         await status.edit_text(
-            f"🔍 <b>«{html.escape(display_query)}»</b> — найдено: 0\n\nПо этому запросу ничего не найдено.",
+            t(lang, "search_empty", query=html.escape(display_query)),
             parse_mode=ParseMode.HTML,
         )
         return
 
     await status.delete()
-    keyboard = search_nav_keyboard(search_query, offset=0, total=total)
+    keyboard = search_result_keyboard(
+        search_query,
+        offset=0,
+        total=total,
+        language_code=lang,
+        selected_retailer_name=selected_retailer_name,
+    )
     await send_product_page(
         reply_target=message,
         products=products,
         total=total,
         offset=0,
         header=f"🔍 <b>«{html.escape(display_query)}»</b>",
+        summary_label=t(lang, "results_found"),
+        page_label=t(lang, "page"),
         keyboard=keyboard,
     )
 
 
 async def categories_handler(message: Message) -> None:
-    status = await message.answer("📂 Загружаю категории…")
-    try:
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        uow_provider = container.get_unit_of_work_provider()
-        uow = await uow_provider.provide()
-        async with uow:
-            categories = await uow.category_repo.all()
-    except Exception:
-        logger.exception("Failed to load categories")
-        await status.edit_text("⚠️ Не удалось загрузить категории. Попробуйте позже.")
-        return
-
-    if not categories:
-        await status.edit_text("ℹ️ Категории пока не добавлены.")
-        return
-
-    cat_pairs = [(str(cat.get_uuid()), cat.get_name()) for cat in categories]
-    await status.edit_text(
-        "<b>Выберите категорию:</b>",
-        parse_mode=ParseMode.HTML,
-        reply_markup=categories_keyboard(cat_pairs),
-    )
+    lang = get_user_language(message.from_user.id if message.from_user else None)
+    await message.answer(t(lang, "categories_disabled"))
 
 
 async def help_handler(message: Message) -> None:
-    await message.answer(
-        "<b>Metax Bot</b>\n\n"
-        "Просто напишите название товара — я найду скидки в Yerevan City и SAS AM.\n\n"
-        "Кнопка <b>Категории</b> — просмотр по разделам.\n\n"
-        "Навигация по страницам: кнопки <b>← →</b>.",
-        parse_mode=ParseMode.HTML,
-    )
+    lang = get_user_language(message.from_user.id if message.from_user else None)
+    await message.answer(t(lang, "help"), parse_mode=ParseMode.HTML)
 
 
 @router.message(CommandStart())
 async def start_handler(message: Message) -> None:
+    lang = get_user_language(message.from_user.id if message.from_user else None)
     await message.answer(
-        "<b>Metax Bot</b> 🛒\n\n"
-        "Нахожу лучшие скидки в Yerevan City и SAS AM.\n\n"
-        "Напишите название товара — и я найду скидки.",
+        t(lang, "choose_language"),
         parse_mode=ParseMode.HTML,
-        reply_markup=main_menu_keyboard(),
+        reply_markup=language_keyboard(),
     )
 
 

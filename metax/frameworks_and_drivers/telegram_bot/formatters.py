@@ -18,7 +18,7 @@ def get_first_image_url(products: list[DiscountedProductReadModel]) -> str | Non
 
 
 def format_product(product: DiscountedProductReadModel, index: int) -> str:
-    name = html.escape(product["name"][:_MAX_NAME_LEN].title())
+    name = html.escape(product["name"][:_MAX_NAME_LEN])
     real_price = product["real_price"]
     discounted_price = product["discounted_price"]
     url = product["url"]

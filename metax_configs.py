@@ -117,7 +117,7 @@ class DevConfigs(BaseConfigs):
     fluent_bit_host: str = "mock"
     fluent_bit_port: int = 0
 
-    ollama_enabled: bool = True
+    ollama_enabled: bool = False
     ollama_host: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:1.5b"
     ollama_concurrency: int = 6
