@@ -3,7 +3,7 @@
 from django.db import migrations
 
 
-def _clear(apps, schema_editor):  # noqa: ANN001
+def _clear(apps, schema_editor):
     apps.get_model("metax", "CategoryModel").objects.all().delete()
 
 

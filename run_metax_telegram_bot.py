@@ -15,6 +15,9 @@ def _read_telegram_token() -> str | None:
     DevConfigs does not read .env at all, so pydantic never sees values from
     that file. We mirror the same peek-at-.env approach used by
     _read_env_name_from_dotenv() in metax_configs.py.
+
+    Returns:
+        The bot token if found in the environment or .env file, otherwise ``None``.
     """
     token = os.environ.get("TELEGRAM_BOT_TOKEN")
     if token:

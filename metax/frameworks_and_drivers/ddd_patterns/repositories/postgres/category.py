@@ -1,10 +1,8 @@
-import datetime as dt
 from typing import override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
 from django.db import IntegrityError, connection
-from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.category import (
     CategoryRepository,
@@ -105,7 +103,14 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 row = cursor.fetchone()
             if row is None:
                 return None
-            return Category(uuid_=row[0], name=row[1], name_hy=row[2], name_ru=row[3], created_at=row[4], updated_at=row[5])
+            return Category(
+                uuid_=row[0],
+                name=row[1],
+                name_hy=row[2],
+                name_ru=row[3],
+                created_at=row[4],
+                updated_at=row[5],
+            )
 
         return await sync_to_async(_sync_version)(name)
 
@@ -120,7 +125,14 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
                 row = cursor.fetchone()
             if row is None:
                 return None
-            return Category(uuid_=row[0], name=row[1], name_hy=row[2], name_ru=row[3], created_at=row[4], updated_at=row[5])
+            return Category(
+                uuid_=row[0],
+                name=row[1],
+                name_hy=row[2],
+                name_ru=row[3],
+                created_at=row[4],
+                updated_at=row[5],
+            )
 
         return await sync_to_async(_sync_version)(uuid_)
 
@@ -130,7 +142,13 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             with connection.cursor() as cursor:
                 cursor.execute(
                     "UPDATE categories SET name = %s, name_hy = %s, name_ru = %s, updated_at = %s WHERE uuid = %s",
-                    [_cat.get_name(), _cat.get_name_hy(), _cat.get_name_ru(), _cat.get_updated_at(), _cat.get_uuid()],
+                    [
+                        _cat.get_name(),
+                        _cat.get_name_hy(),
+                        _cat.get_name_ru(),
+                        _cat.get_updated_at(),
+                        _cat.get_uuid(),
+                    ],
                 )
 
         try:

@@ -5,27 +5,16 @@ from typing import overload
 class DiscountedProductFieldsCleanerMixin:
     @staticmethod
     def clean_discounted_product_name(text: str) -> str:
-        """Normalizes product name.
+        """Normalize only whitespace, keeping the source name's original case and punctuation.
 
-        Performs this options on text
-        - lowercase
-        - remove special symbols
-        - keep latin, cyrillic, armenian letters and digits
-        - normalize spaces.
+        The name is shown to users verbatim, so we keep it faithful to the retailer's web page.
+        Case- and punctuation-insensitive search is handled by the OpenSearch analyzers at
+        index/query time, not here, so no lowercasing or symbol stripping is needed.
 
         Returns:
-            Cleaned, normalized name string.
+            The name with surrounding whitespace trimmed and internal whitespace runs collapsed.
         """
-        text = text.lower()
-        text = re.sub(
-            r"[^a-z0-9\u0430-\u044f\u0561-\u0587]+",
-            " ",
-            text,
-            flags=re.IGNORECASE,
-        )
-        # remove extra spaces
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
+        return re.sub(r"\s+", " ", text).strip()
 
     @overload
     @staticmethod

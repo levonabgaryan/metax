@@ -102,7 +102,7 @@ _CATEGORIES: list[dict] = [
 _CATEGORY_NAMES = [c["name"] for c in _CATEGORIES]
 
 
-def _seed(apps, schema_editor):  # noqa: ANN001
+def _seed(apps, schema_editor):
     Category = apps.get_model("metax", "CategoryModel")
     HelperWord = apps.get_model("metax", "CategoryHelperWordsModel")
 
@@ -121,7 +121,7 @@ def _seed(apps, schema_editor):  # noqa: ANN001
             )
 
 
-def _unseed(apps, schema_editor):  # noqa: ANN001
+def _unseed(apps, schema_editor):
     Category = apps.get_model("metax", "CategoryModel")
     # Helper words are deleted via CASCADE when the category is deleted.
     Category.objects.filter(name__in=_CATEGORY_NAMES).delete()

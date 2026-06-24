@@ -52,7 +52,7 @@ _CATEGORIES = [
 _CATEGORY_NAMES = [c["name"] for c in _CATEGORIES]
 
 
-def _seed(apps, schema_editor):  # noqa: ANN001
+def _seed(apps, schema_editor):
     Category = apps.get_model("metax", "CategoryModel")
     for cat in _CATEGORIES:
         Category.objects.get_or_create(
@@ -65,7 +65,7 @@ def _seed(apps, schema_editor):  # noqa: ANN001
         )
 
 
-def _unseed(apps, schema_editor):  # noqa: ANN001
+def _unseed(apps, schema_editor):
     apps.get_model("metax", "CategoryModel").objects.filter(name__in=_CATEGORY_NAMES).delete()
 
 

@@ -16,6 +16,31 @@ from metax.core.application.read_models.discounted_product import (
 )
 from metax.frameworks_and_drivers.opensearch.indices import discounted_product_read_model
 
+# Deepest discount percentage first ((real - discounted) / real), computed at query time from
+# doc-values (no stored field / reproject needed).
+_DISCOUNT_DESC_SORT_ENTRY: dict[str, Any] = {
+    "_script": {
+        "type": "number",
+        "order": "desc",
+        "script": {
+            "lang": "painless",
+            "source": (
+                "double real = doc['real_price'].value;"
+                "return real > 0 ? (real - doc['discounted_price'].value) / real : 0.0;"
+            ),
+        },
+    }
+}
+
+# Name searches order by: whole-word matches first (a discrete _score tier built in
+# __build_name_query), then deepest discount, then a stable _id tie-break for consistent
+# offset pagination.
+_WHOLE_WORD_THEN_DISCOUNT_SORT: list[dict[str, Any]] = [
+    {"_score": {"order": "desc"}},
+    _DISCOUNT_DESC_SORT_ENTRY,
+    {"_id": {"order": "asc"}},
+]
+
 
 class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelRepository):
     def __init__(self, opensearch_async_client: AsyncOpenSearch) -> None:
@@ -132,12 +157,7 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
             "query": query,
             "from": offset,
             "size": limit,
-            # Relevance first, then stable tie-break so offset pagination does not shuffle
-            # documents that share the same score.
-            "sort": [
-                {"_score": {"order": "desc"}},
-                {"_id": {"order": "asc"}},
-            ],
+            "sort": _WHOLE_WORD_THEN_DISCOUNT_SORT,
         }
         response = await self.__opensearch_async_client.search(
             index=self.__alias_name,
@@ -161,10 +181,7 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
             "query": query,
             "from": offset,
             "size": limit,
-            "sort": [
-                {"_score": {"order": "desc"}},
-                {"_id": {"order": "asc"}},
-            ],
+            "sort": _WHOLE_WORD_THEN_DISCOUNT_SORT,
         }
         response = await self.__opensearch_async_client.search(
             index=self.__alias_name,
@@ -188,12 +205,7 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
             "query": query,
             "from": offset,
             "size": limit,
-            # Relevance first, then stable tie-break so offset pagination does not shuffle
-            # documents that share the same score.
-            "sort": [
-                {"_score": {"order": "desc"}},
-                {"_id": {"order": "asc"}},
-            ],
+            "sort": _WHOLE_WORD_THEN_DISCOUNT_SORT,
         }
         response = await self.__opensearch_async_client.search(
             index=self.__alias_name,
@@ -392,36 +404,69 @@ class OpenSearchDiscountedProductReadModelRepository(DiscountedProductReadModelR
         }
 
     async def __build_name_query(self, name: str) -> dict[str, Any]:
-        """Build a multi-field name query with Latin-to-Armenian transliteration boost."""
-        base_query: dict[str, Any] = {
-            "multi_match": {
-                "query": name,
-                "fields": ["name.eng", "name.rus", "name.arm"],
-                "type": "most_fields",
+        """Build a name query: partial matches decide membership, whole-word matches score a tier.
+
+        The ``filter`` clause selects every document that matches partially (edge-ngram), with no
+        scoring. The ``should`` clause adds a constant score to documents that contain the query as
+        a whole word in the standard-analyzed parent ``name`` field. Sorting by ``_score`` therefore
+        puts exact-word hits (e.g. "կաթ Մարիաննա") ahead of partial ones (e.g. "կաթնային շոկոլադ").
+
+        Returns:
+            An OpenSearch ``bool`` query.
+        """
+        transliterated = await self.__transliterate_latin_to_armenian(name)
+
+        # Membership: any partial (edge-ngram) match across the language sub-fields.
+        partial_should: list[dict[str, Any]] = [
+            {
+                "multi_match": {
+                    "query": name,
+                    "fields": ["name.eng", "name.rus", "name.arm"],
+                    "type": "most_fields",
+                }
+            }
+        ]
+        # Scoring tier: the query present as a whole word in the standard-analyzed parent ``name``.
+        whole_word_should: list[dict[str, Any]] = [{"match": {"name": {"query": name}}}]
+        if transliterated:
+            partial_should.append({"match": {"name.arm": {"query": transliterated}}})
+            whole_word_should.append({"match": {"name": {"query": transliterated}}})
+
+        return {
+            "bool": {
+                "filter": [{"bool": {"should": partial_should, "minimum_should_match": 1}}],
+                "should": [
+                    {
+                        "constant_score": {
+                            "filter": {"bool": {"should": whole_word_should, "minimum_should_match": 1}},
+                            "boost": 1.0,
+                        }
+                    }
+                ],
             }
         }
+
+    async def __transliterate_latin_to_armenian(self, name: str) -> str | None:
+        """Transliterate a Latin-typed query to Armenian (e.g. 'kat' -> 'կաթ').
+
+        Returns:
+            The transliterated token, or ``None`` if the analyze call fails or yields nothing.
+        """
         try:
-            translit_res = await self.__opensearch_async_client.indices.analyze(
+            response = await self.__opensearch_async_client.indices.analyze(
                 body={
                     "tokenizer": "keyword",
                     "filter": [{"type": "icu_transform", "id": "Latin-Armenian"}],
                     "text": name,
                 }
             )
-            tokens = translit_res.get("tokens", [])
-            if tokens:
-                armenian_query: str = tokens[0]["token"]
-                return {
-                    "bool": {
-                        "should": [
-                            base_query,
-                            {"match": {"name.arm": {"query": armenian_query, "boost": 1.5}}},
-                        ]
-                    }
-                }
         except Exception:
-            pass
-        return base_query
+            return None
+        tokens = response.get("tokens", [])
+        if tokens:
+            token: str = tokens[0]["token"]
+            return token
+        return None
 
     @staticmethod
     def __total_hits_value(total: Any) -> int:

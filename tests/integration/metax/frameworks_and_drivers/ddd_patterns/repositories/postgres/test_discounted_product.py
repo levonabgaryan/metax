@@ -3,6 +3,7 @@ from decimal import Decimal
 from uuid import uuid7
 
 import pytest
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
@@ -10,7 +11,6 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.d
 )
 from metax.core.application.ports.ddd_patterns.repository.errors import EntityIsNotFoundError
 from metax.core.domain.entities.category.aggregate_root_entity import Category
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )

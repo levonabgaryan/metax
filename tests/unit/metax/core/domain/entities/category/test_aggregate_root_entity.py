@@ -2,13 +2,13 @@ import datetime as dt
 from uuid import uuid7
 
 import pytest
-
-from constants import ErrorCodes
-from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.category.errors import (
     DuplicateCategoryHelperWordsError,
 )
 from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
+
+from constants import ErrorCodes
+from metax.core.domain.entities.category.aggregate_root_entity import Category
 
 
 def _make_helper_word(text: str) -> CategoryHelperWord:

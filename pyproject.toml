@@ -193,7 +193,22 @@ convention = "google"
     "E501",
     "RUF012",
     "RUF015",
+    # Django data-migration conventions: `Category = apps.get_model(...)` (N806),
+    # unused `schema_editor` params (ARG001/ARG005), multilingual seed data (RUF001/RUF002).
+    "N806",
+    "ARG001",
+    "ARG005",
+    "RUF001",
+    "RUF002",
 ]
+# Telegram UI text is intentionally Cyrillic/Armenian, which trips the ambiguous-unicode lints.
+"metax/frameworks_and_drivers/telegram_bot/localization.py" = ["RUF001", "RUF002", "E501"]
+"metax/frameworks_and_drivers/telegram_bot/formatters.py" = ["RUF001", "RUF002"]
+"metax/frameworks_and_drivers/telegram_bot/keyboards.py" = ["RUF001", "RUF002"]
+# LLM prompt text contains Russian/Armenian category names.
+"metax/core/application/ddd_patterns/services/ollama_category_classifier_service.py" = ["RUF001", "RUF002"]
+# Local dev launcher: intentional subprocess use of well-known executables.
+"run_dev.py" = ["S404", "S603", "S607", "E501"]
 "*/test_*.py" = [
     "D101",
     "D102",

@@ -9,6 +9,14 @@ DEFAULT_LANGUAGE = "en"
 
 _USER_LANGUAGES: dict[int, str] = {}
 _USER_RETAILER_FILTERS: dict[int, str | None] = {}
+# Last search query per user, so changing the retailer filter can re-run it.
+_USER_LAST_QUERIES: dict[int, str] = {}
+
+# Pretty display labels for known retailers; unknown ones fall back to a title-cased name.
+_RETAILER_DISPLAY_NAMES: dict[str, str] = {
+    "sas-am": "SAS",
+    "yerevan-city": "Yerevan City",
+}
 
 _TEXTS: dict[str, dict[str, str]] = {
     "en": {
@@ -44,6 +52,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "categories_disabled": "📂 Categories are disabled for now.",
         "unsupported": "Send a product name to search discounts.",
         "throttle": "⏳ Too fast. Please wait a second.",
+        "image_unavailable": "🚫 <i>Image unavailable</i>",
     },
     "ru": {
         "choose_language": "Выберите язык:",
@@ -78,6 +87,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "categories_disabled": "📂 Категории сейчас отключены.",
         "unsupported": "Напишите название товара для поиска скидок.",
         "throttle": "⏳ Слишком быстро. Подождите секунду.",
+        "image_unavailable": "🚫 <i>Изображение недоступно</i>",
     },
     "hy": {
         "choose_language": "Ընտրեք լեզուն՝",
@@ -112,6 +122,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "categories_disabled": "📂 Կատեգորիաները ժամանակավորապես անջատված են։",
         "unsupported": "Գրեք ապրանքի անունը՝ զեղչերը որոնելու համար։",
         "throttle": "⏳ Շատ արագ է։ Խնդրում ենք սպասել մեկ վայրկյան։",
+        "image_unavailable": "🚫 <i>Նկարը հասանելի չէ</i>",
     },
 }
 
@@ -146,6 +157,25 @@ def get_user_retailer_filter(user_id: int | None) -> str | None:
     if user_id is None:
         return None
     return _USER_RETAILER_FILTERS.get(user_id)
+
+
+def set_user_last_query(user_id: int, query: str) -> None:
+    _USER_LAST_QUERIES[user_id] = query
+
+
+def get_user_last_query(user_id: int | None) -> str | None:
+    if user_id is None:
+        return None
+    return _USER_LAST_QUERIES.get(user_id)
+
+
+def retailer_display_name(name: str) -> str:
+    """Map an internal retailer name to a user-facing label.
+
+    Returns:
+        A pretty display label for known retailers, else a title-cased fallback.
+    """
+    return _RETAILER_DISPLAY_NAMES.get(name, name.replace("-", " ").replace("_", " ").title())
 
 
 def t(language_code: str, key: str, **kwargs: str) -> str:

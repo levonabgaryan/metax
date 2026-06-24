@@ -93,7 +93,11 @@ async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str
                 model=METAX_CONFIGS.ollama_model,
                 concurrency=METAX_CONFIGS.ollama_concurrency,
             )
-            logger.info("Ollama classifier enabled | model=%s host=%s", METAX_CONFIGS.ollama_model, METAX_CONFIGS.ollama_host)
+            logger.info(
+                "Ollama classifier enabled | model=%s host=%s",
+                METAX_CONFIGS.ollama_model,
+                METAX_CONFIGS.ollama_host,
+            )
 
         await collect_discounted_products_from_all_retailers(
             unit_of_work_provider=container.get_unit_of_work_provider(),

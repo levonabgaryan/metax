@@ -6,6 +6,8 @@ from decimal import Decimal
 from typing import Any, ClassVar, override
 from uuid import UUID, uuid7
 
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
+
 from metax.core.application.ports.ddd_patterns.service.discounted_product_collector_service import (
     DiscountedProductCollectorService,
 )
@@ -17,7 +19,6 @@ from metax.core.application.read_models.discounted_product import (
     DiscountedProductReadModel,
 )
 from metax.core.domain.entities.category.aggregate_root_entity import Category
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 from metax.core.domain.entities.discounted_product.aggregate_root_entity import (
     DiscountedProduct,
 )

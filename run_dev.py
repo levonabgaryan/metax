@@ -49,14 +49,15 @@ def _runner_env() -> dict[str, str]:
         env["PATH"] = f"{venv_bin}{os.pathsep}{existing_path}" if existing_path else str(venv_bin)
     return env
 
+
 _SERVICES = [
-    ("HTTP server",     "run_metax_http_server.py"),
-    ("Taskiq worker",   "run_metax_taskiq_app.py"),
-    ("Telegram bot",    "run_metax_telegram_bot.py"),
+    ("HTTP server", "run_metax_http_server.py"),
+    ("Taskiq worker", "run_metax_taskiq_app.py"),
+    ("Telegram bot", "run_metax_telegram_bot.py"),
 ]
 
 _HEALTH_POLL_INTERVAL = 2       # seconds between health checks
-_HEALTH_TIMEOUT       = 90      # seconds before giving up
+_HEALTH_TIMEOUT = 90      # seconds before giving up
 
 
 # ── docker helpers ────────────────────────────────────────────────────────────
@@ -77,8 +78,8 @@ def _all_healthy() -> bool:
         text=True,
         env=_ENV,
     )
-    lines = [l for l in result.stdout.splitlines() if l.strip() and "NAME" not in l]
-    return bool(lines) and all("(healthy)" in l for l in lines)
+    lines = [line for line in result.stdout.splitlines() if line.strip() and "NAME" not in line]
+    return bool(lines) and all("(healthy)" in line for line in lines)
 
 
 async def _wait_healthy() -> None:
@@ -113,7 +114,7 @@ async def _terminate_all(procs: list[tuple[str, asyncio.subprocess.Process]]) ->
             proc.terminate()
             logger.info("%-16s → SIGTERM sent", label)
     results = await asyncio.gather(*[p.wait() for _, p in procs], return_exceptions=True)
-    for (label, _), rc in zip(procs, results):
+    for (label, _), rc in zip(procs, results, strict=False):
         logger.info("%-16s → exited (%s)", label, rc)
 
 

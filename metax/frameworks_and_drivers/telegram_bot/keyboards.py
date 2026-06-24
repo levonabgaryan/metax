@@ -6,7 +6,11 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from metax.frameworks_and_drivers.telegram_bot.localization import language_buttons, t
+from metax.frameworks_and_drivers.telegram_bot.localization import (
+    language_buttons,
+    retailer_display_name,
+    t,
+)
 
 PAGE_SIZE = 5
 
@@ -79,24 +83,33 @@ def language_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def _filter_control_buttons(
+    language_code: str, selected_retailer_name: str | None
+) -> list[tuple[str, CallbackData]]:
+    """Retailer-filter controls: one status button that opens the menu, plus Clear when a filter is active.
+
+    Returns:
+        ``(label, callback_data)`` pairs, one button per row.
+    """
+    if selected_retailer_name is None:
+        status = f"🏪 {t(language_code, 'current_filter')}: {t(language_code, 'current_filter_none')}"
+        return [(status, RetailerFilterMenuCB())]
+    status = f"🏪 {t(language_code, 'current_filter')}: {retailer_display_name(selected_retailer_name)}"
+    return [
+        (status, RetailerFilterMenuCB()),
+        (f"✖ {t(language_code, 'clear_retailer_filter')}", RetailerClearCB()),
+    ]
+
+
 def retailer_filter_keyboard(
     *,
     language_code: str,
     selected_retailer_name: str | None = None,
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(
-        text=(
-            f"{t(language_code, 'current_filter')}: {selected_retailer_name}"
-            if selected_retailer_name is not None
-            else f"{t(language_code, 'current_filter')}: {t(language_code, 'current_filter_none')}"
-        ),
-        callback_data=RetailerFilterMenuCB(),
-    )
-    builder.button(text=t(language_code, "filter_by_retailer"), callback_data=RetailerFilterMenuCB())
-    if selected_retailer_name is not None:
-        builder.button(text=t(language_code, "clear_retailer_filter"), callback_data=RetailerClearCB())
-    builder.adjust(1, 2)
+    for text, callback_data in _filter_control_buttons(language_code, selected_retailer_name):
+        builder.button(text=text, callback_data=callback_data)
+    builder.adjust(1)
     return builder.as_markup()
 
 
@@ -104,15 +117,22 @@ def retailer_selection_keyboard(
     retailers: list[tuple[str, str]],
     *,
     language_code: str,
+    selected_uuid: str | None = None,
 ) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text=t(language_code, "clear_retailer_filter"), callback_data=RetailerClearCB())
+    # "All shops" doubles as the clear action; mark it active when no retailer is selected.
+    all_mark = "✓ " if selected_uuid is None else ""
+    builder.button(
+        text=f"{all_mark}{t(language_code, 'clear_retailer_filter')}",
+        callback_data=RetailerClearCB(),
+    )
     for retailer_uuid, retailer_name in retailers:
+        mark = "✓ " if retailer_uuid == selected_uuid else "🏪 "
         builder.button(
-            text=retailer_name,
+            text=f"{mark}{retailer_display_name(retailer_name)}",
             callback_data=RetailerSelectCB(retailer_uuid=retailer_uuid),
         )
-    builder.adjust(2)
+    builder.adjust(1, 2)
     return builder.as_markup()
 
 
@@ -127,6 +147,7 @@ def search_result_keyboard(
     builder = InlineKeyboardBuilder()
     has_prev = offset > 0
     has_next = offset + PAGE_SIZE < total
+    nav_count = has_prev + has_next
     if has_prev:
         builder.button(
             text=t(language_code, "back"),
@@ -137,22 +158,14 @@ def search_result_keyboard(
             text=t(language_code, "next"),
             callback_data=SearchNavCB(query=query, offset=offset + PAGE_SIZE),
         )
-    if has_prev or has_next:
-        builder.adjust(2)
 
-    filter_row = []
-    if selected_retailer_name is None:
-        filter_row.append((f"{t(language_code, 'current_filter')}: {t(language_code, 'current_filter_none')}", RetailerFilterMenuCB()))
-        filter_row.append((t(language_code, "filter_by_retailer"), RetailerFilterMenuCB()))
-    else:
-        filter_row.append((f"{t(language_code, 'current_filter')}: {selected_retailer_name}", RetailerFilterMenuCB()))
-        filter_row.append((t(language_code, "clear_retailer_filter"), RetailerClearCB()))
-
-    for text, callback_data in filter_row:
+    filter_buttons = _filter_control_buttons(language_code, selected_retailer_name)
+    for text, callback_data in filter_buttons:
         builder.button(text=text, callback_data=callback_data)
-    if filter_row:
-        builder.adjust(2, 2)
 
+    # Nav buttons share one row; each filter control sits on its own row below.
+    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons)
+    builder.adjust(*sizes)
     return builder.as_markup()
 
 

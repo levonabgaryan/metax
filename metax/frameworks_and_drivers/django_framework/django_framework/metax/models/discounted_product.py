@@ -14,7 +14,8 @@ class DiscountedProductModel(BaseDbModel):
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2)
     name = models.CharField(max_length=128, null=False)
     url = models.URLField(max_length=2048)
-    image_url = models.URLField(max_length=2048, null=True, blank=True)
+    # image_url is genuinely optional; a nullable column matches the domain (None vs. empty string).
+    image_url = models.URLField(max_length=2048, null=True, blank=True)  # noqa: DJ001
 
     category = models.ForeignKey(
         "CategoryModel",

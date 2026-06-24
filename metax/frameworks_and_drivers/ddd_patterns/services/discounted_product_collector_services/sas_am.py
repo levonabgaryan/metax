@@ -5,8 +5,8 @@ import uuid
 from collections.abc import AsyncIterator
 from decimal import Decimal
 from json import loads
-from urllib.parse import urljoin
 from typing import ClassVar, override
+from urllib.parse import urljoin
 
 import httpx
 from bs4 import BeautifulSoup
@@ -125,7 +125,7 @@ class SasAmCollectorService(DiscountedProductCollectorService, DiscountedProduct
                     if image_url is None:
                         img_tag = a_tag.find("img")
                         if img_tag is not None:
-                            # Prefer data-src: lazy-loaded pages put the real URL there while src holds a placeholder.
+                            # Prefer data-src: lazy-loaded pages put the real URL there, src is a placeholder.
                             src = img_tag.get("data-src") or img_tag.get("src")
                             if isinstance(src, str) and src and not src.startswith("data:"):
                                 image_url = urljoin(self.sas_am_main_page_url, src)

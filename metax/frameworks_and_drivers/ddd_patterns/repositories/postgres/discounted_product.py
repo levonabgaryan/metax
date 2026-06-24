@@ -210,7 +210,10 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 [limit, offset],
             )
             rows: list[
-                tuple[UUID, Decimal, Decimal, str, str, str | None, CategoryUUID, RetailerUUID, dt.datetime, dt.datetime]
+                tuple[
+                    UUID, Decimal, Decimal, str, str, str | None,
+                    CategoryUUID, RetailerUUID, dt.datetime, dt.datetime,
+                ]
             ] = cursor.fetchall()
             return [
                 DiscountedProduct(

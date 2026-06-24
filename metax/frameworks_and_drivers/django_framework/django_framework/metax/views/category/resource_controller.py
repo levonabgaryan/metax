@@ -42,7 +42,9 @@ class CategoryResourceController(MetaxJsonApiController):
         extra_responses=[ResponseSpec(status_code=HTTPStatus.NOT_FOUND, return_type=DANJAError)],
     )
     async def get(
-        self, parsed_path: Path[CategoryPath], parsed_query: Query[QueryParamsForResource]
+        self,
+        parsed_path: Path[CategoryPath],
+        parsed_query: Query[QueryParamsForResource],  # noqa: ARG002  # required by the controller signature
     ) -> CategoryResponseBody:
         unit_of_work = METAX_LIFESPAN_MANAGER.get_metax_container().get_unit_of_work()
         async with unit_of_work as uow:

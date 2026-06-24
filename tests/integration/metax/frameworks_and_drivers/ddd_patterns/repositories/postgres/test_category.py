@@ -1,13 +1,13 @@
 from uuid import uuid7
 
 import pytest
+from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.errors import (
     EntityAlreadyExistsError,
     EntityIsNotFoundError,
 )
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_category_entity
 
