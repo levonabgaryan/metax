@@ -1,6 +1,6 @@
 # Local development on the host.
 #
-# Brings up ONLY the database containers (postgres, opensearch, redis) with
+# Brings up ONLY the database/infra containers (postgres, embeddings, redis) with
 # their ports exposed to 127.0.0.1. The metax and taskiq applications themselves run on the
 # host (`python run_metax_http_server.py`, `python run_metax_taskiq_app.py`) and connect via localhost.
 #
@@ -16,13 +16,6 @@ x-postgres-db-env: &postgres-db-env
   POSTGRES_PASSWORD: pass111
   POSTGRES_DB: metax
 
-x-opensearch-db-env: &opensearch-db-env
-  discovery.type: single-node
-  cluster.name: metax-cluster
-  bootstrap.memory_lock: "true"
-  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-  OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Os_Super_Secret_Pass_2026!"
-
 x-redis-env: &redis-env
   REDIS_PASSWORD: "R_Super_Secret_Pass_2026!"
 
@@ -35,19 +28,19 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Postgres 18 image stores data in a version-specific subdir; mount the parent.
+      - pgdata:/var/lib/postgresql
     networks:
       - metax-net
 
-  metax-opensearch-db:
+  metax-embeddings:
     extends:
       file: docker-compose.base.yml
-      service: metax-opensearch-db
-    environment: *opensearch-db-env
+      service: metax-embeddings
     ports:
-      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:8082:80"
     volumes:
-      - os_data:/usr/share/opensearch/data
+      - embeddings_models:/data
     networks:
       - metax-net
 
@@ -65,7 +58,7 @@ services:
 
 volumes:
   pgdata:
-  os_data:
+  embeddings_models:
   redis_data:
 
 networks:

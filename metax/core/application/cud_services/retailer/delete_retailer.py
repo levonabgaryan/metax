@@ -3,7 +3,6 @@ from typing import override
 
 from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.retailer.dtos import DeleteRetailerRequestDTO, DeleteRetailerResponseDTO
-from metax.core.application.event_handlers.retailer.events import RetailerDeleted
 
 logger = logging.getLogger(__name__)
 
@@ -25,5 +24,4 @@ class DeleteRetailerService(CUDService[DeleteRetailerRequestDTO]):
             request.__class__.__name__,
             request.retailer_uuid,
         )
-        await self._event_bus.emit(RetailerDeleted(retailer_uuid=request.retailer_uuid))
         return DeleteRetailerResponseDTO(retailer_uuid=request.retailer_uuid)

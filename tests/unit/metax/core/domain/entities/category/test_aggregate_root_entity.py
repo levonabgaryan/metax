@@ -1,62 +1,51 @@
 import datetime as dt
 from uuid import uuid7
 
-import pytest
-from metax.core.domain.entities.category.errors import (
-    DuplicateCategoryHelperWordsError,
-)
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
-
-from constants import ErrorCodes
 from metax.core.domain.entities.category.aggregate_root_entity import Category
 
+_TS = dt.datetime(2026, 1, 1, tzinfo=dt.UTC)
 
-def _make_helper_word(text: str) -> CategoryHelperWord:
-    ts = dt.datetime(2026, 1, 1, tzinfo=dt.UTC)
-    return CategoryHelperWord(
+
+def _make_category() -> Category:
+    return Category(
         uuid_=uuid7(),
-        helper_word_text=text,
-        created_at=ts,
-        updated_at=ts,
+        name="dairy",
+        name_hy="կաթ",
+        name_ru="молоко",
+        created_at=_TS,
+        updated_at=_TS,
     )
 
 
-def test_add_new_helper_words() -> None:
-    # given
-    ts = dt.datetime(2026, 1, 1, tzinfo=dt.UTC)
-    category = Category(
-        uuid_=uuid7(),
-        name="test_name",
-        helper_words=[_make_helper_word("a"), _make_helper_word("b"), _make_helper_word("c")],
-        created_at=ts,
-        updated_at=ts,
-    )
-    new_words = [_make_helper_word("a"), _make_helper_word("c")]
+def test_category_exposes_multilingual_names() -> None:
+    category = _make_category()
 
-    # expect
-    with pytest.raises(DuplicateCategoryHelperWordsError) as err:
-        category.add_new_helper_words(new_words)
-
-    # then
-    assert err.value.error_code == ErrorCodes.DUPLICATE_HELPER_WORDS
-    assert err.value.title == "Cannot add duplicate helper words."
-    assert err.value.details == "Duplicate words: a, c."
+    assert category.get_name() == "dairy"
+    assert category.get_name_hy() == "կաթ"
+    assert category.get_name_ru() == "молоко"
 
 
-def test_delete_helper_words_by_uuids() -> None:
-    # given
-    ts = dt.datetime(2026, 1, 1, tzinfo=dt.UTC)
-    word_a = _make_helper_word("a")
-    word_b = _make_helper_word("b")
-    word_c = _make_helper_word("c")
-    category = Category(
-        uuid_=uuid7(),
-        name="test_name",
-        helper_words=[word_a, word_b, word_c],
-        created_at=ts,
-        updated_at=ts,
-    )
-    words_to_delete = [word_a.get_uuid(), word_c.get_uuid()]
+def test_category_defaults_translations_to_empty_strings() -> None:
+    category = Category(uuid_=uuid7(), name="meat", created_at=_TS, updated_at=_TS)
 
-    category.delete_helper_words_by_uuids(words_to_delete)
-    assert [word.get_helper_word_text() for word in category.get_helper_words()] == ["b"]
+    assert category.get_name_hy() == ""
+    assert category.get_name_ru() == ""
+
+
+def test_set_name_updates_value_and_touches_updated_at() -> None:
+    category = _make_category()
+
+    category.set_name("dairy products")
+
+    assert category.get_name() == "dairy products"
+    assert category.get_updated_at() > _TS
+
+
+def test_set_translations_update_values() -> None:
+    category = _make_category()
+
+    category.set_name_hy("կաթնամթերք")
+    category.set_name_ru("молочные продукты")
+
+    assert category.get_name_hy() == "կաթնամթերք"
+    assert category.get_name_ru() == "молочные продукты"

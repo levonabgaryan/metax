@@ -1,4 +1,4 @@
-# Base service skeletons (postgres, opensearch, redis).
+# Base service skeletons (postgres, embeddings, redis).
 #
 # This file is NOT runnable on its own. It is consumed via `extends:` from
 # docker-compose.dev.yml / docker-compose.prod.yml / docker-compose.test.yml,
@@ -11,30 +11,28 @@
 
 services:
   metax-postgres-db:
-    image: postgres:18.1-alpine3.23
+    # pgvector/pgvector ships the `vector` extension on top of the official Postgres image.
+    image: pgvector/pgvector:pg18
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  metax-opensearch-db:
+  metax-embeddings:
+    # sentence-transformers (PyTorch, CPU) serving the Armenian E5 model for vector search.
+    # The model is downloaded into the mounted /data volume on first boot, so subsequent
+    # boots reuse the cache. Listens on port 80 inside the container.
     build:
       context: .
-      dockerfile: ./Dockerfile.opensearch
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
+      dockerfile: ./Dockerfile.embeddings
     healthcheck:
-      test: ["CMD-SHELL", "curl -k -s -f -u admin:$$OPENSEARCH_INITIAL_ADMIN_PASSWORD https://localhost:9200/_cluster/health | grep -qE 'green|yellow' || exit 1"]
+      # No curl in the slim image; use python. /health only succeeds once the model is loaded.
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:80/health')\" || exit 1"]
       interval: 20s
       timeout: 10s
-      retries: 10
-      start_period: 60s
+      retries: 30
+      start_period: 180s
 
   metax-redis:
     image: redis:8.4.0-alpine

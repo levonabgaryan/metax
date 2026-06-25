@@ -22,7 +22,7 @@ class DiscountedProductRetailerReadModel(TypedDict):
 
 
 class DiscountedProductReadModel(TypedDict):
-    """Projection for search; nested ``category`` / ``retailer`` match OpenSearch document fields."""
+    """Projection for search; nested ``category`` / ``retailer`` are read live via SQL joins."""
 
     uuid_: Required[str]
     created_at: Required[str]

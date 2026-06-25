@@ -3,7 +3,6 @@ from __future__ import annotations
 import datetime as dt
 from collections.abc import AsyncIterator
 from typing import override
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -43,7 +42,6 @@ class _FakeDiscountedProductsCreator(DiscountedProductCollectorServiceCreator):
 @pytest.mark.asyncio
 async def test_collect_discounted_products_use_case_saves_products_in_db(
     metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # given
     metax_container = metax_lifespan_manager_for_tests.get_metax_container()
@@ -70,16 +68,12 @@ async def test_collect_discounted_products_use_case_saves_products_in_db(
         ),
     ]
     creator = _FakeDiscountedProductsCreator(started_at=started_at, items=products_to_collect)
-
-    category_classifier = metax_container.get_category_classifier_service()
-    monkeypatch.setattr(category_classifier, "classify_category", AsyncMock(return_value=None))
     event_bus = await metax_container.get_event_bus()
 
     use_case = CollectDiscountedProducts(
         unit_of_work_provider=metax_container.get_unit_of_work_provider(),
         event_bus=event_bus,
         discounted_product_collector_service_creator=creator,
-        category_classifier_service=category_classifier,
         batch_size_for_saving_discounted_products=1,
     )
 

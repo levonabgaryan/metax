@@ -5,12 +5,10 @@ from decimal import Decimal
 import pytest
 from dmr.test import DMRAsyncClient
 
-from metax.frameworks_and_drivers.opensearch.indices.discounted_product_read_model import ALIAS_NAME
 from metax.frameworks_and_drivers.taskiq_framework.tasks import (
     taskiq_collect_discounted_products_from_all_retailers,
 )
 from metax_lifespan import MetaxAppLifespanManager
-from tests.conftest import refresh_opensearch_index
 from tests.utils import (
     FakeDiscountedProductsCreator,
     FakeProductSpec,
@@ -40,8 +38,8 @@ async def test_collected_products_appear_in_read_model(
 
     await taskiq_collect_discounted_products_from_all_retailers()
     event_bus = await container.get_event_bus()
-    await event_bus.wait_until_idle(timeout_seconds=10.0)
-    await refresh_opensearch_index(metax_lifespan_manager_for_tests, ALIAS_NAME)
+    # The post-collect handler embeds the new products; embedding hits the model service, so allow time.
+    await event_bus.wait_until_idle(timeout_seconds=60.0)
 
     response = await dmr_async_client.get(
         path="/api/discountedProduct?page[offset]=0&page[limit]=10&filter[match][discountedProduct.name]=lays",

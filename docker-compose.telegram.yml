@@ -1,0 +1,21 @@
+# Service skeleton for the Telegram bot.
+#
+# Reuses the metax application image but overrides the entrypoint to run the
+# long-polling bot instead of the HTTP server. Requires TELEGRAM_BOT_TOKEN in the
+# environment (provided by the top-level prod compose via the metax env block).
+
+services:
+  metax-telegram-bot:
+    extends:
+      file: docker-compose.metax.yml
+      service: metax
+    entrypoint: ["python", "run_metax_telegram_bot.py"]
+    # The bot exposes no HTTP endpoint, so — like the taskiq worker — we use a
+    # liveness-only probe (a responsive Python interpreter) so `docker compose
+    # up --wait` has a signal to wait on.
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

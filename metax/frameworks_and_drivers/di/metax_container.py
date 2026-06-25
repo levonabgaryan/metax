@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from dependency_injector import containers, providers
-from opensearchpy import AsyncOpenSearch
 
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.backend_patterns.unit_of_work.unit_of_work import AbstractUnitOfWork
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     DiscountedProductReadModelRepository,
+)
+from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
+    CategoryClassifierService,
 )
 from metax_configs import BaseConfigs
 
@@ -69,8 +71,9 @@ class MetaxContainer:
     async def get_event_bus(self) -> EventBus:
         return await self.__metax_container.resources_container.container.event_bus.async_()
 
-    async def get_opensearch_async_client(self) -> AsyncOpenSearch:
-        return await self.__metax_container.resources_container.container.opensearch_async_client.async_()
-
     async def get_discounted_product_read_model_repository(self) -> DiscountedProductReadModelRepository:
-        return await self.__metax_container.repositories_container.container.discounted_product_read_model_repository.async_()  # noqa: E501
+        # Factory with only sync deps (embedding_service is a Singleton), so resolve synchronously.
+        return self.__metax_container.repositories_container.container.discounted_product_read_model_repository()
+
+    def get_category_classifier(self) -> CategoryClassifierService:
+        return self.__metax_container.resources_container.container.category_classifier_service()

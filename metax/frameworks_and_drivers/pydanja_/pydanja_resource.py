@@ -14,13 +14,11 @@ from pydantic.functional_validators import ModelWrapValidatorHandler
 RESOURCE_TYPE_CATEGORY: Final[str] = "category"
 RESOURCE_TYPE_DISCOUNTED_PRODUCT: Final[str] = "discountedProduct"
 RESOURCE_TYPE_RETAILER: Final[str] = "retailer"
-RESOURCE_TYPE_CATEGORY_HELPER_WORD: Final[str] = "categoryHelperWord"
 
 HTTP_RESOURCES: frozenset[str] = frozenset({
     RESOURCE_TYPE_CATEGORY,
     RESOURCE_TYPE_DISCOUNTED_PRODUCT,
     RESOURCE_TYPE_RETAILER,
-    RESOURCE_TYPE_CATEGORY_HELPER_WORD,
 })
 
 

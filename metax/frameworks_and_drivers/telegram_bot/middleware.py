@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
-from typing import Any
+from typing import Any, override
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject, User
@@ -23,6 +23,7 @@ class ThrottleMiddleware(BaseMiddleware):
         self._last_call: dict[int, float] = {}
         self._rate = rate_seconds
 
+    @override
     async def __call__(
         self,
         handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],

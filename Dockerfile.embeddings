@@ -1,0 +1,30 @@
+# Serves the Armenian E5 embedding model via sentence-transformers (PyTorch, CPU).
+#
+# We run the published sentence-transformers weights directly: HuggingFace TEI's Candle CPU
+# backend segfaults on this model, and the repo ships no ONNX for TEI's ORT backend. The model is
+# downloaded into the mounted /data volume (HF cache) on first boot and reused on later boots.
+FROM python:3.12-slim
+
+ENV HF_HOME=/data \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
+
+# CPU-only torch keeps the image free of CUDA. Kept in its own layer so bumping the libs below
+# doesn't re-download torch.
+RUN pip install --index-url https://download.pytorch.org/whl/cpu "torch==2.5.1"
+
+# sentence-transformers is pinned to the version the model was authored with (5.x) so pooling /
+# prompt handling matches the published weights. sentencepiece/protobuf back the XLM-RoBERTa
+# tokenizer this model uses.
+RUN pip install \
+        "sentence-transformers==5.2.3" \
+        "fastapi==0.115.6" \
+        "uvicorn==0.34.0" \
+        "sentencepiece==0.2.0" \
+        "protobuf==5.29.2"
+
+COPY embeddings_server/app.py /app/app.py
+WORKDIR /app
+
+EXPOSE 80
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]

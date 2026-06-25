@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from typing import override
 
+from django.contrib.postgres.indexes import GinIndex
 from django.db import models
 from django_stubs_ext.db.models import TypedModelMeta
+from pgvector.django import HnswIndex, VectorField
 
 from .base_model import BaseDbModel
+
+# Embedding dimension for semantic search. Must match metax_configs EMBEDDING_DIM and the
+# embedding model's output (armenian-text-embeddings-2-large -> 1024).
+NAME_EMBEDDING_DIMENSIONS = 1024
 
 
 class DiscountedProductModel(BaseDbModel):
@@ -16,6 +22,9 @@ class DiscountedProductModel(BaseDbModel):
     url = models.URLField(max_length=2048)
     # image_url is genuinely optional; a nullable column matches the domain (None vs. empty string).
     image_url = models.URLField(max_length=2048, null=True, blank=True)  # noqa: DJ001
+
+    # Semantic-search vector of ``name``; NULL until the embedding worker fills it after a crawl.
+    name_embedding = VectorField(dimensions=NAME_EMBEDDING_DIMENSIONS, null=True, blank=True)
 
     category = models.ForeignKey(
         "CategoryModel",
@@ -30,6 +39,22 @@ class DiscountedProductModel(BaseDbModel):
         db_table = "discounted_products"
         verbose_name = "discounted product"
         verbose_name_plural = "discounted products"
+        indexes = [  # noqa: RUF012
+            # Approximate-nearest-neighbour (cosine) index for semantic search.
+            HnswIndex(
+                name="dp_name_embedding_hnsw",
+                fields=["name_embedding"],
+                m=16,
+                ef_construction=64,
+                opclasses=["vector_cosine_ops"],
+            ),
+            # Trigram index backing the exact/substring (ILIKE) search boost.
+            GinIndex(
+                name="dp_name_trgm_gin",
+                fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+        ]
 
     @override
     def __str__(self) -> str:

@@ -1,54 +1,26 @@
-import datetime as dt
 from abc import ABC, abstractmethod
-from collections.abc import AsyncIterator
-from uuid import UUID
 
 from metax.core.application.read_models.discounted_product import (
-    DiscountedProductCategoryReadModel,
     DiscountedProductReadModel,
-    DiscountedProductRetailerReadModel,
 )
-from metax.core.domain.entities.category.aggregate_root_entity import Category
-from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 
 
 class DiscountedProductReadModelRepository(ABC):
-    @abstractmethod
-    async def add_many(self, discounted_products: list[DiscountedProductReadModel]) -> None:
-        pass
+    """Read side of search (CQRS): queries the ``discounted_products`` table directly.
+
+    Since search now lives in the same Postgres database as the write model, there is no
+    separate read store to keep in sync — retailer/category data is read live via joins. The
+    only write-side concern here is keeping the ``name_embedding`` vector populated, which
+    ``embed_pending`` handles after each crawl.
+    """
 
     @abstractmethod
-    async def add(self, discounted_product: DiscountedProductReadModel) -> None:
-        pass
+    async def embed_pending(self, batch_size: int = 500) -> int:
+        """Compute and store embeddings for products that don't have one yet.
 
-    @staticmethod
-    def category_entity_to_read_fragment(category: Category) -> DiscountedProductCategoryReadModel:
-        return DiscountedProductCategoryReadModel(
-            uuid_=str(category.get_uuid()),
-            created_at=category.get_created_at().isoformat(),
-            updated_at=category.get_updated_at().isoformat(),
-            name=category.get_name(),
-        )
-
-    @abstractmethod
-    async def delete_older_than_and_return_deleted_count(self, date_limit: dt.datetime) -> int:
-        pass
-
-    @abstractmethod
-    async def delete_by_retailer_uuid_and_return_deleted_count(self, retailer_uuid: UUID) -> int:
-        """Remove all discounted-product read models whose nested retailer matches ``retailer_uuid``."""
-
-    @abstractmethod
-    async def delete_category_by_category_uuid_and_return_updated_count(self, category_uuid: UUID) -> int:
-        """Remove nested category fragment from read models by category uuid."""
-
-    @abstractmethod
-    def all(self) -> AsyncIterator[DiscountedProductReadModel]:
-        pass
-
-    @abstractmethod
-    async def get_all_count(self) -> int:
-        pass
+        Returns:
+            The number of products embedded.
+        """
 
     @abstractmethod
     async def search_by_name(
@@ -91,23 +63,4 @@ class DiscountedProductReadModelRepository(ABC):
 
     @abstractmethod
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
-        pass
-
-    @staticmethod
-    def retailer_entity_to_read_fragment(retailer: Retailer) -> DiscountedProductRetailerReadModel:
-        return DiscountedProductRetailerReadModel(
-            uuid_=str(retailer.get_uuid()),
-            created_at=retailer.get_created_at().isoformat(),
-            updated_at=retailer.get_updated_at().isoformat(),
-            name=retailer.get_name(),
-            home_page_url=retailer.get_home_page_url(),
-            phone_number=retailer.get_phone_number(),
-        )
-
-    @abstractmethod
-    async def update_categories(self, category: DiscountedProductCategoryReadModel) -> None:
-        pass
-
-    @abstractmethod
-    async def update_retailers(self, retailer: DiscountedProductRetailerReadModel) -> None:
         pass

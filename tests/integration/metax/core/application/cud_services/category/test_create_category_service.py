@@ -4,7 +4,6 @@ from metax.core.application.cud_services.category import (
     CreateCategoryRequestDTO,
     CreateCategoryResponseDTO,
     CreateCategoryService,
-    HelperWordPayloadRequestDTO,
 )
 from metax_lifespan import MetaxAppLifespanManager
 
@@ -20,10 +19,8 @@ async def test_create_category_service(
     event_bus = await metax_container.get_event_bus()
     request_dto = CreateCategoryRequestDTO(
         name="Test Category",
-        helper_words_payload=[
-            HelperWordPayloadRequestDTO(helper_word_text="A"),
-            HelperWordPayloadRequestDTO(helper_word_text="B"),
-        ],
+        name_hy="Թեստ",
+        name_ru="Тест",
     )
 
     # when
@@ -33,28 +30,28 @@ async def test_create_category_service(
     # then
     assert isinstance(response_dto, CreateCategoryResponseDTO)
     assert response_dto.name == request_dto.name
-    assert {word.helper_word_text for word in response_dto.helper_words_payload} == {"A", "B"}
+    assert response_dto.name_hy == request_dto.name_hy
+    assert response_dto.name_ru == request_dto.name_ru
 
     uow = await unit_of_work_provider.provide()
     async with uow:
         category = await uow.category_repo.get_by_uuid(response_dto.category_uuid)
     assert category.get_uuid() == response_dto.category_uuid
     assert category.get_name() == request_dto.name
-    assert {word.get_helper_word_text() for word in category.get_helper_words()} == {"B", "A"}
+    assert category.get_name_hy() == request_dto.name_hy
+    assert category.get_name_ru() == request_dto.name_ru
 
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_create_category_service_without_helper_words(
+async def test_create_category_service_with_defaults(
     metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
     metax_container = metax_lifespan_manager_for_tests.get_metax_container()
     unit_of_work_provider = metax_container.get_unit_of_work_provider()
     event_bus = await metax_container.get_event_bus()
-    request_dto = CreateCategoryRequestDTO(
-        name="Category Without Helper Words",
-    )
+    request_dto = CreateCategoryRequestDTO(name="Category Without Translations")
 
     # when
     service = CreateCategoryService(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
@@ -63,12 +60,11 @@ async def test_create_category_service_without_helper_words(
     # then
     assert isinstance(response_dto, CreateCategoryResponseDTO)
     assert response_dto.name == request_dto.name
-    assert response_dto.helper_words_payload == []
+    assert response_dto.name_hy == ""
+    assert response_dto.name_ru == ""
 
     uow = await unit_of_work_provider.provide()
     async with uow:
         category = await uow.category_repo.get_by_uuid(response_dto.category_uuid)
-        await uow.commit()
     assert category.get_uuid() == response_dto.category_uuid
     assert category.get_name() == request_dto.name
-    assert category.get_helper_words() == []

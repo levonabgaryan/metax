@@ -13,7 +13,7 @@ dependencies = [
     "httpx>=0.28.1",
     "lxml>=6.1.0",
     "mypy>=1.20.1",
-    "opensearch-py[async]>=3.1.0",
+    "pgvector>=0.4.0",
     "pre-commit>=4.5.1",
     "psycopg[c,pool]>=3.3.3",
     "pydanja>=0.1.32",
@@ -41,7 +41,11 @@ strict = true
 show_error_codes = true
 plugins = ["mypy_django_plugin.main", "pydantic.mypy"]
 mypy_path = ".:metax/frameworks_and_drivers/django_framework"
-exclude = ["^metax/frameworks_and_drivers/django_framework/django_framework/"]
+exclude = [
+    "^metax/frameworks_and_drivers/django_framework/django_framework/",
+    # Standalone service: its torch/sentence-transformers deps live only in its Docker image.
+    "^embeddings_server/",
+]
 enable_error_code = ["explicit-override"]
 
 explicit_package_bases = true
@@ -74,6 +78,11 @@ implicit_reexport = false
 
 local_partial_types = true
 extra_checks = true
+
+[[tool.mypy.overrides]]
+# pgvector ships no type stubs / py.typed marker.
+module = ["pgvector.*"]
+ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "django_framework.settings"
@@ -205,8 +214,8 @@ convention = "google"
 "metax/frameworks_and_drivers/telegram_bot/localization.py" = ["RUF001", "RUF002", "E501"]
 "metax/frameworks_and_drivers/telegram_bot/formatters.py" = ["RUF001", "RUF002"]
 "metax/frameworks_and_drivers/telegram_bot/keyboards.py" = ["RUF001", "RUF002"]
-# LLM prompt text contains Russian/Armenian category names.
-"metax/core/application/ddd_patterns/services/ollama_category_classifier_service.py" = ["RUF001", "RUF002"]
+# Docstring contains Russian/Armenian category names.
+"metax/core/application/ddd_patterns/services/embedding_category_classifier_service.py" = ["RUF001", "RUF002"]
 # Local dev launcher: intentional subprocess use of well-known executables.
 "run_dev.py" = ["S404", "S603", "S607", "E501"]
 "*/test_*.py" = [

@@ -39,12 +39,6 @@ class BaseConfigs(BaseSettings):
     postgres_host: Annotated[str, Field(alias="POSTGRES_HOST")]
     postgres_port: Annotated[int, Field(alias="POSTGRES_PORT")]
 
-    opensearch_user: Annotated[str, Field(alias="OPENSEARCH_USERNAME")]
-    opensearch_password: Annotated[str, Field(alias="OPENSEARCH_ADMIN_PASSWORD")]
-    opensearch_host: Annotated[str, Field(alias="OPENSEARCH_HOST")]
-    opensearch_port: Annotated[int, Field(alias="OPENSEARCH_NODE_PORT")]
-    opensearch_verify_certs: bool = False
-
     django_host: Annotated[str, Field(alias="DJANGO_SERVER_HOST")]
     django_port: Annotated[int, Field(alias="DJANGO_SERVER_PORT")]
     django_secret_key: Annotated[str, Field(alias="DJANGO_SECRET_KEY", min_length=32)]
@@ -59,10 +53,26 @@ class BaseConfigs(BaseSettings):
     fluent_bit_host: Annotated[str, Field(alias="FLUENT_BIT_HOST")]
     fluent_bit_port: Annotated[int, Field(alias="FLUENT_BIT_PORT")]
 
-    ollama_enabled: Annotated[bool, Field(alias="OLLAMA_ENABLED")] = False
-    ollama_host: Annotated[str, Field(alias="OLLAMA_HOST")] = "http://localhost:11434"
-    ollama_model: Annotated[str, Field(alias="OLLAMA_MODEL")] = "qwen2.5:3b"
-    ollama_concurrency: Annotated[int, Field(alias="OLLAMA_CONCURRENCY")] = 6
+    # Vector search embeddings, served by the dedicated sentence-transformers container
+    # (metax-embeddings). The model itself is fixed in embeddings_server/app.py; the app only
+    # needs the host. EMBEDDING_DIM must match the served model (1024 for the Armenian E5 model).
+    embedding_host: Annotated[str, Field(alias="EMBEDDING_HOST")] = "http://localhost:8082"
+    embedding_dim: Annotated[int, Field(alias="EMBEDDING_DIM")] = 1024
+    embedding_concurrency: Annotated[int, Field(alias="EMBEDDING_CONCURRENCY")] = 6
+    # Generous enough to absorb a cold model load (the service downloads/loads the model on
+    # first boot) plus a batch of embeddings under concurrent load.
+    embedding_timeout: Annotated[float, Field(alias="EMBEDDING_TIMEOUT")] = 120.0
+
+    # Embedding-based product category classification during crawling (no LLM).
+    category_classification_enabled: Annotated[bool, Field(alias="CATEGORY_CLASSIFICATION_ENABLED")] = False
+    # Max cosine distance (0=identical, 2=opposite) between a product and a category for the
+    # product to be assigned that category. Lower = stricter. Tune against real data.
+    category_match_max_distance: Annotated[float, Field(alias="CATEGORY_MATCH_MAX_DISTANCE")] = 0.45
+
+    # Whether to embed newly collected products (for search) right after a crawl. On by default;
+    # set false to make a crawl just load raw data into the DB fast — embed later on demand with
+    # scripts/backfill_embeddings.py. Note: search returns nothing for products with no embedding.
+    embed_after_collect: Annotated[bool, Field(alias="EMBED_AFTER_COLLECT")] = True
 
     telegram_bot_token: Annotated[str | None, Field(alias="TELEGRAM_BOT_TOKEN")] = None
 
@@ -98,11 +108,6 @@ class DevConfigs(BaseConfigs):
     postgres_db: str = "metax"
     postgres_port: int = 5432
 
-    opensearch_host: str = "localhost"
-    opensearch_port: int = 9200
-    opensearch_user: str = "admin"
-    opensearch_password: str = "Os_Super_Secret_Pass_2026!"  # noqa: S105
-
     redis_host: str = "localhost"
     redis_port: int = 6379
     redis_password: str = "R_Super_Secret_Pass_2026!"  # noqa: S105
@@ -117,10 +122,7 @@ class DevConfigs(BaseConfigs):
     fluent_bit_host: str = "mock"
     fluent_bit_port: int = 0
 
-    ollama_enabled: bool = False
-    ollama_host: str = "http://localhost:11434"
-    ollama_model: str = "qwen2.5:1.5b"
-    ollama_concurrency: int = 6
+    embedding_host: str = "http://localhost:8082"
 
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
@@ -143,11 +145,6 @@ class TestConfigs(BaseConfigs):
     postgres_db: str = "metax_test"
     postgres_port: int = 5432
 
-    opensearch_host: str = "metax-opensearch-db"
-    opensearch_port: int = 9200
-    opensearch_user: str = "admin"
-    opensearch_password: str = "Os_Test_Secret_2026!"  # noqa: S105
-
     redis_host: str = "metax-redis"
     redis_port: int = 6379
     redis_password: str = "R_Test_Secret_2026!"  # noqa: S105
@@ -161,6 +158,8 @@ class TestConfigs(BaseConfigs):
 
     fluent_bit_host: str = "metax-fluent-bit"
     fluent_bit_port: int = 24224
+
+    embedding_host: str = "http://metax-embeddings:80"
 
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 

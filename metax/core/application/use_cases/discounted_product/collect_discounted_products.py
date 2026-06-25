@@ -1,14 +1,14 @@
 import logging
 from typing import override
 
-from metax.core.application.ddd_patterns.services.ollama_category_classifier_service import (
-    OllamaCategoryClassifierService,
-)
 from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
 )
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
+    CategoryClassifierService,
+)
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
     DiscountedProductCollectorServiceCreator,
 )
@@ -17,6 +17,7 @@ from metax.core.application.use_cases.discounted_product.dtos import (
     CollectDiscountedProductsRequest,
     CollectDiscountedProductsResponse,
 )
+from metax.core.domain.entities.category.aggregate_root_entity import Category
 from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
 
 logger = logging.getLogger(__name__)
@@ -29,7 +30,7 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         event_bus: EventBus,
         discounted_product_collector_service_creator: DiscountedProductCollectorServiceCreator,
         batch_size_for_saving_discounted_products: int = 500,
-        category_classifier: OllamaCategoryClassifierService | None = None,
+        category_classifier: CategoryClassifierService | None = None,
     ) -> None:
         super().__init__(unit_of_work_provider=unit_of_work_provider, event_bus=event_bus)
         self.__collector_creator = discounted_product_collector_service_creator
@@ -42,20 +43,20 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
     ) -> CollectDiscountedProductsResponse:
         logger.info("Use Case: %s | Status: STARTED", self.__class__.__name__)
 
-        # Load categories once — only if Ollama classification is active.
-        categories = []
+        # Load categories once — only if classification is active.
+        categories: list[Category] = []
         if self.__classifier is not None:
             uow = await self._unit_of_work_provider.provide()
             async with uow:
                 categories = await uow.category_repo.all()
             if categories:
                 logger.info(
-                    "Ollama classifier ready — %d categories: %s",
+                    "Category classifier ready — %d categories: %s",
                     len(categories),
                     [c.get_name() for c in categories],
                 )
             else:
-                logger.info("No categories in DB — skipping Ollama classification")
+                logger.info("No categories in DB — skipping classification")
 
         total_count = 0
         batch: list[DiscountedProduct] = []
@@ -80,13 +81,13 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
         return CollectDiscountedProductsResponse(added_count=total_count)
 
     async def __classify_and_save(
-        self, batch: list[DiscountedProduct], categories: list
+        self, batch: list[DiscountedProduct], categories: list[Category]
     ) -> None:
         if self.__classifier is not None and categories:
             try:
                 await self.__classifier.classify_products(batch, categories)
             except Exception:
-                logger.warning("Ollama classification failed for batch, saving without categories", exc_info=True)
+                logger.warning("Classification failed for batch, saving without categories", exc_info=True)
         await self.__save_batch(batch)
 
     async def __save_batch(self, batch: list[DiscountedProduct]) -> None:

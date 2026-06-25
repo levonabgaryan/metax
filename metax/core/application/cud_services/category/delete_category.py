@@ -3,7 +3,6 @@ from typing import override
 
 from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.category.dtos import DeleteCategoryRequestDTO, DeleteCategoryResponseDTO
-from metax.core.application.event_handlers.category.events import CategoryDeleted
 
 logger = logging.getLogger(__name__)
 
@@ -25,5 +24,4 @@ class DeleteCategoryService(CUDService[DeleteCategoryRequestDTO]):
             request.__class__.__name__,
             request.category_uuid,
         )
-        await self._event_bus.emit(CategoryDeleted(category_uuid=request.category_uuid))
         return DeleteCategoryResponseDTO(category_uuid=request.category_uuid)

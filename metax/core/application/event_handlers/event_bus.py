@@ -5,28 +5,24 @@ import logging
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 
-from metax.core.application.event_handlers.category.events import CategoryDeleted, CategoryUpdated
 from metax.core.application.event_handlers.discounted_product.events import (
     NewDiscountedProductsFromRetailerCollected,
     OldDiscountedProductsDeleted,
 )
 from metax.core.application.event_handlers.event import Event
-from metax.core.application.event_handlers.retailer.events import RetailerDeleted, RetailerUpdated
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
-from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
-    DiscountedProductRepository,
-    DiscountedProductWithRelations,
-)
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     DiscountedProductReadModelRepository,
-)
-from metax.core.application.read_models.discounted_product import (
-    DiscountedProductCategoryReadModel,
-    DiscountedProductReadModel,
 )
 from metax_logger.request_id_filter import get_request_id, request_id_scope
 
 logger = logging.getLogger(__name__)
+
+# Embedding hits the embeddings service, which can transiently fail (e.g. a ReadTimeout
+# while the model loads into memory on a cold start). ``embed_pending`` is idempotent — it only
+# fetches rows whose embedding is still NULL — so retrying simply resumes from wherever it stopped.
+_EMBED_MAX_ATTEMPTS = 3
+_EMBED_RETRY_BACKOFF_SECONDS = 5.0  # multiplied by the attempt number for a linear backoff
 
 
 def _expect_event[E: Event](event: Event, typ: type[E]) -> E:
@@ -64,16 +60,14 @@ class EventBus:
         self,
         unit_of_work_provider: IUnitOfWorkProvider,
         discounted_product_read_model_repo: DiscountedProductReadModelRepository,
+        embed_after_collect: bool = True,
     ) -> None:
         self.__unit_of_work_provider = unit_of_work_provider
         self.__discounted_product_read_model_repo = discounted_product_read_model_repo
+        self.__embed_after_collect = embed_after_collect
         self.__handlers: dict[type[Event], tuple[EventHandler, ...]] = {
-            CategoryUpdated: (self.__update_category_in_discounted_product_read_models,),
-            CategoryDeleted: (self.__delete_category_from_discounted_product_read_models,),
-            RetailerUpdated: (self.__update_retailer_in_discounted_product_read_models,),
-            RetailerDeleted: (self.__delete_discounted_products_by_retailer_from_read_model,),
             NewDiscountedProductsFromRetailerCollected: (self.__delete_old_discounted_products,),
-            OldDiscountedProductsDeleted: (self.__add_new_discounted_products_read_models,),
+            OldDiscountedProductsDeleted: (self.__embed_new_discounted_products,),
         }
         self.__queue: asyncio.Queue[_EventBusQueueItem] = asyncio.Queue()
         self.__worker_task: asyncio.Task[None] | None = None
@@ -91,7 +85,7 @@ class EventBus:
         """Drain the queue (including nested handler emits).
 
         Call after code paths that ``emit`` without waiting—e.g. TaskIQ tasks or use cases—so
-        tests do not finish while the worker still touches the DB or OpenSearch (race with
+        tests do not finish while the worker still touches the DB (race with
         pytest-django teardown).
 
         Note:
@@ -115,38 +109,47 @@ class EventBus:
         await self.__worker_task
         self.__worker_task = None
 
-    async def __add_new_discounted_products_read_models(self, event: Event) -> None:
+    async def __embed_new_discounted_products(self, event: Event) -> None:
         event_: OldDiscountedProductsDeleted = _expect_event(event, OldDiscountedProductsDeleted)
+        if not self.__embed_after_collect:
+            logger.info(
+                "[Event: %s] | Handler: Embed newly collected discount products | "
+                "Status: SKIPPED (EMBED_AFTER_COLLECT=false) | run scripts/backfill_embeddings.py to embed later",
+                event_.__class__.__name__,
+            )
+            return
         logger.info(
-            "[Event: %s] | Handler: Sync discount products from repo to read model | Status: STARTED",
+            "[Event: %s] | Handler: Embed newly collected discount products | Status: STARTED",
             event_.__class__.__name__,
         )
-        date_limit = event_.new_discounted_products_creation_date
-
-        uow = await self.__unit_of_work_provider.provide()
-        repo: DiscountedProductRepository = uow.discounted_product_repo
-        read_model_repo: DiscountedProductReadModelRepository = self.__discounted_product_read_model_repo
-
-        async with uow:
-            discounted_products = repo.get_by_created_at(created_at=date_limit)
-            await uow.commit()
-
-        read_models_batch: list[DiscountedProductReadModel] = []
-        batch_size = 500
-        async for dp in discounted_products:
-            read_models_batch.append(to_read_model(dp))
-            if len(read_models_batch) == batch_size:
-                await read_model_repo.add_many(read_models_batch)
-                read_models_batch = []
-
-        if read_models_batch:
-            await read_model_repo.add_many(read_models_batch)
-
-        await read_model_repo.delete_older_than_and_return_deleted_count(date_limit=date_limit)
+        embedded_count = await self.__embed_pending_with_retry(event_.__class__.__name__)
         logger.info(
-            "[Event: %s] | Handler: Sync discount products from entity repo to read model repo | Status: SUCCESS",
+            "[Event: %s] | Handler: Embed newly collected discount products | Status: SUCCESS | Embedded: [%s]",
             event_.__class__.__name__,
+            embedded_count,
         )
+
+    async def __embed_pending_with_retry(self, event_name: str) -> int:
+        last_error: Exception | None = None
+        for attempt in range(1, _EMBED_MAX_ATTEMPTS + 1):
+            try:
+                return await self.__discounted_product_read_model_repo.embed_pending()
+            except Exception as error:
+                last_error = error
+                if attempt < _EMBED_MAX_ATTEMPTS:
+                    backoff = _EMBED_RETRY_BACKOFF_SECONDS * attempt
+                    logger.warning(
+                        "[Event: %s] | Handler: Embed newly collected discount products | "
+                        "Status: RETRY | attempt %d/%d failed (%r); retrying in %.0fs",
+                        event_name,
+                        attempt,
+                        _EMBED_MAX_ATTEMPTS,
+                        error,
+                        backoff,
+                    )
+                    await asyncio.sleep(backoff)
+        msg = f"Embedding failed after {_EMBED_MAX_ATTEMPTS} attempts"
+        raise RuntimeError(msg) from last_error
 
     async def __consume_queue(self) -> None:
         while True:
@@ -208,112 +211,3 @@ class EventBus:
                     repr(handled_error),
                 )
             raise RuntimeError(msg)
-
-    async def __update_category_in_discounted_product_read_models(self, event: Event) -> None:
-        event_: CategoryUpdated = _expect_event(event, CategoryUpdated)
-        logger.info(
-            "[Event: %s] | Handler: Update category in read model | Status: STARTED | Target UUID: [%s]",
-            event_.__class__.__name__,
-            event_.category_uuid,
-        )
-        uow = await self.__unit_of_work_provider.provide()
-        async with uow:
-            updated_category = await uow.category_repo.get_by_uuid(event_.category_uuid)
-            await uow.commit()
-        dp_read_repo = self.__discounted_product_read_model_repo
-        await dp_read_repo.update_categories(dp_read_repo.category_entity_to_read_fragment(updated_category))
-        logger.info(
-            "[Event: %s] | Handler: Update category in read model | Status: SUCCESS | Target UUID: [%s]",
-            event_.__class__.__name__,
-            event_.category_uuid,
-        )
-
-    async def __update_retailer_in_discounted_product_read_models(self, event: Event) -> None:
-        event_: RetailerUpdated = _expect_event(event, RetailerUpdated)
-        logger.info(
-            "[Event: %s] | Handler: Update retailer in read model | Status: STARTED | Target UUID: [%s]",
-            event_.__class__.__name__,
-            event_.retailer_uuid,
-        )
-        uow = await self.__unit_of_work_provider.provide()
-        async with uow:
-            updated_retailer = await uow.retailer_repo.get_by_uuid(event_.retailer_uuid)
-            await uow.commit()
-        dp_read_repo = self.__discounted_product_read_model_repo
-        await dp_read_repo.update_retailers(dp_read_repo.retailer_entity_to_read_fragment(updated_retailer))
-
-        logger.info(
-            "[Event: %s] | Handler: Update retailer in read model | Status: SUCCESS | Target UUID: [%s]",
-            event_.__class__.__name__,
-            event_.retailer_uuid,
-        )
-
-    async def __delete_discounted_products_by_retailer_from_read_model(self, event: Event) -> None:
-        event_: RetailerDeleted = _expect_event(event, RetailerDeleted)
-        logger.info(
-            "[Event: %s] | Handler: Delete discounted products by retailer from read model | Status: STARTED | Target UUID: [%s]",  # noqa: E501
-            event_.__class__.__name__,
-            event_.retailer_uuid,
-        )
-        dp_read_repo = self.__discounted_product_read_model_repo
-        deleted_count = await dp_read_repo.delete_by_retailer_uuid_and_return_deleted_count(event_.retailer_uuid)
-        logger.info(
-            "[Event: %s] | Handler: Delete discounted products by retailer from read model | Status: SUCCESS | Target UUID: [%s] | Deleted: [%s]",  # noqa: E501
-            event_.__class__.__name__,
-            event_.retailer_uuid,
-            deleted_count,
-        )
-
-    async def __delete_category_from_discounted_product_read_models(self, event: Event) -> None:
-        event_: CategoryDeleted = _expect_event(event, CategoryDeleted)
-        logger.info(
-            "[Event: %s] | Handler: Delete category fragment from read model | Status: STARTED | Target UUID: [%s]",  # noqa: E501
-            event_.__class__.__name__,
-            event_.category_uuid,
-        )
-        dp_read_repo = self.__discounted_product_read_model_repo
-        updated_count = await dp_read_repo.delete_category_by_category_uuid_and_return_updated_count(
-            event_.category_uuid
-        )
-        logger.info(
-            "[Event: %s] | Handler: Delete category fragment from read model | Status: SUCCESS | Target UUID: [%s] | Updated: [%s]",  # noqa: E501
-            event_.__class__.__name__,
-            event_.category_uuid,
-            updated_count,
-        )
-
-
-def to_read_model(discounted_product_with_details: DiscountedProductWithRelations) -> DiscountedProductReadModel:
-    entity = discounted_product_with_details.entity
-    retailer_entity = discounted_product_with_details.retailer
-    created_at = entity.get_created_at().isoformat()
-    updated_at = entity.get_updated_at().isoformat()
-    result: DiscountedProductReadModel = {
-        "uuid_": str(entity.get_uuid()),
-        "name": entity.get_name(),
-        "real_price": float(entity.get_real_price()),
-        "discounted_price": float(entity.get_discounted_price()),
-        "created_at": created_at,
-        "updated_at": updated_at,
-        "url": str(entity.get_url()),
-        "retailer": {
-            "uuid_": str(retailer_entity.get_uuid()),
-            "created_at": retailer_entity.get_created_at().isoformat(),
-            "updated_at": retailer_entity.get_updated_at().isoformat(),
-            "name": retailer_entity.get_name(),
-            "home_page_url": retailer_entity.get_home_page_url(),
-            "phone_number": retailer_entity.get_phone_number(),
-        },
-    }
-    image_url = entity.get_image_url()
-    if image_url is not None:
-        result["image_url"] = image_url
-    category_entity = discounted_product_with_details.category
-    if category_entity is not None:
-        result["category"] = DiscountedProductCategoryReadModel(
-            uuid_=str(category_entity.get_uuid()),
-            created_at=category_entity.get_created_at().isoformat(),
-            updated_at=category_entity.get_updated_at().isoformat(),
-            name=category_entity.get_name(),
-        )
-    return result

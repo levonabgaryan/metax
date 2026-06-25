@@ -57,7 +57,9 @@ _SERVICES = [
 ]
 
 _HEALTH_POLL_INTERVAL = 2       # seconds between health checks
-_HEALTH_TIMEOUT = 90      # seconds before giving up
+# Must exceed the embeddings container's healthcheck start_period (180s) plus first-boot
+# model download time — the service downloads the Armenian E5 model from HuggingFace on a cold start.
+_HEALTH_TIMEOUT = 600     # seconds before giving up
 
 
 # ── docker helpers ────────────────────────────────────────────────────────────

@@ -70,8 +70,7 @@ class MetaxAppLifespanManager:
         self.__is_resources_initialized = True
 
     async def run_databases_migrations(self) -> None:
-        opensearch_async_client = await self.get_metax_container().get_opensearch_async_client()
-        await run_databases_migrations(client=opensearch_async_client, metax_configs=self.__metax_configs)
+        await run_databases_migrations(metax_configs=self.__metax_configs)
 
     async def shutdown_metax_container_resources(self) -> None:
         await self.__metax_di_container.shutdown_di_container_resources()

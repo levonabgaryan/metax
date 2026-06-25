@@ -3,7 +3,6 @@ from decimal import Decimal
 from uuid import uuid7
 
 import pytest
-from metax.core.domain.entities.category_helper_word.entity import CategoryHelperWord
 
 from constants import ErrorCodes
 from metax.core.application.ports.ddd_patterns.repository.entites_repositories.discounted_product import (
@@ -20,7 +19,6 @@ from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import (
     make_category_entity,
     make_discounted_product_entity,
-    make_helper_word_entity,
     make_retailer_entity,
 )
 
@@ -36,24 +34,9 @@ async def test_add_many_discounted_products(
 
     created_data = dt.datetime.now(tz=dt.UTC)
     category_uuid = uuid7()
-    helper_words = [
-        CategoryHelperWord(
-            uuid_=uuid7(),
-            helper_word_text="օղի",
-            created_at=created_data,
-            updated_at=created_data,
-        ),
-        CategoryHelperWord(
-            uuid_=uuid7(),
-            helper_word_text="գինի",
-            created_at=created_data,
-            updated_at=created_data,
-        ),
-    ]
     category = Category(
         uuid_=category_uuid,
         name="Ալկոհոլ",
-        helper_words=helper_words,
         created_at=created_data,
         updated_at=created_data,
     )
@@ -193,14 +176,8 @@ async def test_delete_category_by_uuid_sets_category_to_null_for_matching_produc
     unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
     created_at = dt.datetime.now(tz=dt.UTC)
     retailer = make_retailer_entity()
-    helper_word_1 = make_helper_word_entity(
-        helper_word_text="Helper word 1",
-    )
-    helper_word_2 = make_helper_word_entity(
-        helper_word_text="Helper word 2",
-    )
-    target_category = make_category_entity(name="TargetCategory", helper_words=[helper_word_1])
-    other_category = make_category_entity(name="OtherCategory", helper_words=[helper_word_2])
+    target_category = make_category_entity(name="TargetCategory")
+    other_category = make_category_entity(name="OtherCategory")
 
     target_product_1 = make_discounted_product_entity(
         retailer_uuid=retailer.get_uuid(),

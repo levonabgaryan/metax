@@ -6,7 +6,6 @@ from metax.core.application.cud_services.category.dtos import (
     UpdateCategoryRequestDTO,
     UpdateCategoryResponseDTO,
 )
-from metax.core.application.event_handlers.category.events import CategoryUpdated
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +35,6 @@ class UpdateCategoryService(CUDService[UpdateCategoryRequestDTO]):
             request.__class__.__name__,
             category.get_uuid(),
         )
-        await self._event_bus.emit(CategoryUpdated(category_uuid=category.get_uuid()))
         return UpdateCategoryResponseDTO(
             category_uuid=category.get_uuid(),
             created_at=category.get_created_at(),

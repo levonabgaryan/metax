@@ -41,8 +41,6 @@ PACKAGES_TO_MUTE = [
     "django.utils.autoreload",
     "urllib3",
     "httpx",
-    "opensearch",
-    "opensearchpy",
     "taskiq",
     "faker",
     "amqp",

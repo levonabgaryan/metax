@@ -8,8 +8,8 @@ class DiscountedProductFieldsCleanerMixin:
         """Normalize only whitespace, keeping the source name's original case and punctuation.
 
         The name is shown to users verbatim, so we keep it faithful to the retailer's web page.
-        Case- and punctuation-insensitive search is handled by the OpenSearch analyzers at
-        index/query time, not here, so no lowercasing or symbol stripping is needed.
+        Case- and punctuation-insensitive matching is handled at search time (semantic embedding
+        plus an ILIKE boost), not here, so no lowercasing or symbol stripping is needed.
 
         Returns:
             The name with surrounding whitespace trimmed and internal whitespace runs collapsed.

@@ -1,6 +1,6 @@
 # Production stack (full Docker deployment).
 #
-# Brings up every service: postgres + opensearch + redis + metax + taskiq
+# Brings up every service: postgres + embeddings + redis + metax + taskiq
 # + fluent-bit. Every service reads its environment from `.env` (which must be
 # created at deploy time and is intentionally NOT committed to the repository).
 # `ENV=prod` is forced for the metax / taskiq containers so the application
@@ -14,13 +14,6 @@ x-postgres-env: &postgres-env
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   POSTGRES_DB: ${POSTGRES_DB}
 
-x-opensearch-db-env: &opensearch-db-env
-  discovery.type: single-node
-  cluster.name: metax-cluster
-  bootstrap.memory_lock: "true"
-  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-  OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
-
 x-redis-env: &redis-env
   REDIS_PASSWORD: ${REDIS_PASSWORD}
 
@@ -32,11 +25,6 @@ x-metax-env: &metax-env
   POSTGRES_USER: ${POSTGRES_USER}
   POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
   POSTGRES_DB: ${POSTGRES_DB}
-  # OpenSearch
-  OPENSEARCH_HOST: ${OPENSEARCH_HOST}
-  OPENSEARCH_NODE_PORT: ${OPENSEARCH_NODE_PORT}
-  OPENSEARCH_USERNAME: ${OPENSEARCH_USERNAME}
-  OPENSEARCH_ADMIN_PASSWORD: ${OPENSEARCH_ADMIN_PASSWORD}
   # Redis
   REDIS_SERVER_HOST: ${REDIS_SERVER_HOST}
   REDIS_PORT: ${REDIS_PORT}
@@ -45,6 +33,18 @@ x-metax-env: &metax-env
   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
   DJANGO_SERVER_HOST: ${DJANGO_SERVER_HOST}
   DJANGO_SERVER_PORT: ${DJANGO_SERVER_PORT}
+  # Embeddings (vector search). Point at the in-stack embeddings service.
+  EMBEDDING_HOST: ${EMBEDDING_HOST}
+  EMBEDDING_DIM: ${EMBEDDING_DIM}
+  EMBEDDING_CONCURRENCY: ${EMBEDDING_CONCURRENCY}
+  EMBEDDING_TIMEOUT: ${EMBEDDING_TIMEOUT}
+  # Embedding-based category classification during crawling.
+  CATEGORY_CLASSIFICATION_ENABLED: ${CATEGORY_CLASSIFICATION_ENABLED}
+  CATEGORY_MATCH_MAX_DISTANCE: ${CATEGORY_MATCH_MAX_DISTANCE}
+  # Embed newly collected products for search right after a crawl.
+  EMBED_AFTER_COLLECT: ${EMBED_AFTER_COLLECT}
+  # Telegram bot (only consumed by the metax-telegram-bot service).
+  TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
   # Fluent-bit (Python doesn't read these but BaseConfigs declares them as required)
   FLUENT_BIT_HOST: ${FLUENT_BIT_HOST}
   FLUENT_BIT_PORT: ${FLUENT_BIT_PORT}
@@ -63,18 +63,18 @@ services:
     environment: *postgres-env
     restart: unless-stopped
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Postgres 18 image stores data in a version-specific subdir; mount the parent.
+      - pgdata:/var/lib/postgresql
     networks:
       - metax-net
 
-  metax-opensearch-db:
+  metax-embeddings:
     extends:
       file: docker-compose.base.yml
-      service: metax-opensearch-db
-    environment: *opensearch-db-env
+      service: metax-embeddings
     restart: unless-stopped
     volumes:
-      - os_data:/usr/share/opensearch/data
+      - embeddings_models:/data
     networks:
       - metax-net
 
@@ -126,7 +126,7 @@ services:
         condition: service_healthy
       metax-redis:
         condition: service_healthy
-      metax-opensearch-db:
+      metax-embeddings:
         condition: service_healthy
     logging:
       driver: fluentd
@@ -153,9 +153,29 @@ services:
         fluentd-async: "true"
         tag: "metax-taskiq"
 
+  metax-telegram-bot:
+    extends:
+      file: docker-compose.telegram.yml
+      service: metax-telegram-bot
+    environment: *metax-env
+    restart: unless-stopped
+    networks:
+      - metax-net
+    depends_on:
+      metax:
+        condition: service_healthy
+      metax-embeddings:
+        condition: service_healthy
+    logging:
+      driver: fluentd
+      options:
+        fluentd-address: "127.0.0.1:${FLUENT_BIT_PORT}"
+        fluentd-async: "true"
+        tag: "metax-telegram-bot"
+
 volumes:
   pgdata:
-  os_data:
+  embeddings_models:
   redis_data:
   fb_buffer:
 

@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING
 
 import pytest
 from asgiref.sync import sync_to_async
-from opensearchpy import AsyncOpenSearch
 
 from metax_bootstrap import METAX_LIFESPAN_MANAGER
 from metax_lifespan import MetaxAppLifespanManager
@@ -51,49 +50,3 @@ async def metax_lifespan_manager_for_tests(
     finally:
         await metax_application_manager.shutdown_metax_container_resources()
         await sync_to_async(close_django_db_connections_and_pools, thread_sensitive=True)()
-
-
-@pytest.fixture(scope="session", autouse=True)
-async def delete_opensearch_indices(
-    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
-) -> AsyncIterator[None]:
-    from metax.frameworks_and_drivers.opensearch.migration import delete_all_indices
-
-    di_container = metax_lifespan_manager_for_tests.get_metax_container()
-    opensearch_async_client_ = await di_container.get_opensearch_async_client()
-    await delete_all_indices(opensearch_async_client_)
-    yield None
-    await delete_all_indices(opensearch_async_client_)
-
-
-async def refresh_opensearch_index(
-    metax_app_for_integration_tests: MetaxAppLifespanManager,
-    index_or_alias_name: str,
-) -> None:
-    metax_container = metax_app_for_integration_tests.get_metax_container()
-    opensearch_async_client_ = await metax_container.get_opensearch_async_client()
-    response = await opensearch_async_client_.indices.refresh(index=index_or_alias_name)
-    is_refreshed = int(response["_shards"]["successful"]) != 0
-    assert is_refreshed
-
-
-@pytest.fixture(autouse=True)
-async def clear_os_each_test(
-    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
-) -> AsyncIterator[None]:
-    from metax.frameworks_and_drivers.opensearch.migration import (
-        delete_all_indices,
-        migrate_indices,
-    )
-
-    metax_container = metax_lifespan_manager_for_tests.get_metax_container()
-    client: AsyncOpenSearch = await metax_container.get_opensearch_async_client()
-
-    async def cleanup() -> None:
-        with contextlib.suppress(Exception):
-            await delete_all_indices(client)
-            await migrate_indices(client)
-
-    await cleanup()
-    yield
-    await cleanup()

@@ -12,13 +12,6 @@ x-postgres-db-env: &postgres-db-env
   POSTGRES_PASSWORD: pass_test_111
   POSTGRES_DB: metax_test
 
-x-opensearch-db-env: &opensearch-db-env
-  discovery.type: single-node
-  cluster.name: metax-cluster
-  bootstrap.memory_lock: "true"
-  OPENSEARCH_JAVA_OPTS: "-Xms1g -Xmx1g"
-  OPENSEARCH_INITIAL_ADMIN_PASSWORD: "Os_Test_Secret_2026!"
-
 x-redis-env: &redis-env
   REDIS_PASSWORD: "R_Test_Secret_2026!"
 
@@ -41,11 +34,12 @@ services:
     networks:
       - metax-net
 
-  metax-opensearch-db:
+  metax-embeddings:
     extends:
       file: docker-compose.base.yml
-      service: metax-opensearch-db
-    environment: *opensearch-db-env
+      service: metax-embeddings
+    volumes:
+      - embeddings_models:/data
     networks:
       - metax-net
 
@@ -80,7 +74,7 @@ services:
     depends_on:
       metax-postgres-db:
         condition: service_healthy
-      metax-opensearch-db:
+      metax-embeddings:
         condition: service_healthy
       metax-redis:
         condition: service_healthy
@@ -98,6 +92,9 @@ services:
         condition: service_healthy
     networks:
       - metax-net
+
+volumes:
+  embeddings_models:
 
 networks:
   metax-net:

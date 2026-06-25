@@ -8,14 +8,14 @@ from metax.core.application.ports.ddd_patterns.repository.entites_repositories.r
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     DiscountedProductReadModelRepository,
 )
-from metax.frameworks_and_drivers.ddd_patterns.repositories.opensearch.discounted_product_read_model import (
-    OpenSearchDiscountedProductReadModelRepository,
-)
 from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.category import (
     DjangoPostgresqlCategoryRepository,
 )
 from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.discounted_product import (
     DjangoPostgresqlDiscountedProductRepository,
+)
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.discounted_product_read_model import (
+    PostgresDiscountedProductReadModelRepository,
 )
 from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.retailer import (
     DjangoPostgresqlRetailerRepository,
@@ -36,7 +36,7 @@ class RepositoriesContainer(containers.DeclarativeContainer):
     )
     discounted_product_read_model_repository: providers.Provider[DiscountedProductReadModelRepository] = (
         providers.Factory(
-            OpenSearchDiscountedProductReadModelRepository,
-            opensearch_async_client=resources_container.opensearch_async_client,
+            PostgresDiscountedProductReadModelRepository,
+            embedding_service=resources_container.embedding_service,
         )
     )

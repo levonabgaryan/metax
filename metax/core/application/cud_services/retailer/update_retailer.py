@@ -3,7 +3,6 @@ from typing import override
 
 from metax.core.application.cud_services.base_cud_service import CUDService
 from metax.core.application.cud_services.retailer.dtos import UpdateRetailerRequestDTO, UpdateRetailerResponseDTO
-from metax.core.application.event_handlers.retailer.events import RetailerUpdated
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +33,6 @@ class UpdateRetailerService(CUDService[UpdateRetailerRequestDTO]):
             request.__class__.__name__,
             retailer.get_uuid(),
         )
-        event = RetailerUpdated(retailer_uuid=retailer.get_uuid())
-        await self._event_bus.emit(event)
         return UpdateRetailerResponseDTO(
             retailer_uuid=retailer.get_uuid(),
             new_name=retailer.get_name(),

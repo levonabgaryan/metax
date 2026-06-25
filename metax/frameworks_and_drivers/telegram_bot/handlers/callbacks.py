@@ -10,7 +10,7 @@ from uuid import UUID
 from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 
 from metax.frameworks_and_drivers.telegram_bot.handlers.commands import send_product_page
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
@@ -62,7 +62,7 @@ async def _load_retailers() -> list[tuple[str, str]]:
 
 async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str, lang: str) -> None:
     """Re-run the user's last search with the current retailer filter, replacing the menu with results."""
-    if callback.message is None or callback.from_user is None:
+    if not isinstance(callback.message, Message):
         return
     retailer_uuid = get_user_retailer_filter(callback.from_user.id)
     selected_retailer_name = await _load_retailer_name(retailer_uuid)
@@ -113,7 +113,7 @@ async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str,
 @router.callback_query(LanguageSelectCB.filter())
 async def language_select_callback(callback: CallbackQuery, callback_data: LanguageSelectCB) -> None:
     await callback.answer()
-    if callback.message is None or callback.from_user is None:
+    if not isinstance(callback.message, Message):
         return
 
     set_user_language(callback.from_user.id, callback_data.language_code)
@@ -132,7 +132,7 @@ async def language_select_callback(callback: CallbackQuery, callback_data: Langu
 @router.callback_query(RetailerFilterMenuCB.filter())
 async def retailer_filter_menu_callback(callback: CallbackQuery) -> None:
     await callback.answer()
-    if callback.message is None or callback.from_user is None:
+    if not isinstance(callback.message, Message):
         return
 
     lang = get_user_language(callback.from_user.id)
@@ -151,7 +151,7 @@ async def retailer_filter_menu_callback(callback: CallbackQuery) -> None:
 @router.callback_query(RetailerSelectCB.filter())
 async def retailer_select_callback(callback: CallbackQuery, callback_data: RetailerSelectCB) -> None:
     await callback.answer()
-    if callback.message is None or callback.from_user is None:
+    if not isinstance(callback.message, Message):
         return
 
     set_user_retailer_filter(callback.from_user.id, callback_data.retailer_uuid)
@@ -172,7 +172,7 @@ async def retailer_select_callback(callback: CallbackQuery, callback_data: Retai
 @router.callback_query(RetailerClearCB.filter())
 async def retailer_clear_callback(callback: CallbackQuery) -> None:
     await callback.answer()
-    if callback.message is None or callback.from_user is None:
+    if not isinstance(callback.message, Message):
         return
 
     set_user_retailer_filter(callback.from_user.id, None)
@@ -192,7 +192,7 @@ async def retailer_clear_callback(callback: CallbackQuery) -> None:
 @router.callback_query(SearchNavCB.filter())
 async def search_page_callback(callback: CallbackQuery, callback_data: SearchNavCB) -> None:
     await callback.answer()
-    if callback.message is None:
+    if not isinstance(callback.message, Message):
         return
 
     lang = get_user_language(callback.from_user.id if callback.from_user else None)

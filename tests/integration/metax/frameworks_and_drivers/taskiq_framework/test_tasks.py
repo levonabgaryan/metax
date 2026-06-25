@@ -4,7 +4,6 @@ import asyncio
 import datetime as dt
 from collections.abc import AsyncIterator
 from decimal import Decimal
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -71,14 +70,10 @@ async def test_collect_discounted_products_from_all_retailers_collects_from_each
 
     monkeypatch.setattr(YerevanCityCollectorService, "collect", fake_collect)
 
-    category_classifier = metax_container.get_category_classifier_service()
-    monkeypatch.setattr(category_classifier, "classify_category", AsyncMock(return_value=None))
-
-    # when
+    # when (no category classifier — classification is optional and disabled here)
     await collect_discounted_products_from_all_retailers(
         unit_of_work_provider=metax_container.get_unit_of_work_provider(),
         event_bus=event_bus,
-        category_classifier_service=category_classifier,
         start_date_of_collecting=started_time,
     )
 

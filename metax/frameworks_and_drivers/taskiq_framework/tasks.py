@@ -5,11 +5,11 @@ import datetime as dt
 import logging
 import uuid
 
-from metax.core.application.ddd_patterns.services.ollama_category_classifier_service import (
-    OllamaCategoryClassifierService,
-)
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
+from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
+    CategoryClassifierService,
+)
 from metax.core.application.ports.design_patterns.factory.discounted_product_collector_service_creator import (
     DiscountedProductCollectorServiceCreator,
 )
@@ -35,7 +35,7 @@ async def collect_discounted_products_from_all_retailers(
     unit_of_work_provider: IUnitOfWorkProvider,
     event_bus: EventBus,
     start_date_of_collecting: dt.datetime,
-    category_classifier: OllamaCategoryClassifierService | None = None,
+    category_classifier: CategoryClassifierService | None = None,
 ) -> None:
     uow = await unit_of_work_provider.provide()
     async with uow:
@@ -86,18 +86,10 @@ async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str
     with request_id_scope(effective_id):
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
 
-        classifier: OllamaCategoryClassifierService | None = None
-        if METAX_CONFIGS.ollama_enabled:
-            classifier = OllamaCategoryClassifierService(
-                host=METAX_CONFIGS.ollama_host,
-                model=METAX_CONFIGS.ollama_model,
-                concurrency=METAX_CONFIGS.ollama_concurrency,
-            )
-            logger.info(
-                "Ollama classifier enabled | model=%s host=%s",
-                METAX_CONFIGS.ollama_model,
-                METAX_CONFIGS.ollama_host,
-            )
+        classifier: CategoryClassifierService | None = None
+        if METAX_CONFIGS.category_classification_enabled:
+            classifier = container.get_category_classifier()
+            logger.info("Embedding-based category classifier enabled")
 
         await collect_discounted_products_from_all_retailers(
             unit_of_work_provider=container.get_unit_of_work_provider(),

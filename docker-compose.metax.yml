@@ -17,7 +17,7 @@ services:
     #     socket mid-response.
     #   - Docker timeout 15s: outer cap, must exceed inner timeout.
     #   - start_period 60s: failed probes during this window do NOT count
-    #     toward `retries`; lets migrations / opensearch readiness finish.
+    #     toward `retries`; lets migrations / dependency readiness finish.
     healthcheck:
       test:
         - "CMD"
