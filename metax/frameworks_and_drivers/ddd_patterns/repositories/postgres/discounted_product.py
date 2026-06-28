@@ -18,6 +18,9 @@ from metax.core.domain.entities.discounted_product.aggregate_root_entity import 
     DiscountedProduct,
 )
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.transliteration import (
+    transliterate_armenian_to_latin,
+)
 from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.utils import (
     extract_field_from_integrity_message,
 )
@@ -108,6 +111,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     real_price,
                     discounted_price,
                     name,
+                    name_translit,
                     url,
                     image_url,
                     category_uuid,
@@ -115,7 +119,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     created_at,
                     updated_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
@@ -127,6 +131,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                             discounted_product.get_real_price(),
                             discounted_product.get_discounted_price(),
                             discounted_product.get_name(),
+                            transliterate_armenian_to_latin(discounted_product.get_name()),
                             discounted_product.get_url(),
                             discounted_product.get_image_url(),
                             discounted_product.get_category_uuid() if discounted_product.has_category() else None,

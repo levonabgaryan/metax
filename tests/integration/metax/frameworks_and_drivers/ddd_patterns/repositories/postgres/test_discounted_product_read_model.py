@@ -159,3 +159,32 @@ async def test_get_by_uuid_returns_full_read_model(
     assert read_model["name"] == "single product"
     assert read_model["retailer"]["uuid_"] == str(retailer.get_uuid())
     assert "category" not in read_model
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_search_matches_latin_transliteration_of_armenian_name(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given: an Armenian-named product ("կարագ" = butter), embedded so it is searchable
+    container = metax_lifespan_manager_for_tests.get_metax_container()
+    uow = container.get_unit_of_work()
+    read_repo = await container.get_discounted_product_read_model_repository()
+    created_at = dt.datetime.now(tz=dt.UTC)
+
+    retailer = make_retailer_entity()
+    butter = make_discounted_product_entity(
+        retailer_uuid=retailer.get_uuid(), created_at=created_at, name="կարագ"
+    )
+    async with uow as u:
+        await u.retailer_repo.add(retailer)
+        await u.discounted_product_repo.add_many([butter])
+        await u.commit()
+    await read_repo.embed_pending()
+
+    # when: the user types the Latin phonetic form
+    items, total = await read_repo.search_by_name("karag", limit=10)
+
+    # then: the Armenian product is found via the transliterated name
+    assert total >= 1
+    assert any(item["uuid_"] == str(butter.get_uuid()) for item in items)

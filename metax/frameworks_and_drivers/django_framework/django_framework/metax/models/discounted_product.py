@@ -19,6 +19,9 @@ class DiscountedProductModel(BaseDbModel):
     real_price = models.DecimalField(max_digits=10, decimal_places=2)
     discounted_price = models.DecimalField(max_digits=10, decimal_places=2)
     name = models.CharField(max_length=128, null=False)
+    # Latin phonetic transliteration of ``name`` for cross-script search ("karag" matching "կարագ").
+    # Filled at insert time; NULL only for rows that predate this column.
+    name_translit = models.CharField(max_length=256, null=True, blank=True)  # noqa: DJ001
     url = models.URLField(max_length=2048)
     # image_url is genuinely optional; a nullable column matches the domain (None vs. empty string).
     image_url = models.URLField(max_length=2048, null=True, blank=True)  # noqa: DJ001
@@ -52,6 +55,12 @@ class DiscountedProductModel(BaseDbModel):
             GinIndex(
                 name="dp_name_trgm_gin",
                 fields=["name"],
+                opclasses=["gin_trgm_ops"],
+            ),
+            # Same trigram boost for the transliterated name (cross-script phonetic search).
+            GinIndex(
+                name="dp_name_translit_trgm_gin",
+                fields=["name_translit"],
                 opclasses=["gin_trgm_ops"],
             ),
         ]

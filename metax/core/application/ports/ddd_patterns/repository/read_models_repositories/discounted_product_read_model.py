@@ -23,6 +23,14 @@ class DiscountedProductReadModelRepository(ABC):
         """
 
     @abstractmethod
+    async def count_pending(self) -> int:
+        """Return how many products still have no ``name_embedding`` (NULL).
+
+        Returns:
+            The number of products awaiting an embedding.
+        """
+
+    @abstractmethod
     async def search_by_name(
         self,
         name: str,

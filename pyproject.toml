@@ -216,6 +216,12 @@ convention = "google"
 "metax/frameworks_and_drivers/telegram_bot/keyboards.py" = ["RUF001", "RUF002"]
 # Docstring contains Russian/Armenian category names.
 "metax/core/application/ddd_patterns/services/embedding_category_classifier_service.py" = ["RUF001", "RUF002"]
+# Armenian -> Latin transliteration map/docstring intentionally contain Armenian letters.
+"metax/frameworks_and_drivers/ddd_patterns/repositories/postgres/transliteration.py" = [
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
 # Local dev launcher: intentional subprocess use of well-known executables.
 "run_dev.py" = ["S404", "S603", "S607", "E501"]
 "*/test_*.py" = [
@@ -239,6 +245,10 @@ convention = "google"
     "DOC102",
     "PLR0913",
     "S101",
+    # Test fixtures use Armenian sample data (e.g. "կարագ"), which trips ambiguous-unicode lints.
+    "RUF001",
+    "RUF002",
+    "RUF003",
 ]
 
 [tool.ruff.format]

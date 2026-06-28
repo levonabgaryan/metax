@@ -37,6 +37,4 @@ class ResourceContainer(DeclarativeContainer):
     event_bus: providers.Resource[EventBus] = providers.Resource(
         event_bus_resource,
         unit_of_work_provider=patterns_container.unit_of_work_provider,
-        discounted_product_read_model_repo=repositories_container.discounted_product_read_model_repository,
-        embed_after_collect=config.embed_after_collect,
     )

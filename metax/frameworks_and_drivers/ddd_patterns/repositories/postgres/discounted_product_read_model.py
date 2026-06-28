@@ -4,7 +4,9 @@ Search runs directly against the ``discounted_products`` table (no separate read
 retailer/category fields are read live via joins, and ranking is semantic — ordered by cosine
 distance between the query embedding and each product's ``name_embedding`` — with a whole-word
 lexical boost (``~*`` at word boundaries) so a literal brand/SKU query floats its exact matches
-to the top instead of being buried under close semantic neighbours.
+to the top instead of being buried under close semantic neighbours. The lexical boost runs against
+both the original name and its Latin transliteration (``name_translit``), so a cross-script phonetic
+query ("karag") still matches the Armenian name ("կարագ").
 """
 
 from __future__ import annotations
@@ -23,6 +25,9 @@ from metax.core.application.ports.ddd_patterns.service.embedding_service import 
 from metax.core.application.read_models.discounted_product import (
     DiscountedProductCategoryReadModel,
     DiscountedProductReadModel,
+)
+from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.transliteration import (
+    transliterate_armenian_to_latin,
 )
 
 # Relevance gate for *non-lexical* (pure-semantic) matches: a product with no whole-word lexical
@@ -146,6 +151,10 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         return total
 
     @override
+    async def count_pending(self) -> int:
+        return await sync_to_async(self.__count_unembedded)()
+
+    @override
     async def search_by_name(
         self,
         name: str,
@@ -202,9 +211,13 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
     ) -> tuple[list[DiscountedProductReadModel], int]:
         vector = _vector_literal(query_vector)
         word_pattern = _word_match_pattern(name)
-        # Param order must match the %s placeholders top-to-bottom: SELECT (word_pattern, vector),
-        # WHERE (word_pattern, vector), optional filters, then LIMIT/OFFSET.
-        params: list[Any] = [word_pattern, vector, word_pattern, vector]
+        # Cross-script phonetic match: a Latin query ("karag") matches the transliterated Armenian
+        # name ("կարագ" -> "karag"), and an Armenian query transliterates to the same key.
+        translit_pattern = _word_match_pattern(transliterate_armenian_to_latin(name))
+        # Param order must match the %s placeholders top-to-bottom: SELECT exact_match
+        # (word_pattern, translit_pattern), SELECT distance (vector), WHERE (word_pattern,
+        # translit_pattern, vector), optional filters, then LIMIT/OFFSET.
+        params: list[Any] = [word_pattern, translit_pattern, vector, word_pattern, translit_pattern, vector]
         filters = ""
         if retailer_uuid is not None:
             filters += " AND dp.retailer_uuid = %s"
@@ -217,12 +230,16 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         select_query = f"""
             SELECT
                 {_READ_MODEL_COLUMNS},
-                (dp.name ~* %s) AS exact_match,
+                (dp.name ~* %s OR COALESCE(dp.name_translit ~* %s, FALSE)) AS exact_match,
                 (dp.name_embedding <=> %s::vector) AS distance,
                 COUNT(*) OVER() AS total_count
             {_READ_MODEL_JOINS}
             WHERE dp.name_embedding IS NOT NULL
-              AND (dp.name ~* %s OR (dp.name_embedding <=> %s::vector) <= {_MAX_COSINE_DISTANCE})
+              AND (
+                    dp.name ~* %s
+                    OR COALESCE(dp.name_translit ~* %s, FALSE)
+                    OR (dp.name_embedding <=> %s::vector) <= {_MAX_COSINE_DISTANCE}
+                  )
               {filters}
             {_SEARCH_ORDER_BY}
             LIMIT %s OFFSET %s
@@ -273,6 +290,13 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
             msg = f"Discounted product read model not found: {uuid_}"
             raise KeyError(msg)
         return _row_to_read_model(row)
+
+    @staticmethod
+    def __count_unembedded() -> int:
+        cursor: CursorWrapper
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM discounted_products WHERE name_embedding IS NULL")
+            return int(cursor.fetchone()[0])
 
     @staticmethod
     def __fetch_unembedded(batch_size: int) -> list[tuple[str, str]]:

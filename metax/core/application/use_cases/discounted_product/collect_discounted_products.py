@@ -1,9 +1,6 @@
 import logging
 from typing import override
 
-from metax.core.application.event_handlers.discounted_product.events import (
-    NewDiscountedProductsFromRetailerCollected,
-)
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
 from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
@@ -72,11 +69,9 @@ class CollectDiscountedProducts(UseCase[CollectDiscountedProductsRequest]):
             await self.__classify_and_save(batch, categories)
             total_count += len(batch)
 
-        await self._event_bus.emit(
-            NewDiscountedProductsFromRetailerCollected(
-                new_products_created_date=request.start_date_of_collecting
-            )
-        )
+        # Stale rows from previous runs are pruned later, in the embedding step, once the freshly
+        # collected rows are embedded — so search keeps serving the previous set until the new one
+        # is ready (see the TaskIQ embedding task).
         logger.info("Use Case: %s | Status: SUCCESS | Total: %d", self.__class__.__name__, total_count)
         return CollectDiscountedProductsResponse(added_count=total_count)
 
