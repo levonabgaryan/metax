@@ -85,6 +85,17 @@ _SEARCH_ORDER_BY = """
 """
 
 
+def _confidence_from_distance(distance: float | None) -> float:
+    """Convert a cosine distance (0 = identical, higher = farther) to a 0..1 confidence score.
+
+    Returns:
+        ``1.0`` for an identical match down to ``0.0``, clamped; ``0.0`` when distance is unknown.
+    """
+    if distance is None:
+        return 0.0
+    return max(0.0, min(1.0, 1.0 - float(distance)))
+
+
 def _vector_literal(vector: list[float]) -> str:
     """Render an embedding as the pgvector text form ``[a,b,c]`` for a ``::vector`` cast.
 
@@ -251,19 +262,27 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         if not rows:
             return [], 0
         total = int(rows[0][-1])
-        items = [_row_to_read_model(row) for row in rows]
+        # Column layout: read-model columns (0..17), exact_match (18), distance (19), total (20).
+        items: list[DiscountedProductReadModel] = []
+        for row in rows:
+            item = _row_to_read_model(row)
+            item["match_confidence"] = _confidence_from_distance(row[19])
+            items.append(item)
         return items, total
 
     def __search_by_category_sync(
         self, category_uuid: str, offset: int, limit: int
     ) -> tuple[list[DiscountedProductReadModel], int]:
+        # Most-confident matches first (smallest distance to the category prototype), with NULLs
+        # last so any legacy uncategorised-distance rows sink; then cheapest, then a stable tie-break.
         select_query = f"""
             SELECT
                 {_READ_MODEL_COLUMNS},
+                dp.category_distance,
                 COUNT(*) OVER() AS total_count
             {_READ_MODEL_JOINS}
             WHERE dp.category_uuid = %s
-            ORDER BY dp.discounted_price ASC, dp.uuid ASC
+            ORDER BY dp.category_distance ASC NULLS LAST, dp.discounted_price ASC, dp.uuid ASC
             LIMIT %s OFFSET %s
         """
         cursor: CursorWrapper
@@ -273,7 +292,13 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         if not rows:
             return [], 0
         total = int(rows[0][-1])
-        items = [_row_to_read_model(row) for row in rows]
+        # Column layout: read-model columns (0..17), category_distance (18), total (19).
+        items: list[DiscountedProductReadModel] = []
+        for row in rows:
+            item = _row_to_read_model(row)
+            if row[18] is not None:
+                item["category_confidence"] = _confidence_from_distance(row[18])
+            items.append(item)
         return items, total
 
     def __get_by_uuid_sync(self, uuid_: str) -> DiscountedProductReadModel:

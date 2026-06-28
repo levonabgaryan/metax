@@ -16,6 +16,7 @@ class Category(AggregateRootEntity):
         name: str,
         name_hy: str = "",
         name_ru: str = "",
+        examples: list[str] | None = None,
     ) -> None:
         super().__init__(
             uuid_value_object=UUIDValueObject.create(uuid_),
@@ -27,6 +28,16 @@ class Category(AggregateRootEntity):
         self.__name = name
         self.__name_hy = name_hy
         self.__name_ru = name_ru
+        # Example product names that belong to this category; used as extra match anchors by the
+        # embedding classifier so a product like "կարագ" lands in the right category.
+        self.__examples = examples or []
+
+    def get_examples(self) -> list[str]:
+        return self.__examples
+
+    def set_examples(self, new_examples: list[str]) -> None:
+        self.__examples = new_examples
+        self._touch()
 
     def get_name(self) -> str:
         return self.__name

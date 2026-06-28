@@ -107,10 +107,8 @@ async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str
     with request_id_scope(effective_id):
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
 
-        classifier: CategoryClassifierService | None = None
-        if METAX_CONFIGS.category_classification_enabled:
-            classifier = container.get_category_classifier()
-            logger.info("Embedding-based category classifier enabled")
+        # Category classification always runs; it no-ops by itself if no categories are seeded.
+        classifier = container.get_category_classifier()
 
         started_at = dt.datetime.now(tz=dt.UTC)
         await collect_discounted_products_from_all_retailers(

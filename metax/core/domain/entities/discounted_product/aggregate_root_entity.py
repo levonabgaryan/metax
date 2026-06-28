@@ -22,6 +22,7 @@ class DiscountedProduct(AggregateRootEntity):
         name: str,
         url: str,
         image_url: str | None = None,
+        category_distance: float | None = None,
     ) -> None:
         super().__init__(
             uuid_value_object=UUIDValueObject.create(uuid_),
@@ -41,12 +42,18 @@ class DiscountedProduct(AggregateRootEntity):
         self.__name = name
         self.__url = url
         self.__image_url = image_url
+        # Cosine distance to the matched category prototype (0 = perfect, lower = more confident);
+        # None when no category was assigned. Used to rank a category's products by confidence.
+        self.__category_distance = category_distance
 
     def get_category_uuid(self) -> UUID:
         if self.__category_uuid_value_object is None:
             msg = f"DiscountedProduct {self.get_uuid()} doesn't have a category assigned."
             raise AttributeError(msg)
         return self.__category_uuid_value_object.value
+
+    def get_category_distance(self) -> float | None:
+        return self.__category_distance
 
     def get_discounted_price(self) -> Decimal:
         return self.__price_details.discounted_price
@@ -69,8 +76,9 @@ class DiscountedProduct(AggregateRootEntity):
     def has_category(self) -> bool:
         return self.__category_uuid_value_object is not None
 
-    def set_category_uuid(self, category_uuid: UUID) -> None:
+    def set_category_uuid(self, category_uuid: UUID, distance: float | None = None) -> None:
         self.__category_uuid_value_object = UUIDValueObject.create(category_uuid)
+        self.__category_distance = distance
         self._touch()
 
     def set_name(self, name: str) -> None:

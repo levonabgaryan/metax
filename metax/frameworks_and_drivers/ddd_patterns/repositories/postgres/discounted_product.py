@@ -115,11 +115,12 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                     url,
                     image_url,
                     category_uuid,
+                    category_distance,
                     retailer_uuid,
                     created_at,
                     updated_at
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
@@ -135,6 +136,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                             discounted_product.get_url(),
                             discounted_product.get_image_url(),
                             discounted_product.get_category_uuid() if discounted_product.has_category() else None,
+                            discounted_product.get_category_distance(),
                             discounted_product.get_retailer_uuid(),
                             discounted_product.get_created_at(),
                             discounted_product.get_updated_at(),

@@ -49,7 +49,10 @@ _TEXTS: dict[str, dict[str, str]] = {
         "retailer_filter_cleared": "Retailer filter cleared.",
         "current_filter": "Retailer filter",
         "current_filter_none": "All retailers",
-        "categories_disabled": "📂 Categories are disabled for now.",
+        "categories_title": "📂 Choose a category:",
+        "categories_none": "No categories yet.",
+        "category_empty": "📂 No products in this category yet.",
+        "browse_categories": "📂 Categories",
         "unsupported": "Send a product name to search discounts.",
         "throttle": "⏳ Too fast. Please wait a second.",
         "image_unavailable": "🚫 <i>Image unavailable</i>",
@@ -84,7 +87,10 @@ _TEXTS: dict[str, dict[str, str]] = {
         "retailer_filter_cleared": "Фильтр по магазину отключен.",
         "current_filter": "Фильтр",
         "current_filter_none": "Все магазины",
-        "categories_disabled": "📂 Категории сейчас отключены.",
+        "categories_title": "📂 Выберите категорию:",
+        "categories_none": "Категорий пока нет.",
+        "category_empty": "📂 В этой категории пока нет товаров.",
+        "browse_categories": "📂 Категории",
         "unsupported": "Напишите название товара для поиска скидок.",
         "throttle": "⏳ Слишком быстро. Подождите секунду.",
         "image_unavailable": "🚫 <i>Изображение недоступно</i>",
@@ -119,7 +125,10 @@ _TEXTS: dict[str, dict[str, str]] = {
         "retailer_filter_cleared": "Խանութի ֆիլտրը հանված է։",
         "current_filter": "Ֆիլտր",
         "current_filter_none": "Բոլոր խանութները",
-        "categories_disabled": "📂 Կատեգորիաները ժամանակավորապես անջատված են։",
+        "categories_title": "📂 Ընտրեք կատեգորիան՝",
+        "categories_none": "Կատեգորիաներ դեռ չկան։",
+        "category_empty": "📂 Այս կատեգորիայում դեռ ապրանքներ չկան։",
+        "browse_categories": "📂 Կատեգորիաներ",
         "unsupported": "Գրեք ապրանքի անունը՝ զեղչերը որոնելու համար։",
         "throttle": "⏳ Շատ արագ է։ Խնդրում ենք սպասել մեկ վայրկյան։",
         "image_unavailable": "🚫 <i>Նկարը հասանելի չէ</i>",
@@ -178,6 +187,16 @@ def retailer_display_name(name: str) -> str:
     return _RETAILER_DISPLAY_NAMES.get(name, name.replace("-", " ").replace("_", " ").title())
 
 
+def localized_category_name(name: str, name_hy: str, name_ru: str, language_code: str) -> str:
+    """Pick a category's name in the user's language, falling back to the English ``name``.
+
+    Returns:
+        The localized name when available, otherwise the English ``name``.
+    """
+    localized = {"hy": name_hy, "ru": name_ru}.get(normalize_language(language_code), "")
+    return localized or name
+
+
 def t(language_code: str, key: str, **kwargs: str) -> str:
     language = normalize_language(language_code)
     template = _TEXTS[language][key]
@@ -198,6 +217,14 @@ def bot_commands_for_language(language_code: str) -> list[BotCommand]:
                 "hy": "Որոնել ապրանքներ",
                 "ru": "Поиск товаров со скидками",
                 "en": "Search discounted products",
+            }[language],
+        ),
+        BotCommand(
+            command="categories",
+            description={
+                "hy": "Դիտել ըստ կատեգորիայի",
+                "ru": "Смотреть по категориям",
+                "en": "Browse by category",
             }[language],
         ),
         BotCommand(command="help", description={"hy": "Օգնություն", "ru": "Справка", "en": "Help"}[language]),

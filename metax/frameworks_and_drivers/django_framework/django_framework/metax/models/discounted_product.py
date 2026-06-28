@@ -36,6 +36,9 @@ class DiscountedProductModel(BaseDbModel):
         null=True,
         blank=True,
     )
+    # Cosine distance to the matched category prototype (0 = perfect; lower = more confident).
+    # NULL when uncategorised. Lets a category's products be ranked by classification confidence.
+    category_distance = models.FloatField(null=True, blank=True)
     retailer = models.ForeignKey("RetailerModel", on_delete=models.CASCADE, db_column="retailer_uuid")
 
     class Meta(TypedModelMeta):

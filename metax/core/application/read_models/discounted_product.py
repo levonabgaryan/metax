@@ -34,3 +34,9 @@ class DiscountedProductReadModel(TypedDict):
     retailer: Required[DiscountedProductRetailerReadModel]
     category: NotRequired[DiscountedProductCategoryReadModel]
     image_url: NotRequired[str]
+    # How confident the classifier is that the product belongs to its category (0..1, higher =
+    # surer); present only when browsing a category.
+    category_confidence: NotRequired[float]
+    # How closely the product matched a name/phonetic search query (0..1, higher = closer);
+    # present only on name searches.
+    match_confidence: NotRequired[float]

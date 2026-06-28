@@ -12,14 +12,18 @@ from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 
-from metax.frameworks_and_drivers.telegram_bot.handlers.commands import send_product_page
+from metax.frameworks_and_drivers.telegram_bot.handlers.commands import load_categories, send_product_page
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
     PAGE_SIZE,
+    CategoryBrowseCB,
     LanguageSelectCB,
+    OpenCategoriesCB,
     RetailerClearCB,
     RetailerFilterMenuCB,
     RetailerSelectCB,
     SearchNavCB,
+    categories_keyboard,
+    category_nav_keyboard,
     retailer_filter_keyboard,
     retailer_selection_keyboard,
     search_result_keyboard,
@@ -108,6 +112,73 @@ async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str,
         image_unavailable=t(lang, "image_unavailable"),
         keyboard=keyboard,
     )
+
+
+@router.callback_query(CategoryBrowseCB.filter())
+async def category_browse_callback(callback: CallbackQuery, callback_data: CategoryBrowseCB) -> None:
+    await callback.answer()
+    if not isinstance(callback.message, Message):
+        return
+
+    lang = get_user_language(callback.from_user.id)
+    category_uuid = callback_data.category_uuid
+    category_name = callback_data.category_name
+    offset = callback_data.offset
+    try:
+        container = METAX_LIFESPAN_MANAGER.get_metax_container()
+        read_repo = await container.get_discounted_product_read_model_repository()
+        # Products are returned most-confident-first (closest to the category prototype).
+        products, total = await read_repo.search_by_category_uuid(
+            category_uuid, offset=offset, limit=PAGE_SIZE
+        )
+    except Exception:
+        logger.exception("Category browse failed for %r offset %d", category_uuid, offset)
+        await callback.message.edit_text(t(lang, "search_error"))
+        return
+
+    if not products:
+        await callback.message.answer(t(lang, "category_empty"))
+        return
+
+    with contextlib.suppress(TelegramBadRequest):
+        await callback.message.edit_reply_markup(reply_markup=None)
+
+    keyboard = category_nav_keyboard(
+        category_uuid=category_uuid,
+        category_name=category_name,
+        offset=offset,
+        total=total,
+        language_code=lang,
+    )
+    await send_product_page(
+        reply_target=callback.message,
+        products=products,
+        total=total,
+        offset=offset,
+        header=f"🏷 <b>{html.escape(category_name)}</b>",
+        summary_label=t(lang, "results_found"),
+        page_label=t(lang, "page"),
+        image_unavailable=t(lang, "image_unavailable"),
+        keyboard=keyboard,
+    )
+
+
+@router.callback_query(OpenCategoriesCB.filter())
+async def open_categories_callback(callback: CallbackQuery) -> None:
+    await callback.answer()
+    if not isinstance(callback.message, Message):
+        return
+
+    lang = get_user_language(callback.from_user.id)
+    categories = await load_categories(lang)
+    if not categories:
+        with contextlib.suppress(TelegramBadRequest):
+            await callback.message.edit_text(t(lang, "categories_none"))
+        return
+    with contextlib.suppress(TelegramBadRequest):
+        await callback.message.edit_text(
+            t(lang, "categories_title"), reply_markup=categories_keyboard(categories)
+        )
 
 
 @router.callback_query(LanguageSelectCB.filter())

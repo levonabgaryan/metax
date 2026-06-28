@@ -29,50 +29,18 @@ def format_product(product: DiscountedProductReadModel, index: int) -> str:
     cat_line = ""
     if "category" in product:
         cat_line = f"\n   🏷 {html.escape(product['category']['name'])}"
+        # When browsing a category, show how sure the classifier is this product belongs here.
+        if "category_confidence" in product:
+            cat_line += f" · 🎯 {round(product['category_confidence'] * 100)}%"
+
+    # On a name/phonetic search, show how closely the product matched the query.
+    match_line = ""
+    if "match_confidence" in product:
+        match_line = f"\n   🎯 {round(product['match_confidence'] * 100)}%"
 
     return (
         f"<b>{index}. {name}</b>\n"
         f"   💸 <s>{real_price:,.0f}</s> → <b>{discounted_price:,.0f} ֏</b> <i>(-{discount_pct}%)</i>\n"
-        f"   🏪 {retailer}{cat_line}\n"
+        f"   🏪 {retailer}{cat_line}{match_line}\n"
         f'   <a href="{html.escape(url)}">Открыть →</a>'
     )
-
-
-def format_search_results(
-    products: list[DiscountedProductReadModel],
-    query: str,
-    total: int,
-    offset: int,
-    limit: int,
-) -> str:
-    header = f"🔍 <b>«{html.escape(query)}»</b> — найдено: {total}\n"
-    if not products:
-        return f"{header}\nПо этому запросу ничего не найдено."
-
-    page = offset // limit + 1
-    total_pages = max(1, (total + limit - 1) // limit)
-    lines = [header]
-    for i, p in enumerate(products, start=offset + 1):
-        lines.append(format_product(p, i))
-    lines.append(f"\nСтраница {page} / {total_pages}")
-    return "\n\n".join(lines)
-
-
-def format_category_results(
-    products: list[DiscountedProductReadModel],
-    category_name: str,
-    total: int,
-    offset: int,
-    limit: int,
-) -> str:
-    header = f"🏷 <b>{html.escape(category_name)}</b> — товаров: {total}\n"
-    if not products:
-        return f"{header}\nВ этой категории пока нет товаров."
-
-    page = offset // limit + 1
-    total_pages = max(1, (total + limit - 1) // limit)
-    lines = [header]
-    for i, p in enumerate(products, start=offset + 1):
-        lines.append(format_product(p, i))
-    lines.append(f"\nСтраница {page} / {total_pages}")
-    return "\n\n".join(lines)

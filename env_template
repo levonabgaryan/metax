@@ -38,9 +38,9 @@ EMBEDDING_DIM=1024
 EMBEDDING_CONCURRENCY=6
 EMBEDDING_TIMEOUT=120.0
 
-# Embedding-based product category classification during crawling (no LLM).
-CATEGORY_CLASSIFICATION_ENABLED=false
-CATEGORY_MATCH_MAX_DISTANCE=0.45
+# Embedding-based product category classification during crawling (no LLM); always on.
+# Max cosine distance to assign a category (lower = stricter).
+CATEGORY_MATCH_MAX_DISTANCE=0.40
 
 # Embed newly collected products (for search) right after a crawl. Set false to make a crawl
 # just load raw data into the DB fast; embed later with scripts/backfill_embeddings.py.

@@ -25,5 +25,9 @@ class EmbeddingService(ABC):
         """Embed a single search query (prefixed as a query)."""
 
     @abstractmethod
+    async def embed_queries(self, texts: list[str]) -> list[list[float]]:
+        """Embed a batch of queries (each prefixed as a query); the result preserves input order."""
+
+    @abstractmethod
     async def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """Embed a batch of documents to be indexed; the result preserves input order."""

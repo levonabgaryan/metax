@@ -97,6 +97,11 @@ class CategoryAdmin(_ModelAdminBase):
             ))
             obj.uuid = response_dto.category_uuid
 
+        # ``examples`` is auxiliary tuning data for the embedding classifier, not part of the
+        # category domain entity, so persist the edited value directly (the DDD create/update
+        # services above own the core name fields). Edit examples freely here to teach the
+        # classifier new product words for this category.
+        CategoryModel.objects.filter(uuid=obj.uuid).update(examples=obj.examples)
         obj.refresh_from_db()
 
     @override

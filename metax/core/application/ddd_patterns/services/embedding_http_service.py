@@ -53,6 +53,12 @@ class HttpEmbeddingService(EmbeddingService):
         return vectors[0]
 
     @override
+    async def embed_queries(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+        return await self._embed([_QUERY_PREFIX + text for text in texts])
+
+    @override
     async def embed_documents(self, texts: list[str]) -> list[list[float]]:
         if not texts:
             return []

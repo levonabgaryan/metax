@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from aiogram.filters.callback_data import CallbackData
-from aiogram.types import InlineKeyboardMarkup, KeyboardButton, ReplyKeyboardMarkup
+from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from metax.frameworks_and_drivers.telegram_bot.localization import (
@@ -18,9 +18,6 @@ PAGE_SIZE = 5
 _QUERY_BYTE_BUDGET = 32
 _CATEGORY_NAME_BYTE_BUDGET = 18
 
-CATEGORIES_BTN = "📂 Категории"
-HELP_BTN = "ℹ️ Помощь"
-
 
 class SearchNavCB(CallbackData, prefix="sn"):
     query: str
@@ -33,7 +30,7 @@ class CategoryBrowseCB(CallbackData, prefix="cb"):
     offset: int
 
 
-class BackToCategoriesCB(CallbackData, prefix="bck"):
+class OpenCategoriesCB(CallbackData, prefix="bck"):
     pass
 
 
@@ -65,14 +62,6 @@ def clamp_category_name(name: str) -> str:
     if len(encoded) <= _CATEGORY_NAME_BYTE_BUDGET:
         return name
     return encoded[:_CATEGORY_NAME_BYTE_BUDGET].decode("utf-8", errors="ignore")
-
-
-def main_menu_keyboard() -> ReplyKeyboardMarkup:
-    return ReplyKeyboardMarkup(
-        keyboard=[[KeyboardButton(text=CATEGORIES_BTN), KeyboardButton(text=HELP_BTN)]],
-        resize_keyboard=True,
-        input_field_placeholder="Введите название товара для поиска…",
-    )
 
 
 def language_keyboard() -> InlineKeyboardMarkup:
@@ -109,6 +98,7 @@ def retailer_filter_keyboard(
     builder = InlineKeyboardBuilder()
     for text, callback_data in _filter_control_buttons(language_code, selected_retailer_name):
         builder.button(text=text, callback_data=callback_data)
+    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
     builder.adjust(1)
     return builder.as_markup()
 
@@ -163,8 +153,10 @@ def search_result_keyboard(
     for text, callback_data in filter_buttons:
         builder.button(text=text, callback_data=callback_data)
 
-    # Nav buttons share one row; each filter control sits on its own row below.
-    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons)
+    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
+
+    # Nav buttons share one row; each filter control and the categories shortcut sit on their own row.
+    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons) + [1]
     builder.adjust(*sizes)
     return builder.as_markup()
 
@@ -210,6 +202,8 @@ def category_nav_keyboard(
     category_name: str,
     offset: int,
     total: int,
+    *,
+    language_code: str,
 ) -> InlineKeyboardMarkup:
     has_prev = offset > 0
     has_next = offset + PAGE_SIZE < total
@@ -218,7 +212,7 @@ def category_nav_keyboard(
     builder = InlineKeyboardBuilder()
     if has_prev:
         builder.button(
-            text="← Назад",
+            text=t(language_code, "back"),
             callback_data=CategoryBrowseCB(
                 category_uuid=category_uuid,
                 category_name=category_name,
@@ -228,7 +222,7 @@ def category_nav_keyboard(
         nav_count += 1
     if has_next:
         builder.button(
-            text="Далее →",
+            text=t(language_code, "next"),
             callback_data=CategoryBrowseCB(
                 category_uuid=category_uuid,
                 category_name=category_name,
@@ -236,6 +230,6 @@ def category_nav_keyboard(
             ),
         )
         nav_count += 1
-    builder.button(text="📂 К категориям", callback_data=BackToCategoriesCB())
+    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
     builder.adjust(nav_count or 1, 1)
     return builder.as_markup()

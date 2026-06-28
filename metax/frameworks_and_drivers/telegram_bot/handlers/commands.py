@@ -27,6 +27,7 @@ from metax.core.application.read_models.discounted_product import DiscountedProd
 from metax.frameworks_and_drivers.telegram_bot.formatters import format_product
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
     PAGE_SIZE,
+    categories_keyboard,
     clamp_query,
     language_keyboard,
     search_result_keyboard,
@@ -34,6 +35,7 @@ from metax.frameworks_and_drivers.telegram_bot.keyboards import (
 from metax.frameworks_and_drivers.telegram_bot.localization import (
     get_user_language,
     get_user_retailer_filter,
+    localized_category_name,
     set_user_last_query,
     t,
 )
@@ -246,9 +248,35 @@ async def run_search(message: Message, raw_query: str) -> None:
     )
 
 
+async def load_categories(language_code: str) -> list[tuple[str, str]]:
+    """Load all categories as ``(uuid, localized_name)`` pairs for the category menu.
+
+    Returns:
+        Category id/name pairs; names localized to ``language_code`` with an English fallback.
+    """
+    container = METAX_LIFESPAN_MANAGER.get_metax_container()
+    uow_provider = container.get_unit_of_work_provider()
+    uow = await uow_provider.provide()
+    async with uow:
+        categories = await uow.category_repo.all()
+    return [
+        (
+            str(category.get_uuid()),
+            localized_category_name(
+                category.get_name(), category.get_name_hy(), category.get_name_ru(), language_code
+            ),
+        )
+        for category in categories
+    ]
+
+
 async def categories_handler(message: Message) -> None:
     lang = get_user_language(message.from_user.id if message.from_user else None)
-    await message.answer(t(lang, "categories_disabled"))
+    categories = await load_categories(lang)
+    if not categories:
+        await message.answer(t(lang, "categories_none"))
+        return
+    await message.answer(t(lang, "categories_title"), reply_markup=categories_keyboard(categories))
 
 
 async def help_handler(message: Message) -> None:

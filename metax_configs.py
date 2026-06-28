@@ -63,11 +63,11 @@ class BaseConfigs(BaseSettings):
     # first boot) plus a batch of embeddings under concurrent load.
     embedding_timeout: Annotated[float, Field(alias="EMBEDDING_TIMEOUT")] = 120.0
 
-    # Embedding-based product category classification during crawling (no LLM).
-    category_classification_enabled: Annotated[bool, Field(alias="CATEGORY_CLASSIFICATION_ENABLED")] = False
+    # Embedding-based product category classification during crawling (no LLM); always on.
     # Max cosine distance (0=identical, 2=opposite) between a product and a category for the
-    # product to be assigned that category. Lower = stricter. Tune against real data.
-    category_match_max_distance: Annotated[float, Field(alias="CATEGORY_MATCH_MAX_DISTANCE")] = 0.45
+    # product to be assigned that category. Lower = stricter. With curated example prototypes a
+    # true match sits near 0, so this gate mainly rejects borderline guesses. Tune against real data.
+    category_match_max_distance: Annotated[float, Field(alias="CATEGORY_MATCH_MAX_DISTANCE")] = 0.40
 
     # Whether to embed newly collected products (for search) right after a crawl. On by default;
     # set false to make a crawl just load raw data into the DB fast — embed later on demand with

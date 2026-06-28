@@ -7,20 +7,24 @@ by cosine distance — provided that distance is within ``max_distance``. Produc
 sufficiently close category are left uncategorised.
 
 Trade-off vs. the old LLM: an LLM *reasons* about a product ("Вино Արարատ" → Alcohol), whereas
-this measures pure semantic similarity between the product name and the category label. To give
-the comparison the best chance, each category is embedded from its three localized names
-(``name / name_hy / name_ru``). ``max_distance`` is the lever to tune against real data: lower
-it for stricter (fewer, more confident) assignments, raise it for more coverage.
+this measures pure semantic similarity. To give the comparison the best chance, each category is
+represented by several *prototypes* — its three localized names (``name / name_hy / name_ru``)
+**and** any curated example product names (``Category.examples``). A product is assigned to the
+category owning its single nearest prototype, so adding an example like ``կարագ`` to a category
+makes products named ``կարագ`` snap to it (distance ≈ 0). ``max_distance`` is the lever to tune
+against real data: lower it for stricter (fewer, more confident) assignments, raise it for more
+coverage.
 
-Products are embedded as documents and categories as queries, mirroring the search read model
+Products are embedded as documents and prototypes as queries, mirroring the search read model
 (where product names are the indexed passages) so the two paths stay consistent.
 """
 
 from __future__ import annotations
 
 import logging
-import math
 from typing import override
+
+import numpy as np
 
 from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
     CategoryClassifierService,
@@ -42,24 +46,25 @@ def _category_text(category: Category) -> str:
     return " / ".join(name for name in names if name)
 
 
-def _cosine_distance(a: list[float], b: list[float]) -> float:
-    """Cosine distance between two vectors; matches pgvector's ``<=>`` metric.
+def _category_prototypes(category: Category) -> list[str]:
+    """All match-anchor texts for a category: its localized label plus each curated example.
 
     Returns:
-        A value in ``[0, 2]`` (0 = identical direction, 2 = opposite); 2.0 if either is zero.
+        The non-empty prototype texts (label first, then example product names).
     """
-    dot = sum(x * y for x, y in zip(a, b, strict=True))
-    norm_a = math.sqrt(sum(x * x for x in a))
-    norm_b = math.sqrt(sum(y * y for y in b))
-    if not norm_a or not norm_b:
-        return 2.0
-    return 1.0 - dot / (norm_a * norm_b)
+    return [text for text in [_category_text(category), *category.get_examples()] if text]
 
 
 class EmbeddingCategoryClassifierService(CategoryClassifierService):
     def __init__(self, embedding_service: EmbeddingService, max_distance: float = 0.45) -> None:
         self._embedding_service = embedding_service
         self._max_distance = max_distance
+        # Prototype embeddings are reused across every batch of a crawl (and across crawls until a
+        # category's label/examples change). Keyed by the embedded texts so an edit invalidates it.
+        self._prototype_cache_key: tuple[str, ...] | None = None
+        self._prototype_matrix: np.ndarray | None = None
+        # Maps each prototype row back to its category's index in the input list.
+        self._prototype_category_indices: np.ndarray | None = None
 
     @override
     async def classify_products(
@@ -70,25 +75,73 @@ class EmbeddingCategoryClassifierService(CategoryClassifierService):
         if not categories or not products:
             return
 
-        category_vectors = [await self._embedding_service.embed_query(_category_text(c)) for c in categories]
+        prototype_matrix, prototype_category_indices = await self._prototypes_for(categories)
+        if prototype_matrix.shape[0] == 0:
+            return
         product_vectors = await self._embedding_service.embed_documents([p.get_name() for p in products])
+        product_matrix = _l2_normalize(np.asarray(product_vectors, dtype=np.float32))
+
+        # Cosine distance (1 - similarity) between every product and every prototype in one matmul:
+        # (P, dim) @ (dim, N) -> (P, N). Each product takes the category of its nearest prototype.
+        distances = 1.0 - product_matrix @ prototype_matrix.T
+        best_prototype = distances.argmin(axis=1)
+        best_distances = distances[np.arange(distances.shape[0]), best_prototype]
 
         assigned = 0
-        for product, product_vector in zip(products, product_vectors, strict=True):
-            best_index: int | None = None
-            best_distance = math.inf
-            for index, category_vector in enumerate(category_vectors):
-                distance = _cosine_distance(product_vector, category_vector)
-                if distance < best_distance:
-                    best_distance = distance
-                    best_index = index
-            if best_index is not None and best_distance <= self._max_distance:
-                category = categories[best_index]
-                product.set_category_uuid(category.get_uuid())
+        for product, prototype_index, best_distance in zip(products, best_prototype, best_distances, strict=True):
+            if best_distance <= self._max_distance:
+                category = categories[int(prototype_category_indices[prototype_index])]
+                product.set_category_uuid(category.get_uuid(), distance=float(best_distance))
                 assigned += 1
                 logger.debug(
                     "Classified %r → %r (distance %.3f)",
-                    product.get_name(), category.get_name(), best_distance,
+                    product.get_name(), category.get_name(), float(best_distance),
                 )
 
         logger.info("Embedding classifier: %d/%d products assigned a category", assigned, len(products))
+
+    async def _prototypes_for(self, categories: list[Category]) -> tuple[np.ndarray, np.ndarray]:
+        """Return the L2-normalized prototype matrix and its prototype→category index map.
+
+        Embeds the prototypes once and caches them, recomputing only when a label or example changes.
+
+        Returns:
+            A ``(num_prototypes, dim)`` float32 matrix and a ``(num_prototypes,)`` int array mapping
+            each row to its category index in ``categories``.
+        """
+        prototype_texts: list[str] = []
+        category_indices: list[int] = []
+        for category_index, category in enumerate(categories):
+            for text in _category_prototypes(category):
+                prototype_texts.append(text)
+                category_indices.append(category_index)
+
+        cache_key = tuple(prototype_texts)
+        if (
+            cache_key != self._prototype_cache_key
+            or self._prototype_matrix is None
+            or self._prototype_category_indices is None
+        ):
+            if prototype_texts:
+                vectors = await self._embedding_service.embed_queries(prototype_texts)
+                self._prototype_matrix = _l2_normalize(np.asarray(vectors, dtype=np.float32))
+            else:
+                self._prototype_matrix = np.empty((0, 0), dtype=np.float32)
+            self._prototype_category_indices = np.asarray(category_indices, dtype=np.intp)
+            self._prototype_cache_key = cache_key
+            logger.info(
+                "Embedding classifier: embedded %d prototypes for %d categories (cached for reuse)",
+                len(prototype_texts),
+                len(categories),
+            )
+        return self._prototype_matrix, self._prototype_category_indices
+
+
+def _l2_normalize(matrix: np.ndarray) -> np.ndarray:
+    """L2-normalize each row so a dot product equals cosine similarity.
+
+    Returns:
+        The row-normalized matrix; zero rows are left as zeros (they match nothing within the gate).
+    """
+    norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+    return matrix / np.where(norms == 0, 1.0, norms)
