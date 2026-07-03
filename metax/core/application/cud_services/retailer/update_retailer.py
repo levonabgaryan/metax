@@ -25,6 +25,8 @@ class UpdateRetailerService(CUDService[UpdateRetailerRequestDTO]):
                 retailer.set_home_page_url(request.new_home_page_url)
             if request.new_phone_number is not None:
                 retailer.set_phone_number(request.new_phone_number)
+            if request.set_default_category:
+                retailer.set_default_category_uuid(request.new_default_category_uuid)
 
             await repo.update(updated_retailer=retailer)
             await uow.commit()

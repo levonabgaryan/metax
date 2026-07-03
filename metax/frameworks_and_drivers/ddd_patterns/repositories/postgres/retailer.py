@@ -27,7 +27,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     home_page_url,
                     phone_number,
                     created_at,
-                    updated_at
+                    updated_at,
+                    default_category_uuid
                 FROM retailers
                 ORDER BY name ASC
             """
@@ -43,6 +44,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     phone_number=row[3],
                     created_at=row[4],
                     updated_at=row[5],
+                    default_category_uuid=row[6],
                 )
                 for row in rows
             )
@@ -66,7 +68,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     home_page_url,
                     phone_number,
                     created_at,
-                    updated_at
+                    updated_at,
+                    default_category_uuid
                 FROM retailers
                 ORDER BY name ASC
                 LIMIT %s OFFSET %s;
@@ -89,6 +92,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                         phone_number=row[3],
                         created_at=row[4],
                         updated_at=row[5],
+                        default_category_uuid=row[6],
                     )
                     for row in rows
                 ]
@@ -100,8 +104,10 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
     async def _add(self, retailer: Retailer) -> None:
         def _sync_version(_retailer: Retailer) -> None:
             insert_query = """
-                INSERT INTO retailers (uuid, name, home_page_url, phone_number, created_at, updated_at)
-                VALUES (%s, %s, %s, %s, %s, %s)
+                INSERT INTO retailers (
+                    uuid, name, home_page_url, phone_number, default_category_uuid, created_at, updated_at
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
@@ -112,6 +118,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                         _retailer.get_name(),
                         _retailer.get_home_page_url(),
                         _retailer.get_phone_number(),
+                        _retailer.get_default_category_uuid(),
                         _retailer.get_created_at(),
                         _retailer.get_updated_at(),
                     ],
@@ -158,7 +165,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     home_page_url,
                     phone_number,
                     created_at,
-                    updated_at
+                    updated_at,
+                    default_category_uuid
                 FROM retailers
                 WHERE name = %s
             """
@@ -175,6 +183,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     phone_number=row[3],
                     created_at=row[4],
                     updated_at=row[5],
+                    default_category_uuid=row[6],
                 )
 
         return await sync_to_async(_sync_version)(name)
@@ -189,7 +198,8 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     home_page_url,
                     phone_number,
                     created_at,
-                    updated_at
+                    updated_at,
+                    default_category_uuid
                 FROM retailers
                 WHERE uuid = %s
             """
@@ -206,6 +216,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                     phone_number=row[3],
                     created_at=row[4],
                     updated_at=row[5],
+                    default_category_uuid=row[6],
                 )
 
         return await sync_to_async(_sync_version)(uuid_)
@@ -215,7 +226,11 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
         def _sync_version(_updated_retailer: Retailer) -> None:
             update_query = """
                 UPDATE retailers
-                SET name = %s, home_page_url = %s, phone_number = %s, updated_at = %s
+                SET name = %s,
+                    home_page_url = %s,
+                    phone_number = %s,
+                    default_category_uuid = %s,
+                    updated_at = %s
                 WHERE uuid = %s
             """
             cursor: CursorWrapper
@@ -226,6 +241,7 @@ class DjangoPostgresqlRetailerRepository(RetailerRepository):
                         _updated_retailer.get_name(),
                         _updated_retailer.get_home_page_url(),
                         _updated_retailer.get_phone_number(),
+                        _updated_retailer.get_default_category_uuid(),
                         _updated_retailer.get_updated_at(),
                         _updated_retailer.get_uuid(),
                     ],

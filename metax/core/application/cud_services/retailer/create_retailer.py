@@ -26,6 +26,7 @@ class CreateRetailerService(CUDService[CreateRetailerRequestDTO]):
             name=request.name,
             phone_number=request.phone_number,
             home_page_url=request.home_page_url,
+            default_category_uuid=request.default_category_uuid,
             created_at=now,
             updated_at=now,
         )

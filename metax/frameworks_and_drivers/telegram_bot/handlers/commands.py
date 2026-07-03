@@ -7,6 +7,7 @@ import html
 import logging
 import re
 from pathlib import Path
+from urllib.parse import quote, urlsplit
 from uuid import UUID
 
 from aiogram import Router
@@ -56,6 +57,25 @@ _PLACEHOLDER_BYTES = (Path(__file__).resolve().parent.parent / "assets" / "no_im
 
 # Telegram reports a rejected album item as "...failed to send message #N..." (1-based).
 _FAILED_ITEM_RE = re.compile(r"message #(\d+)")
+
+# Hosts whose images Telegram's own fetcher cannot reliably retrieve. tntesakan.am publishes a
+# dead IPv6 (AAAA) record and sits on slow reg.ru shared hosting, so Telegram's short-timeout,
+# IPv6-preferring fetch times out and the album degrades to placeholders. We can't change their
+# hosting, so we hand Telegram a cached CDN mirror (images.weserv.nl, on Cloudflare — healthy
+# IPv6, fast edges) instead. This is a pure URL rewrite: no image bytes ever touch our server;
+# the CDN fetches and caches the origin over IPv4 itself.
+_TELEGRAM_UNFETCHABLE_IMAGE_HOSTS = frozenset({"tntesakan.am", "www.tntesakan.am"})
+
+
+def _telegram_fetchable_url(image_url: str) -> str:
+    """Return a URL Telegram can fetch, routing known-unfetchable hosts through an image CDN."""
+    host = (urlsplit(image_url).hostname or "").lower()
+    if host not in _TELEGRAM_UNFETCHABLE_IMAGE_HOSTS:
+        return image_url
+    # weserv takes the source without its scheme; the ssl: prefix forces an HTTPS origin fetch and
+    # output=jpg normalises every format (incl. tntesakan's webp) to a Telegram-safe JPEG.
+    source = image_url.split("://", 1)[-1]
+    return "https://images.weserv.nl/?url=" + quote(f"ssl:{source}", safe="") + "&output=jpg"
 
 
 def _photo_media(ref: str | InputFile, caption: str) -> MediaUnion:
@@ -156,7 +176,7 @@ async def send_product_page(
         text = format_product(p, n)
         image_url = p.get("image_url")
         if image_url and image_url.startswith(("http://", "https://")):
-            items.append((image_url, text))
+            items.append((_telegram_fetchable_url(image_url), text))
         else:
             text_only.append(text)
 

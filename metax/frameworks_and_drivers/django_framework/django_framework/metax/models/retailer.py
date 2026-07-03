@@ -17,6 +17,16 @@ class RetailerModel(BaseDbModel):
     name = models.CharField(max_length=64, unique=True, null=False, choices=_RETAILER_NAME_CHOICES)
     home_page_url = models.URLField(max_length=2048)
     phone_number = models.CharField(max_length=64)
+    # When set, every product collected from this retailer is stamped with this category directly
+    # (skipping the embedding classifier) — for retailers whose whole catalog is a single category.
+    default_category = models.ForeignKey(
+        "CategoryModel",
+        on_delete=models.SET_NULL,
+        db_column="default_category_uuid",
+        related_name="+",
+        null=True,
+        blank=True,
+    )
 
     class Meta(TypedModelMeta):
         db_table = "retailers"

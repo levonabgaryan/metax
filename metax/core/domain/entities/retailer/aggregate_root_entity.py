@@ -18,6 +18,7 @@ class Retailer(AggregateRootEntity):
         name: str,
         home_page_url: str,
         phone_number: str,
+        default_category_uuid: UUID | None = None,
     ) -> None:
         super().__init__(
             uuid_value_object=UUIDValueObject.create(uuid_),
@@ -29,6 +30,12 @@ class Retailer(AggregateRootEntity):
         self.__name = parse_retailer_name(name)
         self.__home_page_url = home_page_url
         self.__phone_number = phone_number
+        # When set, every product this retailer sells is stamped with this category directly, and the
+        # embedding classifier is skipped for it — for retailers whose whole catalog is one category.
+        self.__default_category_uuid = default_category_uuid
+
+    def get_default_category_uuid(self) -> UUID | None:
+        return self.__default_category_uuid
 
     def get_home_page_url(self) -> str:
         return self.__home_page_url
@@ -38,6 +45,10 @@ class Retailer(AggregateRootEntity):
 
     def get_phone_number(self) -> str:
         return self.__phone_number
+
+    def set_default_category_uuid(self, new_default_category_uuid: UUID | None) -> None:
+        self.__default_category_uuid = new_default_category_uuid
+        self._touch()
 
     def set_home_page_url(self, new_url: str) -> None:
         self.__home_page_url = new_url

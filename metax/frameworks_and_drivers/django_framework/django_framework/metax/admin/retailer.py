@@ -33,8 +33,17 @@ csrf_protect_m = method_decorator(csrf_protect)
 
 @admin.register(RetailerModel)
 class RetailerAdmin(_ModelAdminBase):
-    list_display = ("uuid", "name", "home_page_url", "phone_number", "created_at", "updated_at")
+    list_display = (
+        "uuid",
+        "name",
+        "default_category",
+        "home_page_url",
+        "phone_number",
+        "created_at",
+        "updated_at",
+    )
     list_display_links = ("name",)
+    list_select_related = ("default_category",)
     search_fields = ("name", "home_page_url", "phone_number")
 
     @csrf_protect_m
@@ -76,6 +85,10 @@ class RetailerAdmin(_ModelAdminBase):
         metax_container = METAX_LIFESPAN_MANAGER.get_metax_container()
         unit_of_work_provider = metax_container.get_unit_of_work_provider()
         event_bus = async_to_sync(metax_container.get_event_bus)()
+        # ``default_category`` is a CategoryModel instance (or None when cleared); the services take
+        # its UUID.
+        default_category = form.cleaned_data.get("default_category")
+        default_category_uuid = default_category.uuid if default_category is not None else None
         if change:
             cud_service_ = UpdateRetailerService(
                 event_bus=event_bus,
@@ -86,6 +99,8 @@ class RetailerAdmin(_ModelAdminBase):
                 new_name=form.cleaned_data.get("name"),
                 new_phone_number=form.cleaned_data.get("phone_number"),
                 new_home_page_url=form.cleaned_data.get("home_page_url"),
+                new_default_category_uuid=default_category_uuid,
+                set_default_category=True,
             )
             response_dto_ = async_to_sync(cud_service_.execute)(request_dto_)
             obj.uuid = response_dto_.retailer_uuid
@@ -99,6 +114,7 @@ class RetailerAdmin(_ModelAdminBase):
                 name=form.cleaned_data["name"],
                 phone_number=form.cleaned_data["phone_number"],
                 home_page_url=form.cleaned_data["home_page_url"],
+                default_category_uuid=default_category_uuid,
             )
 
             response_dto = async_to_sync(cud_service.execute)(request_dto)

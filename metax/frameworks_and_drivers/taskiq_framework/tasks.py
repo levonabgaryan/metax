@@ -23,6 +23,7 @@ from metax.core.application.use_cases.discounted_product.dtos import CollectDisc
 from metax.core.domain.entities.retailer.value_objects import RetailersNames, parse_retailer_name
 from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_collector_service_creators import (
     SasAmDiscountProductCollectorCreator,
+    TntesakanAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
 from metax_bootstrap import METAX_CONFIGS, METAX_LIFESPAN_MANAGER
@@ -82,6 +83,11 @@ async def collect_discounted_products_from_all_retailers(
                 start_date_of_collecting=start_date_of_collecting,
                 retailer=retailer,
             )
+        elif collector_service_creator_class is TntesakanAmDiscountProductCollectorCreator:
+            collector_service_creator = TntesakanAmDiscountProductCollectorCreator(
+                start_date_of_collecting=start_date_of_collecting,
+                retailer=retailer,
+            )
         else:
             msg = f"Unsupported collector: {collector_service_creator_class!r}"
             raise NotImplementedError(msg)
@@ -91,6 +97,7 @@ async def collect_discounted_products_from_all_retailers(
             discounted_product_collector_service_creator=collector_service_creator,
             event_bus=event_bus,
             category_classifier=category_classifier,
+            default_category_uuid=retailer.get_default_category_uuid(),
         )
         tasks.append(use_case.handle_use_case(request=CollectDiscountedProductsRequest(
             start_date_of_collecting=start_date_of_collecting
@@ -221,4 +228,5 @@ RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP: dict[
 ] = {
     RetailersNames.YEREVAN_CITY: YerevanCityDiscountProductCollectorCreator,
     RetailersNames.SAS_AM: SasAmDiscountProductCollectorCreator,
+    RetailersNames.TNTESAKAN_AM: TntesakanAmDiscountProductCollectorCreator,
 }

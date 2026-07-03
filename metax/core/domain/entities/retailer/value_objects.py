@@ -6,6 +6,7 @@ from enum import StrEnum
 class RetailersNames(StrEnum):
     YEREVAN_CITY = "yerevan-city"
     SAS_AM = "sas-am"
+    TNTESAKAN_AM = "tntesakan-am"
 
 
 def parse_retailer_name(name: str) -> RetailersNames:
