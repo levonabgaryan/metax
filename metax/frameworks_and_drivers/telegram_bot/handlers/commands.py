@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import quote, urlsplit
 from uuid import UUID
 
+import httpx
 from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
@@ -60,11 +61,17 @@ _FAILED_ITEM_RE = re.compile(r"message #(\d+)")
 
 # Hosts whose images Telegram's own fetcher cannot reliably retrieve. tntesakan.am publishes a
 # dead IPv6 (AAAA) record and sits on slow reg.ru shared hosting, so Telegram's short-timeout,
-# IPv6-preferring fetch times out and the album degrades to placeholders. We can't change their
-# hosting, so we hand Telegram a cached CDN mirror (images.weserv.nl, on Cloudflare — healthy
-# IPv6, fast edges) instead. This is a pure URL rewrite: no image bytes ever touch our server;
-# the CDN fetches and caches the origin over IPv4 itself.
+# IPv6-preferring fetch times out — and, worse, Telegram caches that failure per-URL, so a page
+# that timed out once (e.g. a category's first page, opened cold) stays broken while later pages
+# opened against warm caches work. We can't change their hosting, so for these hosts we fetch the
+# image ourselves through a CDN mirror (images.weserv.nl, on Cloudflare — healthy IPv6, fast IPv4
+# edges) and upload the bytes to Telegram directly, so Telegram never fetches the flaky origin and
+# has no failure to cache. The bytes live in memory only for the duration of the send — nothing is
+# written to disk or accumulated. Every other host is still handed to Telegram as a plain URL.
 _TELEGRAM_UNFETCHABLE_IMAGE_HOSTS = frozenset({"tntesakan.am", "www.tntesakan.am"})
+
+# Timeout for our own server-side fetch of a CDN mirror image (well under Telegram's own window).
+_CDN_FETCH_TIMEOUT = httpx.Timeout(20.0)
 
 
 def _telegram_fetchable_url(image_url: str) -> str:
@@ -76,6 +83,31 @@ def _telegram_fetchable_url(image_url: str) -> str:
     # output=jpg normalises every format (incl. tntesakan's webp) to a Telegram-safe JPEG.
     source = image_url.split("://", 1)[-1]
     return "https://images.weserv.nl/?url=" + quote(f"ssl:{source}", safe="") + "&output=jpg"
+
+
+async def _resolve_photo_ref(image_url: str) -> str | BufferedInputFile:
+    """Return what to hand Telegram for a product image: a plain URL, or uploadable bytes.
+
+    For hosts Telegram cannot reliably fetch we download the CDN-mirrored image ourselves (over
+    the CDN's fast IPv4 edge) and return the bytes as an uploadable file, so Telegram never fetches
+    the flaky origin and cannot cache a fetch failure. The bytes are held in memory only. If our
+    own fetch fails we fall back to handing Telegram the CDN URL, so the image can still resolve.
+
+    Returns:
+        The original URL for fetchable hosts, or in-memory image bytes for unfetchable ones.
+    """
+    host = (urlsplit(image_url).hostname or "").lower()
+    if host not in _TELEGRAM_UNFETCHABLE_IMAGE_HOSTS:
+        return image_url
+    cdn_url = _telegram_fetchable_url(image_url)
+    try:
+        async with httpx.AsyncClient(timeout=_CDN_FETCH_TIMEOUT, follow_redirects=True) as client:
+            response = await client.get(cdn_url)
+            response.raise_for_status()
+    except httpx.HTTPError as err:
+        logger.warning("CDN image fetch failed, falling back to URL | url=%r (%s)", cdn_url, err)
+        return cdn_url
+    return BufferedInputFile(response.content, filename="image.jpg")
 
 
 def _photo_media(ref: str | InputFile, caption: str) -> MediaUnion:
@@ -124,19 +156,19 @@ async def _send_album_or_photo(reply_target: Message, media: list[MediaUnion]) -
 
 
 async def _send_photo_group(
-    reply_target: Message, items: list[tuple[str, str]], image_unavailable: str
+    reply_target: Message, items: list[tuple[str | InputFile, str]], image_unavailable: str
 ) -> None:
-    """Send up to 10 ``(image_url, caption)`` items as a single album.
+    """Send up to 10 ``(photo_ref, caption)`` items as a single album.
 
-    Telegram fetches the URLs itself. If it rejects one (too large or unfetchable) it names the
-    offending item, so we swap that slot for a static placeholder — captioned with
-    ``image_unavailable`` — and re-send, keeping the album whole instead of degrading to
-    one-by-one.
+    ``photo_ref`` is either a URL Telegram fetches itself or in-memory bytes we upload. If Telegram
+    rejects one (too large or unfetchable) it names the offending item, so we swap that slot for a
+    static placeholder — captioned with ``image_unavailable`` — and re-send, keeping the album
+    whole instead of degrading to one-by-one.
     """
     if not items:
         return
 
-    media = [_photo_media(url, caption) for url, caption in items]
+    media = [_photo_media(ref, caption) for ref, caption in items]
     for _attempt in range(len(media) + 1):
         try:
             await _send_album_or_photo(reply_target, media)
@@ -146,12 +178,12 @@ async def _send_photo_group(
             if index is None:
                 logger.warning("Album send failed; could not identify the bad image (%s)", err.message)
                 break
-            url, caption = items[index]
-            logger.warning("Image unfetchable, using placeholder | url=%r", url)
+            caption = items[index][1]
+            logger.warning("Image rejected by Telegram, using placeholder (item #%d)", index + 1)
             media[index] = _placeholder_media(caption, image_unavailable)
 
     # Safety net: if the album still cannot be sent, fall back to text so nothing is lost.
-    for _url, caption in items:
+    for _, caption in items:
         await reply_target.answer(
             caption, parse_mode=ParseMode.HTML, link_preview_options=_LINK_PREVIEW_DISABLED
         )
@@ -171,15 +203,23 @@ async def send_product_page(
 ) -> None:
     # Group all photos into a single album (one API call) instead of one send per
     # product — cuts Telegram API calls ~5x and eases per-chat/global flood limits.
-    items: list[tuple[str, str]] = []
+    photos: list[tuple[str, str]] = []
     text_only: list[str] = []
     for n, p in enumerate(products, start=offset + 1):
         text = format_product(p, n, language_code)
         image_url = p.get("image_url")
         if image_url and image_url.startswith(("http://", "https://")):
-            items.append((_telegram_fetchable_url(image_url), text))
+            photos.append((image_url, text))
         else:
             text_only.append(text)
+
+    # Resolve each photo to what Telegram should receive — a plain URL, or in-memory bytes for
+    # hosts Telegram can't fetch reliably. Resolve concurrently so a page of downloads costs one
+    # round-trip's latency, not the sum.
+    refs = await asyncio.gather(*(_resolve_photo_ref(url) for url, _ in photos))
+    items: list[tuple[str | InputFile, str]] = [
+        (ref, text) for ref, (_url, text) in zip(refs, photos, strict=True)
+    ]
 
     for start in range(0, len(items), _MEDIA_GROUP_MAX):
         await _send_photo_group(reply_target, items[start : start + _MEDIA_GROUP_MAX], image_unavailable)
