@@ -167,13 +167,14 @@ async def send_product_page(
     page_label: str,
     image_unavailable: str,
     keyboard: InlineKeyboardMarkup | None,
+    language_code: str,
 ) -> None:
     # Group all photos into a single album (one API call) instead of one send per
     # product — cuts Telegram API calls ~5x and eases per-chat/global flood limits.
     items: list[tuple[str, str]] = []
     text_only: list[str] = []
     for n, p in enumerate(products, start=offset + 1):
-        text = format_product(p, n)
+        text = format_product(p, n, language_code)
         image_url = p.get("image_url")
         if image_url and image_url.startswith(("http://", "https://")):
             items.append((_telegram_fetchable_url(image_url), text))
@@ -265,6 +266,7 @@ async def run_search(message: Message, raw_query: str) -> None:
         page_label=t(lang, "page"),
         image_unavailable=t(lang, "image_unavailable"),
         keyboard=keyboard,
+        language_code=lang,
     )
 
 

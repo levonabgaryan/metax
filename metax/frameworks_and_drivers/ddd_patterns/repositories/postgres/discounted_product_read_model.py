@@ -64,7 +64,7 @@ _READ_MODEL_COLUMNS = """
     dp.uuid, dp.created_at, dp.updated_at, dp.name, dp.real_price, dp.discounted_price,
     dp.url, dp.image_url,
     r.uuid, r.created_at, r.updated_at, r.name, r.home_page_url, r.phone_number,
-    c.uuid, c.created_at, c.updated_at, c.name
+    c.uuid, c.created_at, c.updated_at, c.name, c.name_hy, c.name_ru
 """
 
 _READ_MODEL_JOINS = """
@@ -137,6 +137,8 @@ def _row_to_read_model(row: tuple[Any, ...]) -> DiscountedProductReadModel:
             created_at=row[15].isoformat(),
             updated_at=row[16].isoformat(),
             name=row[17],
+            name_hy=row[18],
+            name_ru=row[19],
         )
     return item
 
@@ -262,11 +264,11 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         if not rows:
             return [], 0
         total = int(rows[0][-1])
-        # Column layout: read-model columns (0..17), exact_match (18), distance (19), total (20).
+        # Column layout: read-model columns (0..19), exact_match (20), distance (21), total (22).
         items: list[DiscountedProductReadModel] = []
         for row in rows:
             item = _row_to_read_model(row)
-            item["match_confidence"] = _confidence_from_distance(row[19])
+            item["match_confidence"] = _confidence_from_distance(row[21])
             items.append(item)
         return items, total
 
@@ -292,12 +294,12 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         if not rows:
             return [], 0
         total = int(rows[0][-1])
-        # Column layout: read-model columns (0..17), category_distance (18), total (19).
+        # Column layout: read-model columns (0..19), category_distance (20), total (21).
         items: list[DiscountedProductReadModel] = []
         for row in rows:
             item = _row_to_read_model(row)
-            if row[18] is not None:
-                item["category_confidence"] = _confidence_from_distance(row[18])
+            if row[20] is not None:
+                item["category_confidence"] = _confidence_from_distance(row[20])
             items.append(item)
         return items, total
 

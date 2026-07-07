@@ -32,6 +32,7 @@ from metax.frameworks_and_drivers.telegram_bot.localization import (
     get_user_language,
     get_user_last_query,
     get_user_retailer_filter,
+    localized_category_name,
     set_user_language,
     set_user_last_query,
     set_user_retailer_filter,
@@ -53,6 +54,22 @@ async def _load_retailer_name(retailer_uuid: str | None) -> str | None:
     async with uow:
         retailer = await uow.retailer_repo.get_by_uuid(UUID(retailer_uuid))
     return retailer.get_name()
+
+
+async def _load_category_name(category_uuid: str, language_code: str) -> str:
+    """Load a category's name in the user's language, so the header isn't limited by callback size.
+
+    Returns:
+        The localized category name, falling back to the English name when no translation exists.
+    """
+    container = METAX_LIFESPAN_MANAGER.get_metax_container()
+    uow_provider = container.get_unit_of_work_provider()
+    uow = await uow_provider.provide()
+    async with uow:
+        category = await uow.category_repo.get_by_uuid(UUID(category_uuid))
+    return localized_category_name(
+        category.get_name(), category.get_name_hy(), category.get_name_ru(), language_code
+    )
 
 
 async def _load_retailers() -> list[tuple[str, str]]:
@@ -111,6 +128,7 @@ async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str,
         page_label=t(lang, "page"),
         image_unavailable=t(lang, "image_unavailable"),
         keyboard=keyboard,
+        language_code=lang,
     )
 
 
@@ -122,7 +140,6 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
 
     lang = get_user_language(callback.from_user.id)
     category_uuid = callback_data.category_uuid
-    category_name = callback_data.category_name
     offset = callback_data.offset
     try:
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
@@ -143,9 +160,9 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
     with contextlib.suppress(TelegramBadRequest):
         await callback.message.edit_reply_markup(reply_markup=None)
 
+    category_name = await _load_category_name(category_uuid, lang)
     keyboard = category_nav_keyboard(
         category_uuid=category_uuid,
-        category_name=category_name,
         offset=offset,
         total=total,
         language_code=lang,
@@ -160,6 +177,7 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
         page_label=t(lang, "page"),
         image_unavailable=t(lang, "image_unavailable"),
         keyboard=keyboard,
+        language_code=lang,
     )
 
 
@@ -311,4 +329,5 @@ async def search_page_callback(callback: CallbackQuery, callback_data: SearchNav
         page_label=t(lang, "page"),
         image_unavailable=t(lang, "image_unavailable"),
         keyboard=keyboard,
+        language_code=lang,
     )

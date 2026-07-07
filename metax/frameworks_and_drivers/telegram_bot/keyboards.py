@@ -16,7 +16,6 @@ PAGE_SIZE = 5
 
 # Telegram caps callback_data at 64 bytes.
 _QUERY_BYTE_BUDGET = 32
-_CATEGORY_NAME_BYTE_BUDGET = 18
 
 
 class SearchNavCB(CallbackData, prefix="sn"):
@@ -26,7 +25,6 @@ class SearchNavCB(CallbackData, prefix="sn"):
 
 class CategoryBrowseCB(CallbackData, prefix="cb"):
     category_uuid: str
-    category_name: str
     offset: int
 
 
@@ -55,13 +53,6 @@ def clamp_query(query: str) -> str:
     if len(encoded) <= _QUERY_BYTE_BUDGET:
         return query
     return encoded[:_QUERY_BYTE_BUDGET].decode("utf-8", errors="ignore")
-
-
-def clamp_category_name(name: str) -> str:
-    encoded = name.encode("utf-8")
-    if len(encoded) <= _CATEGORY_NAME_BYTE_BUDGET:
-        return name
-    return encoded[:_CATEGORY_NAME_BYTE_BUDGET].decode("utf-8", errors="ignore")
 
 
 def language_keyboard() -> InlineKeyboardMarkup:
@@ -187,11 +178,7 @@ def categories_keyboard(categories: list[tuple[str, str]]) -> InlineKeyboardMark
     for cat_uuid, cat_name in categories:
         builder.button(
             text=cat_name,
-            callback_data=CategoryBrowseCB(
-                category_uuid=cat_uuid,
-                category_name=clamp_category_name(cat_name),
-                offset=0,
-            ),
+            callback_data=CategoryBrowseCB(category_uuid=cat_uuid, offset=0),
         )
     builder.adjust(2)
     return builder.as_markup()
@@ -199,7 +186,6 @@ def categories_keyboard(categories: list[tuple[str, str]]) -> InlineKeyboardMark
 
 def category_nav_keyboard(
     category_uuid: str,
-    category_name: str,
     offset: int,
     total: int,
     *,
@@ -215,7 +201,6 @@ def category_nav_keyboard(
             text=t(language_code, "back"),
             callback_data=CategoryBrowseCB(
                 category_uuid=category_uuid,
-                category_name=category_name,
                 offset=max(0, offset - PAGE_SIZE),
             ),
         )
@@ -225,7 +210,6 @@ def category_nav_keyboard(
             text=t(language_code, "next"),
             callback_data=CategoryBrowseCB(
                 category_uuid=category_uuid,
-                category_name=category_name,
                 offset=offset + PAGE_SIZE,
             ),
         )

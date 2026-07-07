@@ -8,6 +8,8 @@ class DiscountedProductCategoryReadModel(TypedDict):
     created_at: Required[str]
     updated_at: Required[str]
     name: Required[str]
+    name_hy: Required[str]
+    name_ru: Required[str]
 
 
 class DiscountedProductRetailerReadModel(TypedDict):
