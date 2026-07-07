@@ -4,6 +4,8 @@ import asyncio
 import datetime as dt
 import logging
 import uuid
+from typing import TYPE_CHECKING, Protocol
+from uuid import UUID
 
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.backend_patterns.provider.unit_of_work_provider import IUnitOfWorkProvider
@@ -20,6 +22,7 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
     CollectDiscountedProducts,
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
+from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames, parse_retailer_name
 from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_collector_service_creators import (
     SasAmDiscountProductCollectorCreator,
@@ -31,6 +34,12 @@ from metax_logger.request_id_filter import request_id_scope
 
 from .broker import broker_
 from .errors import NoRetailersError
+from .locks import get_collection_lock
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
+    from metax.frameworks_and_drivers.di.metax_container import MetaxContainer
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +62,38 @@ _EMBED_MAX_PASSES = 3
 _EMBED_RETRY_BACKOFF_SECONDS = 5.0  # multiplied by the pass number for a linear backoff
 
 
+def _build_collect_use_case_for_retailer(
+    retailer: Retailer,
+    unit_of_work_provider: IUnitOfWorkProvider,
+    event_bus: EventBus,
+    start_date_of_collecting: dt.datetime,
+    category_classifier: CategoryClassifierService | None,
+) -> CollectDiscountedProducts:
+    """Wire the collection use case for a single retailer.
+
+    Shared by the all-retailers run (one per retailer, collected concurrently) and the manual
+    single-retailer run. Every collector creator in the map takes the same
+    ``(start_date_of_collecting, retailer)`` constructor, so the map entry can be instantiated directly.
+
+    Returns:
+        The wired ``CollectDiscountedProducts`` use case for ``retailer``.
+    """
+    collector_service_creator_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP[
+        parse_retailer_name(retailer.get_name())
+    ]
+    collector_service_creator = collector_service_creator_class(
+        start_date_of_collecting=start_date_of_collecting,
+        retailer=retailer,
+    )
+    return CollectDiscountedProducts(
+        unit_of_work_provider=unit_of_work_provider,
+        discounted_product_collector_service_creator=collector_service_creator,
+        event_bus=event_bus,
+        category_classifier=category_classifier,
+        default_category_uuid=retailer.get_default_category_uuid(),
+    )
+
+
 async def collect_discounted_products_from_all_retailers(
     unit_of_work_provider: IUnitOfWorkProvider,
     event_bus: EventBus,
@@ -65,43 +106,18 @@ async def collect_discounted_products_from_all_retailers(
     if not retailers:
         raise NoRetailersError
 
-    tasks = []
-    for retailer in retailers:
-        retailer_key = retailer.get_name()
-        collector_service_creator_class = RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP[
-            parse_retailer_name(retailer_key)
-        ]
-
-        collector_service_creator: DiscountedProductCollectorServiceCreator
-        if collector_service_creator_class is YerevanCityDiscountProductCollectorCreator:
-            collector_service_creator = YerevanCityDiscountProductCollectorCreator(
-                start_date_of_collecting=start_date_of_collecting,
-                retailer=retailer,
-            )
-        elif collector_service_creator_class is SasAmDiscountProductCollectorCreator:
-            collector_service_creator = SasAmDiscountProductCollectorCreator(
-                start_date_of_collecting=start_date_of_collecting,
-                retailer=retailer,
-            )
-        elif collector_service_creator_class is TntesakanAmDiscountProductCollectorCreator:
-            collector_service_creator = TntesakanAmDiscountProductCollectorCreator(
-                start_date_of_collecting=start_date_of_collecting,
-                retailer=retailer,
-            )
-        else:
-            msg = f"Unsupported collector: {collector_service_creator_class!r}"
-            raise NotImplementedError(msg)
-
-        use_case = CollectDiscountedProducts(
+    tasks = [
+        _build_collect_use_case_for_retailer(
+            retailer=retailer,
             unit_of_work_provider=unit_of_work_provider,
-            discounted_product_collector_service_creator=collector_service_creator,
             event_bus=event_bus,
+            start_date_of_collecting=start_date_of_collecting,
             category_classifier=category_classifier,
-            default_category_uuid=retailer.get_default_category_uuid(),
+        ).handle_use_case(
+            request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
         )
-        tasks.append(use_case.handle_use_case(request=CollectDiscountedProductsRequest(
-            start_date_of_collecting=start_date_of_collecting
-        )))
+        for retailer in retailers
+    ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
     for result in results:
@@ -109,36 +125,110 @@ async def collect_discounted_products_from_all_retailers(
             logger.error("Error during collection: %s", result, exc_info=result)
 
 
+async def collect_discounted_products_for_retailer(
+    unit_of_work_provider: IUnitOfWorkProvider,
+    event_bus: EventBus,
+    retailer_name: str,
+    start_date_of_collecting: dt.datetime,
+    category_classifier: CategoryClassifierService | None = None,
+) -> UUID:
+    """Collect a single retailer (for a manual re-run).
+
+    Looks the retailer up by name (propagating ``EntityIsNotFoundError`` if it does not exist), then
+    runs its collector.
+
+    Returns:
+        The retailer's UUID, so step 2 can scope its publish swap to this retailer only.
+    """
+    uow = await unit_of_work_provider.provide()
+    async with uow:
+        retailer = await uow.retailer_repo.get_by_name(retailer_name)
+
+    use_case = _build_collect_use_case_for_retailer(
+        retailer=retailer,
+        unit_of_work_provider=unit_of_work_provider,
+        event_bus=event_bus,
+        start_date_of_collecting=start_date_of_collecting,
+        category_classifier=category_classifier,
+    )
+    await use_case.handle_use_case(
+        request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
+    )
+    return retailer.get_uuid()
+
+
+async def _run_collection_job_under_lock(
+    effective_id: str,
+    label: str,
+    collect: Callable[[MetaxContainer, dt.datetime], Awaitable[UUID | None]],
+) -> None:
+    """Run one crawl (step 1) under the global collection lock and hand it off to step 2.
+
+    Acquires the lock without blocking; if another crawl already holds it, this run is *skipped* (not
+    queued) — the lock exists precisely to keep a manual and the nightly run from overlapping. On
+    success the lock's release token is handed to the embed job (step 2), which releases it after the
+    publish swap; the whole collect → embed → publish lifecycle is thus mutually exclusive. If step 2
+    is not enqueued (collection failed, or ``EMBED_AFTER_COLLECT`` is off) the lock is released here.
+
+    Args:
+        effective_id: Request-id used to correlate this run's logs and the step-2 job it enqueues.
+        label: Human-readable run description for log lines (e.g. ``"collection: retailer sas-am"``).
+        collect: Runs the actual collection and returns the retailer UUID for a single-retailer run
+            (so step 2 scopes its publish swap) or ``None`` for the all-retailers run (global swap).
+    """
+    with request_id_scope(effective_id):
+        lock = get_collection_lock()
+        token = await lock.acquire()
+        if token is None:
+            logger.warning(
+                "Step 1 (%s): SKIPPED | another crawl already holds the global collection lock", label
+            )
+            return
+
+        release_token: str | None = token
+        try:
+            container = METAX_LIFESPAN_MANAGER.get_metax_container()
+            started_at = dt.datetime.now(tz=dt.UTC)
+            retailer_uuid = await collect(container, started_at)
+
+            # Hand off to step 2 (embed + publish) as its own job so its success/failure is tracked
+            # independently. ``collected_since`` tells step 2 which rows are the previous run's, to
+            # delete once the new set is embedded; ``retailer_uuid`` (single-retailer run) scopes that
+            # delete so re-running one crawler never touches another retailer's live rows.
+            if METAX_CONFIGS.embed_after_collect:
+                await taskiq_embed_discounted_products.kiq(
+                    request_id=effective_id,
+                    collected_since=started_at.isoformat(),
+                    retailer_uuid=str(retailer_uuid) if retailer_uuid is not None else None,
+                    lock_token=token,
+                )
+                # Step 2 now owns the lock and releases it after publishing — don't release it here.
+                release_token = None
+                logger.info("Step 1 (%s): SUCCESS | enqueued step 2 (embed + publish)", label)
+            else:
+                logger.info(
+                    "Step 1 (%s): SUCCESS | step 2 SKIPPED (EMBED_AFTER_COLLECT=false) | "
+                    "run scripts/backfill_embeddings.py to embed later",
+                    label,
+                )
+        finally:
+            if release_token is not None:
+                await lock.release(release_token)
+
+
 async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str | None = None) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
-    with request_id_scope(effective_id):
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
 
+    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> None:
         # Category classification always runs; it no-ops by itself if no categories are seeded.
-        classifier = container.get_category_classifier()
-
-        started_at = dt.datetime.now(tz=dt.UTC)
         await collect_discounted_products_from_all_retailers(
             unit_of_work_provider=container.get_unit_of_work_provider(),
             event_bus=await container.get_event_bus(),
             start_date_of_collecting=started_at,
-            category_classifier=classifier,
+            category_classifier=container.get_category_classifier(),
         )
 
-        # Step 1 done. Hand off to step 2 (embed + publish) as its own job so its success/failure is
-        # tracked independently. ``collected_since`` tells step 2 which rows are the previous run's,
-        # to delete once the new set is embedded. EMBED_AFTER_COLLECT=false leaves both the embedding
-        # and the swap for a manual backfill (the previous run's rows stay live until then).
-        if METAX_CONFIGS.embed_after_collect:
-            await taskiq_embed_discounted_products.kiq(
-                request_id=effective_id, collected_since=started_at.isoformat()
-            )
-            logger.info("Step 1 (collection): SUCCESS | enqueued step 2 (embed + publish)")
-        else:
-            logger.info(
-                "Step 1 (collection): SUCCESS | step 2 SKIPPED (EMBED_AFTER_COLLECT=false) | "
-                "run scripts/backfill_embeddings.py to embed later"
-            )
+    await _run_collection_job_under_lock(effective_id, "collection: all retailers", _collect)
 
 
 @broker_.task(
@@ -147,6 +237,38 @@ async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str
 )
 async def taskiq_collect_discounted_products_from_all_retailers(request_id: str | None = None) -> None:
     await _taskiq_collect_discounted_products_from_all_retailers(request_id=request_id)
+
+
+async def _taskiq_collect_discounted_products_for_retailer(
+    retailer_name: str, request_id: str | None = None
+) -> None:
+    effective_id = request_id or f"gen-{uuid.uuid7()}"
+
+    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> UUID:
+        return await collect_discounted_products_for_retailer(
+            unit_of_work_provider=container.get_unit_of_work_provider(),
+            event_bus=await container.get_event_bus(),
+            retailer_name=retailer_name,
+            start_date_of_collecting=started_at,
+            category_classifier=container.get_category_classifier(),
+        )
+
+    await _run_collection_job_under_lock(effective_id, f"collection: retailer {retailer_name}", _collect)
+
+
+@broker_.task(task_name="CollectDiscountedProductsForRetailer")
+async def taskiq_collect_discounted_products_for_retailer(
+    retailer_name: str, request_id: str | None = None
+) -> None:
+    """Manual, on-demand re-run of a single retailer's crawler (no cron schedule).
+
+    The nightly ``CollectDiscountedProducts`` job still refreshes every retailer; this exists so a
+    single crawler can be re-run in isolation (e.g. after fixing one retailer's collector). It shares
+    the global collection lock with the nightly run, so the two can never overlap.
+    """
+    await _taskiq_collect_discounted_products_for_retailer(
+        retailer_name=retailer_name, request_id=request_id
+    )
 
 
 async def embed_all_pending(repo: DiscountedProductReadModelRepository) -> int:
@@ -192,39 +314,78 @@ async def embed_all_pending(repo: DiscountedProductReadModelRepository) -> int:
 
 
 async def _taskiq_embed_discounted_products(
-    request_id: str | None = None, collected_since: str | None = None
+    request_id: str | None = None,
+    collected_since: str | None = None,
+    retailer_uuid: str | None = None,
+    lock_token: str | None = None,
 ) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
     with request_id_scope(effective_id):
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        repo = await container.get_discounted_product_read_model_repository()
+        try:
+            container = METAX_LIFESPAN_MANAGER.get_metax_container()
+            repo = await container.get_discounted_product_read_model_repository()
 
-        logger.info("Step 2 (embedding): STARTED")
-        embedded_count = await embed_all_pending(repo)
-        logger.info("Step 2 (embedding): SUCCESS | Embedded: [%s]", embedded_count)
+            logger.info("Step 2 (embedding): STARTED")
+            embedded_count = await embed_all_pending(repo)
+            logger.info("Step 2 (embedding): SUCCESS | Embedded: [%s]", embedded_count)
 
-        # Publish the new set: now that it is fully embedded and searchable, drop the previous run's
-        # rows. Skipped for manual backfills (no ``collected_since``), which only fill in embeddings.
-        if collected_since is not None:
-            cutoff = dt.datetime.fromisoformat(collected_since)
-            uow = await container.get_unit_of_work_provider().provide()
-            async with uow:
-                deleted = await uow.discounted_product_repo.delete_older_than_and_return_deleted_count(
-                    date_limit=cutoff
-                )
-                await uow.commit()
-            logger.info("Step 2 (publish): SUCCESS | removed [%s] row(s) from previous runs", deleted)
+            # Publish the new set: now that it is fully embedded and searchable, drop the previous
+            # run's rows. Skipped for manual backfills (no ``collected_since``), which only fill in
+            # embeddings. When ``retailer_uuid`` is set (a single-retailer re-run) the swap is scoped
+            # to that retailer so other retailers' live rows — older than the cutoff but not
+            # re-collected — are left alone.
+            if collected_since is not None:
+                cutoff = dt.datetime.fromisoformat(collected_since)
+                uow = await container.get_unit_of_work_provider().provide()
+                async with uow:
+                    dp_repo = uow.discounted_product_repo
+                    if retailer_uuid is not None:
+                        deleted = await dp_repo.delete_older_than_by_retailer_and_return_deleted_count(
+                            date_limit=cutoff, retailer_uuid=UUID(retailer_uuid)
+                        )
+                    else:
+                        deleted = await dp_repo.delete_older_than_and_return_deleted_count(
+                            date_limit=cutoff
+                        )
+                    await uow.commit()
+                logger.info("Step 2 (publish): SUCCESS | removed [%s] row(s) from previous runs", deleted)
+        finally:
+            # Release the global collection lock the step-1 job handed us — the crawl lifecycle is now
+            # complete (or failed). Manual backfills run without a token, so nothing is released then.
+            if lock_token is not None:
+                await get_collection_lock().release(lock_token)
 
 
 @broker_.task(task_name="EmbedDiscountedProducts")
 async def taskiq_embed_discounted_products(
-    request_id: str | None = None, collected_since: str | None = None
+    request_id: str | None = None,
+    collected_since: str | None = None,
+    retailer_uuid: str | None = None,
+    lock_token: str | None = None,
 ) -> None:
-    await _taskiq_embed_discounted_products(request_id=request_id, collected_since=collected_since)
+    await _taskiq_embed_discounted_products(
+        request_id=request_id,
+        collected_since=collected_since,
+        retailer_uuid=retailer_uuid,
+        lock_token=lock_token,
+    )
+
+
+class _CollectorCreatorFactory(Protocol):
+    """The shared constructor signature of every retailer's collector creator.
+
+    Lets the map instantiate an entry with ``(start_date_of_collecting, retailer)`` in a type-safe
+    way — the abstract base's ``__init__`` takes only ``start_date_of_collecting``, so typing the map
+    against it would reject the ``retailer`` argument.
+    """
+
+    def __call__(
+        self, start_date_of_collecting: dt.datetime, retailer: Retailer
+    ) -> DiscountedProductCollectorServiceCreator: ...
 
 
 RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP: dict[
-    RetailersNames, type[DiscountedProductCollectorServiceCreator]
+    RetailersNames, _CollectorCreatorFactory
 ] = {
     RetailersNames.YEREVAN_CITY: YerevanCityDiscountProductCollectorCreator,
     RetailersNames.SAS_AM: SasAmDiscountProductCollectorCreator,

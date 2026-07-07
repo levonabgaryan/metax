@@ -74,6 +74,12 @@ class BaseConfigs(BaseSettings):
     # scripts/backfill_embeddings.py. Note: search returns nothing for products with no embedding.
     embed_after_collect: Annotated[bool, Field(alias="EMBED_AFTER_COLLECT")] = True
 
+    # A single global lock serializes the whole collect → embed → publish lifecycle across every
+    # crawl job (nightly all-retailers + manual single-retailer). This is the max time it may be held
+    # before Redis auto-expires it — a safety net so a crashed job can't wedge collection forever. It
+    # must comfortably exceed the longest real run (a full crawl + embedding is minutes), hence 1h.
+    collection_lock_ttl_seconds: Annotated[int, Field(alias="COLLECTION_LOCK_TTL_SECONDS")] = 3600
+
     telegram_bot_token: Annotated[str | None, Field(alias="TELEGRAM_BOT_TOKEN")] = None
 
     # By default, no .env file is read. Subclasses opt in explicitly.

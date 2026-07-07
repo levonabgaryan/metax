@@ -37,6 +37,16 @@ class DiscountedProductRepository(ABC):
         """Delete all discounted products for ``retailer_uuid`` (e.g. before deleting the retailer)."""
 
     @abstractmethod
+    async def delete_older_than_by_retailer_and_return_deleted_count(
+        self, date_limit: dt.datetime, retailer_uuid: UUID
+    ) -> int:
+        """Delete only ``retailer_uuid``'s products older than ``date_limit``.
+
+        The retailer-scoped counterpart of ``delete_older_than_and_return_deleted_count`` — used to
+        publish a single-retailer re-run without touching any other retailer's live rows.
+        """
+
+    @abstractmethod
     async def delete_category_by_uuid(self, category_uuid: UUID) -> int:
         pass
 

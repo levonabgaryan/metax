@@ -168,6 +168,50 @@ async def test_delete_older_than_and_return_deleted_count(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
+async def test_delete_older_than_by_retailer_only_deletes_that_retailers_stale_rows(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    """The single-retailer publish swap must not touch another retailer's rows, even stale ones."""
+    # given: two retailers, each with a stale row older than the cutoff
+    metax_container_for_integration_tests = metax_lifespan_manager_for_tests.get_metax_container()
+    unit_of_work = metax_container_for_integration_tests.get_unit_of_work()
+
+    stale_date = dt.datetime.now(tz=dt.UTC)
+    cutoff = stale_date + dt.timedelta(hours=1)
+
+    target_retailer = make_retailer_entity(name=RetailersNames.SAS_AM)
+    other_retailer = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
+    target_stale_product = make_discounted_product_entity(
+        created_at=stale_date, retailer_uuid=target_retailer.get_uuid()
+    )
+    other_stale_product = make_discounted_product_entity(
+        created_at=stale_date, retailer_uuid=other_retailer.get_uuid()
+    )
+
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(target_retailer)
+        await uow.retailer_repo.add(other_retailer)
+        await uow.discounted_product_repo.add_many([target_stale_product, other_stale_product])
+        await uow.commit()
+
+    # when: publishing only the target retailer
+    async with unit_of_work as uow:
+        deleted_count = (
+            await uow.discounted_product_repo.delete_older_than_by_retailer_and_return_deleted_count(
+                date_limit=cutoff, retailer_uuid=target_retailer.get_uuid()
+            )
+        )
+        await uow.commit()
+
+    # then: only the target's stale row is gone; the other retailer's row survives
+    assert deleted_count == 1
+    async with unit_of_work as uow:
+        remaining = [product async for product in uow.discounted_product_repo.all()]
+    assert [product.get_uuid() for product in remaining] == [other_stale_product.get_uuid()]
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
 async def test_delete_category_by_uuid_sets_category_to_null_for_matching_products(
     metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
 ) -> None:

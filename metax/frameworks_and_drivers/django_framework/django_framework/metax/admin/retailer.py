@@ -9,7 +9,10 @@ from django.contrib import admin
 from django.db.models import QuerySet
 from django.forms import ModelForm
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import redirect
+from django.urls import path, reverse
 from django.utils.decorators import method_decorator
+from django.utils.html import format_html
 from django.views.decorators.csrf import csrf_protect
 
 from django_framework.metax.models.retailer import RetailerModel
@@ -21,7 +24,11 @@ from metax.core.application.cud_services.retailer import (
     UpdateRetailerRequestDTO,
     UpdateRetailerService,
 )
+from metax.frameworks_and_drivers.taskiq_framework.tasks import (
+    taskiq_collect_discounted_products_for_retailer,
+)
 from metax_bootstrap import METAX_LIFESPAN_MANAGER
+from metax_logger.request_id_filter import get_request_id
 
 if TYPE_CHECKING:
     _ModelAdminBase = admin.ModelAdmin[RetailerModel]
@@ -41,10 +48,79 @@ class RetailerAdmin(_ModelAdminBase):
         "phone_number",
         "created_at",
         "updated_at",
+        "run_crawler_button",
     )
     list_display_links = ("name",)
     list_select_related = ("default_category",)
     search_fields = ("name", "home_page_url", "phone_number")
+    # Two ways to trigger a manual single-retailer crawl: a per-row button (below, most discoverable)
+    # and a bulk "Actions" dropdown entry for kicking off several at once.
+    actions = ("run_crawler",)
+
+    def _enqueue_crawl(self, retailer_name: str) -> str:
+        """Enqueue one ``CollectDiscountedProductsForRetailer`` job.
+
+        Returns:
+            The request id the run is enqueued under (for correlating its logs / TaskiqModel row).
+        """
+        request_id = get_request_id()
+        async_to_sync(taskiq_collect_discounted_products_for_retailer.kiq)(
+            retailer_name=retailer_name, request_id=request_id
+        )
+        return request_id
+
+    @admin.display(description="Crawl")
+    def run_crawler_button(self, obj: RetailerModel) -> str:
+        """Render a per-row button that runs just this retailer's crawler.
+
+        Returns:
+            The HTML for a button linking to this retailer's ``run-crawler`` admin view.
+        """
+        url = reverse("admin:metax_retailermodel_run_crawler", args=[obj.uuid])
+        return format_html('<a class="button" href="{}">▶ Run crawler</a>', url)
+
+    def run_crawler_view(self, request: HttpRequest, retailer_uuid: str) -> HttpResponse:
+        """Enqueue a manual crawl for a single retailer, then return to the changelist.
+
+        Returns:
+            A redirect back to the retailer changelist.
+        """
+        retailer = self.get_object(request, retailer_uuid)
+        if retailer is None:
+            self.message_user(request, "Retailer not found.", level="error")
+        else:
+            request_id = self._enqueue_crawl(retailer.name)
+            self.message_user(
+                request, f"Crawl enqueued for {retailer.name} (request_id={request_id})."
+            )
+        return redirect("admin:metax_retailermodel_changelist")
+
+    @override
+    def get_urls(self) -> list[Any]:
+        custom_urls = [
+            path(
+                "<uuid:retailer_uuid>/run-crawler/",
+                self.admin_site.admin_view(self.run_crawler_view),
+                name="metax_retailermodel_run_crawler",
+            ),
+        ]
+        return custom_urls + super().get_urls()
+
+    @admin.action(description="Run crawler for selected retailer(s)")
+    def run_crawler(self, request: HttpRequest, queryset: QuerySet[RetailerModel]) -> None:
+        """Enqueue a manual single-retailer crawl per selected retailer.
+
+        Each row becomes its own ``CollectDiscountedProductsForRetailer`` job — independently
+        tracked and independently re-runnable — while the nightly all-retailers job is untouched.
+        The step-2 publish swap is scoped to each retailer, so re-running one leaves the others' live
+        rows in place.
+        """
+        enqueued = [retailer.name for retailer in queryset]
+        for name in enqueued:
+            self._enqueue_crawl(name)
+        self.message_user(
+            request, f"Crawl enqueued for {len(enqueued)} retailer(s): {', '.join(enqueued)}."
+        )
 
     @csrf_protect_m
     @override

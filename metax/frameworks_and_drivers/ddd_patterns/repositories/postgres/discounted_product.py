@@ -59,6 +59,22 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(date_limit)
 
     @override
+    async def delete_older_than_by_retailer_and_return_deleted_count(
+        self, date_limit: dt.datetime, retailer_uuid: UUID
+    ) -> int:
+        def _sync_version(_date_limit: dt.datetime, _retailer_uuid: UUID) -> int:
+            delete_query = """
+                DELETE FROM discounted_products
+                WHERE created_at < %s AND retailer_uuid = %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(delete_query, [_date_limit, _retailer_uuid])
+                return int(cursor.rowcount)
+
+        return await sync_to_async(_sync_version)(date_limit, retailer_uuid)
+
+    @override
     async def delete_by_retailer_uuid_and_return_deleted_count(self, retailer_uuid: UUID) -> int:
         def _sync_version(_retailer_uuid: UUID) -> int:
             delete_query = """

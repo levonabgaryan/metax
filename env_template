@@ -46,5 +46,9 @@ CATEGORY_MATCH_MAX_DISTANCE=0.40
 # just load raw data into the DB fast; embed later with scripts/backfill_embeddings.py.
 EMBED_AFTER_COLLECT=true
 
+# Max seconds a crawl may hold the global collection lock (which serializes the nightly all-retailers
+# run and any manual single-retailer run) before Redis auto-expires it. Must exceed the longest run.
+COLLECTION_LOCK_TTL_SECONDS=3600
+
 # Telegram Bot (optional — only required when running run_metax_telegram_bot.py)
 TELEGRAM_BOT_TOKEN=
