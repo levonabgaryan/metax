@@ -22,17 +22,21 @@ from metax.core.application.use_cases.discounted_product.collect_discounted_prod
     CollectDiscountedProducts,
 )
 from metax.core.application.use_cases.discounted_product.dtos import CollectDiscountedProductsRequest
+from metax.core.domain.entities.discounted_product.aggregate_root_entity import DiscountedProduct
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
 from metax.core.domain.entities.retailer.value_objects import RetailersNames, parse_retailer_name
 from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_collector_service_creators import (
+    RougeAmDiscountProductCollectorCreator,
     SasAmDiscountProductCollectorCreator,
     TntesakanAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
+from metax.frameworks_and_drivers.telegram_bot.notifications import send_admin_notification
 from metax_bootstrap import METAX_CONFIGS, METAX_LIFESPAN_MANAGER
 from metax_logger.request_id_filter import request_id_scope
 
 from .broker import broker_
+from .collection_digest import ProductSample, RetailerCrawlOutcome, format_crawl_digest
 from .errors import NoRetailersError
 from .locks import get_collection_lock
 
@@ -120,9 +124,82 @@ async def collect_discounted_products_from_all_retailers(
     ]
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    for result in results:
-        if isinstance(result, Exception):
+
+    previous_counts, samples = await _load_digest_context(
+        unit_of_work_provider, start_date_of_collecting
+    )
+    outcomes: list[RetailerCrawlOutcome] = []
+    for retailer, result in zip(retailers, results, strict=True):
+        if isinstance(result, BaseException):
             logger.error("Error during collection: %s", result, exc_info=result)
+            extracted: int | None = None
+        else:
+            extracted = result.added_count
+        outcomes.append(_to_outcome(retailer, extracted, previous_counts, samples))
+
+    await _send_crawl_digest(outcomes, run_date=start_date_of_collecting)
+
+
+async def _load_digest_context(
+    unit_of_work_provider: IUnitOfWorkProvider, cutoff: dt.datetime
+) -> tuple[dict[UUID, int], dict[UUID, DiscountedProduct]]:
+    """Fetch the two DB reads the digest needs, keyed by retailer UUID.
+
+    ``previous_counts`` is each retailer's last-run set size (rows this crawl replaces, still present
+    until the step-2 publish swap); ``samples`` is one random product per retailer from this run, for
+    the data-quality preview line.
+
+    Returns:
+        A ``(previous_counts, samples)`` pair.
+    """
+    uow = await unit_of_work_provider.provide()
+    async with uow:
+        previous_counts = await uow.discounted_product_repo.count_created_before_by_retailer(cutoff)
+        samples = await uow.discounted_product_repo.get_sample_per_retailer_created_since(cutoff)
+    return previous_counts, samples
+
+
+def _to_outcome(
+    retailer: Retailer,
+    extracted: int | None,
+    previous_counts: dict[UUID, int],
+    samples: dict[UUID, DiscountedProduct],
+) -> RetailerCrawlOutcome:
+    """Assemble one retailer's digest row from its extracted count and the shared DB context.
+
+    Returns:
+        The retailer's ``RetailerCrawlOutcome``, with a sample product line when one was collected.
+    """
+    sample_product = samples.get(retailer.get_uuid())
+    sample = (
+        ProductSample(
+            name=sample_product.get_name(),
+            real_price=sample_product.get_real_price(),
+            discounted_price=sample_product.get_discounted_price(),
+            url=sample_product.get_url(),
+            image_url=sample_product.get_image_url(),
+        )
+        if sample_product is not None
+        else None
+    )
+    return RetailerCrawlOutcome(
+        name=retailer.get_name(),
+        previous=previous_counts.get(retailer.get_uuid(), 0),
+        extracted=extracted,
+        sample=sample,
+    )
+
+
+async def _send_crawl_digest(
+    outcomes: list[RetailerCrawlOutcome],
+    run_date: dt.datetime,
+    title: str = "🌙 <b>Nightly crawl</b>",
+) -> None:
+    """Send the digest to the maintainer — best-effort, so a notification failure never fails a crawl."""
+    try:
+        await send_admin_notification(format_crawl_digest(outcomes, run_date=run_date, title=title))
+    except Exception:
+        logger.exception("Failed to send crawl digest")
 
 
 async def collect_discounted_products_for_retailer(
@@ -135,7 +212,9 @@ async def collect_discounted_products_for_retailer(
     """Collect a single retailer (for a manual re-run).
 
     Looks the retailer up by name (propagating ``EntityIsNotFoundError`` if it does not exist), then
-    runs its collector.
+    runs its collector. Sends a one-row "manual crawl" digest with the outcome — including when the
+    collector fails, since a manual run is usually a verification and its result is exactly what the
+    operator is waiting on — before propagating any collector error so the job is still marked failed.
 
     Returns:
         The retailer's UUID, so step 2 can scope its publish swap to this retailer only.
@@ -151,9 +230,29 @@ async def collect_discounted_products_for_retailer(
         start_date_of_collecting=start_date_of_collecting,
         category_classifier=category_classifier,
     )
-    await use_case.handle_use_case(
-        request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
+
+    error: Exception | None = None
+    extracted: int | None
+    try:
+        response = await use_case.handle_use_case(
+            request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
+        )
+        extracted = response.added_count
+    except Exception as exc:
+        logger.error("Error during collection of %s: %s", retailer_name, exc, exc_info=exc)
+        extracted = None
+        error = exc
+
+    previous_counts, samples = await _load_digest_context(
+        unit_of_work_provider, start_date_of_collecting
     )
+    outcome = _to_outcome(retailer, extracted, previous_counts, samples)
+    await _send_crawl_digest(
+        [outcome], run_date=start_date_of_collecting, title="🔧 <b>Manual crawl</b>"
+    )
+
+    if error is not None:
+        raise error
     return retailer.get_uuid()
 
 
@@ -390,4 +489,5 @@ RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP: dict[
     RetailersNames.YEREVAN_CITY: YerevanCityDiscountProductCollectorCreator,
     RetailersNames.SAS_AM: SasAmDiscountProductCollectorCreator,
     RetailersNames.TNTESAKAN_AM: TntesakanAmDiscountProductCollectorCreator,
+    RetailersNames.ROUGE_AM: RougeAmDiscountProductCollectorCreator,
 }

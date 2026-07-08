@@ -7,6 +7,7 @@ class RetailersNames(StrEnum):
     YEREVAN_CITY = "yerevan-city"
     SAS_AM = "sas-am"
     TNTESAKAN_AM = "tntesakan-am"
+    ROUGE_AM = "rouge-am"
 
 
 def parse_retailer_name(name: str) -> RetailersNames:

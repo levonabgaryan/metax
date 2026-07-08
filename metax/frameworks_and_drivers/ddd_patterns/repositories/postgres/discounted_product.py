@@ -59,6 +59,72 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(date_limit)
 
     @override
+    async def count_created_before_by_retailer(self, date_limit: dt.datetime) -> dict[UUID, int]:
+        def _sync_version(_date_limit: dt.datetime) -> dict[UUID, int]:
+            count_query = """
+                SELECT retailer_uuid, COUNT(*)
+                FROM discounted_products
+                WHERE created_at < %s
+                GROUP BY retailer_uuid
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(count_query, [_date_limit])
+                return {UUID(str(retailer_uuid)): int(count) for retailer_uuid, count in cursor.fetchall()}
+
+        return await sync_to_async(_sync_version)(date_limit)
+
+    @override
+    async def get_sample_per_retailer_created_since(
+        self, date_limit: dt.datetime
+    ) -> dict[UUID, DiscountedProduct]:
+        def _sync_version(_date_limit: dt.datetime) -> dict[UUID, DiscountedProduct]:
+            # DISTINCT ON keeps one row per retailer; random() in the ORDER BY makes it a different
+            # product each run, so the sampled coverage of each catalogue widens night over night.
+            sample_query = """
+                SELECT DISTINCT ON (retailer_uuid)
+                    uuid,
+                    real_price,
+                    discounted_price,
+                    name,
+                    url,
+                    image_url,
+                    category_uuid,
+                    retailer_uuid,
+                    created_at,
+                    updated_at
+                FROM discounted_products
+                WHERE created_at >= %s
+                ORDER BY retailer_uuid, random()
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(sample_query, [_date_limit])
+                rows: list[
+                    tuple[
+                        UUID, Decimal, Decimal, str, str, str | None,
+                        CategoryUUID, RetailerUUID, dt.datetime, dt.datetime,
+                    ]
+                ] = cursor.fetchall()
+                return {
+                    UUID(str(row[7])): DiscountedProduct(
+                        uuid_=row[0],
+                        real_price=row[1],
+                        discounted_price=row[2],
+                        name=row[3],
+                        url=row[4],
+                        image_url=row[5],
+                        category_uuid=row[6],
+                        retailer_uuid=row[7],
+                        created_at=row[8],
+                        updated_at=row[9],
+                    )
+                    for row in rows
+                }
+
+        return await sync_to_async(_sync_version)(date_limit)
+
+    @override
     async def delete_older_than_by_retailer_and_return_deleted_count(
         self, date_limit: dt.datetime, retailer_uuid: UUID
     ) -> int:

@@ -16,6 +16,8 @@ _USER_LAST_QUERIES: dict[int, str] = {}
 _RETAILER_DISPLAY_NAMES: dict[str, str] = {
     "sas-am": "SAS",
     "yerevan-city": "Yerevan City",
+    "rouge-am": "ROUGE",
+    "tntesakan-am": "Tntesakan.am",
 }
 
 _TEXTS: dict[str, dict[str, str]] = {

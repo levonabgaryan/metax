@@ -33,6 +33,25 @@ class DiscountedProductRepository(ABC):
         pass
 
     @abstractmethod
+    async def count_created_before_by_retailer(self, date_limit: dt.datetime) -> dict[UUID, int]:
+        """Count existing rows per retailer created before ``date_limit``, keyed by retailer UUID.
+
+        Used by the nightly digest to report each retailer's previous set size (the rows this run
+        replaces) against what it just collected. Retailers with no such rows are absent from the map.
+        """
+
+    @abstractmethod
+    async def get_sample_per_retailer_created_since(
+        self, date_limit: dt.datetime
+    ) -> dict[UUID, DiscountedProduct]:
+        """Return one random product per retailer collected at/after ``date_limit`` (this run's set).
+
+        Used by the nightly digest to show a sample of what each collector extracted, so obviously
+        broken data (a phone number where the name should be, swapped prices) is visible at a glance.
+        Retailers that collected nothing are absent from the map.
+        """
+
+    @abstractmethod
     async def delete_by_retailer_uuid_and_return_deleted_count(self, retailer_uuid: UUID) -> int:
         """Delete all discounted products for ``retailer_uuid`` (e.g. before deleting the retailer)."""
 

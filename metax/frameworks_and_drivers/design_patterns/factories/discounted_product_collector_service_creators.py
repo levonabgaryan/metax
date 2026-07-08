@@ -5,6 +5,9 @@ from metax.core.application.ports.design_patterns.factory.discounted_product_col
     DiscountedProductCollectorServiceCreator,
 )
 from metax.core.domain.entities.retailer.aggregate_root_entity import Retailer
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.rouge_am import (
+    RougeAmCollectorService,
+)
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.sas_am import (
     SasAmCollectorService,
 )
@@ -60,5 +63,21 @@ class TntesakanAmDiscountProductCollectorCreator(DiscountedProductCollectorServi
     @override
     def create_collector_service(self) -> TntesakanAmCollectorService:
         return TntesakanAmCollectorService(
+            retailer=self.__retailer,
+        )
+
+
+class RougeAmDiscountProductCollectorCreator(DiscountedProductCollectorServiceCreator):
+    def __init__(
+        self,
+        start_date_of_collecting: dt.datetime,
+        retailer: Retailer,
+    ) -> None:
+        super().__init__(start_date_of_collecting=start_date_of_collecting)
+        self.__retailer = retailer
+
+    @override
+    def create_collector_service(self) -> RougeAmCollectorService:
+        return RougeAmCollectorService(
             retailer=self.__retailer,
         )
