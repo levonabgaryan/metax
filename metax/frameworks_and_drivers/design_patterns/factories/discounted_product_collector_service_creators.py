@@ -14,6 +14,9 @@ from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_colle
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.tntesakan_am import (
     TntesakanAmCollectorService,
 )
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.vlv_am import (
+    VlvAmCollectorService,
+)
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
@@ -79,5 +82,21 @@ class RougeAmDiscountProductCollectorCreator(DiscountedProductCollectorServiceCr
     @override
     def create_collector_service(self) -> RougeAmCollectorService:
         return RougeAmCollectorService(
+            retailer=self.__retailer,
+        )
+
+
+class VlvAmDiscountProductCollectorCreator(DiscountedProductCollectorServiceCreator):
+    def __init__(
+        self,
+        start_date_of_collecting: dt.datetime,
+        retailer: Retailer,
+    ) -> None:
+        super().__init__(start_date_of_collecting=start_date_of_collecting)
+        self.__retailer = retailer
+
+    @override
+    def create_collector_service(self) -> VlvAmCollectorService:
+        return VlvAmCollectorService(
             retailer=self.__retailer,
         )

@@ -8,6 +8,7 @@ class RetailersNames(StrEnum):
     SAS_AM = "sas-am"
     TNTESAKAN_AM = "tntesakan-am"
     ROUGE_AM = "rouge-am"
+    VLV_AM = "vlv-am"
 
 
 def parse_retailer_name(name: str) -> RetailersNames:

@@ -68,7 +68,7 @@ _FAILED_ITEM_RE = re.compile(r"message #(\d+)")
 # edges) and upload the bytes to Telegram directly, so Telegram never fetches the flaky origin and
 # has no failure to cache. The bytes live in memory only for the duration of the send — nothing is
 # written to disk or accumulated. Every other host is still handed to Telegram as a plain URL.
-_TELEGRAM_UNFETCHABLE_IMAGE_HOSTS = frozenset({"tntesakan.am", "www.tntesakan.am"})
+_TELEGRAM_UNFETCHABLE_IMAGE_HOSTS = frozenset({"tntesakan.am", "www.tntesakan.am", "vlv.am", "www.vlv.am"})
 
 # Timeout for our own server-side fetch of a CDN mirror image (well under Telegram's own window).
 _CDN_FETCH_TIMEOUT = httpx.Timeout(20.0)

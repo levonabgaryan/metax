@@ -9,6 +9,8 @@ from django.contrib.postgres.operations import TrigramExtension
 from django.db import migrations, models
 from pgvector.django import VectorExtension
 
+import django_framework.metax.models.retailer
+
 
 class Migration(migrations.Migration):
 
@@ -60,7 +62,9 @@ class Migration(migrations.Migration):
                 ('created_at', models.DateTimeField(auto_now_add=True, db_default=django.db.models.functions.datetime.Now())),
                 ('updated_at', models.DateTimeField(auto_now=True, db_default=django.db.models.functions.datetime.Now())),
                 ('uuid', models.UUIDField(editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(choices=[('yerevan-city', 'yerevan-city'), ('sas-am', 'sas-am'), ('tntesakan-am', 'tntesakan-am')], max_length=64, unique=True)),
+                # Callable, not an evaluated list: Django serializes it by dotted reference, so
+                # onboarding a retailer (adding a RetailersNames member) needs no new migration.
+                ('name', models.CharField(choices=django_framework.metax.models.retailer.retailer_name_choices, max_length=64, unique=True)),
                 ('home_page_url', models.URLField(max_length=2048)),
                 ('phone_number', models.CharField(max_length=64)),
                 ('default_category', models.ForeignKey(blank=True, db_column='default_category_uuid', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='metax.categorymodel')),

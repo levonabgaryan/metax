@@ -18,6 +18,7 @@ _RETAILER_DISPLAY_NAMES: dict[str, str] = {
     "yerevan-city": "Yerevan City",
     "rouge-am": "ROUGE",
     "tntesakan-am": "Tntesakan.am",
+    "vlv-am": "VLV",
 }
 
 _TEXTS: dict[str, dict[str, str]] = {

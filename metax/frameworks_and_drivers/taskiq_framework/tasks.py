@@ -29,6 +29,7 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     RougeAmDiscountProductCollectorCreator,
     SasAmDiscountProductCollectorCreator,
     TntesakanAmDiscountProductCollectorCreator,
+    VlvAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
 )
 from metax.frameworks_and_drivers.telegram_bot.notifications import send_admin_notification
@@ -490,4 +491,5 @@ RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP: dict[
     RetailersNames.SAS_AM: SasAmDiscountProductCollectorCreator,
     RetailersNames.TNTESAKAN_AM: TntesakanAmDiscountProductCollectorCreator,
     RetailersNames.ROUGE_AM: RougeAmDiscountProductCollectorCreator,
+    RetailersNames.VLV_AM: VlvAmDiscountProductCollectorCreator,
 }
