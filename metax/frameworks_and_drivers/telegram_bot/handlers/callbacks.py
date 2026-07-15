@@ -30,10 +30,12 @@ from metax.frameworks_and_drivers.telegram_bot.keyboards import (
 )
 from metax.frameworks_and_drivers.telegram_bot.localization import (
     get_user_language,
+    get_user_last_category,
     get_user_last_query,
     get_user_retailer_filter,
     localized_category_name,
     set_user_language,
+    set_user_last_category,
     set_user_last_query,
     set_user_retailer_filter,
     t,
@@ -132,6 +134,55 @@ async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str,
     )
 
 
+async def _rerun_category_after_filter_change(
+    callback: CallbackQuery, category_uuid: str, lang: str
+) -> None:
+    """Re-run the user's current category browse with the new retailer filter, replacing the menu."""
+    if not isinstance(callback.message, Message):
+        return
+    retailer_uuid = get_user_retailer_filter(callback.from_user.id)
+    selected_retailer_name = await _load_retailer_name(retailer_uuid)
+    try:
+        container = METAX_LIFESPAN_MANAGER.get_metax_container()
+        read_repo = await container.get_discounted_product_read_model_repository()
+        products, total = await read_repo.search_by_category_uuid(
+            category_uuid, offset=0, limit=PAGE_SIZE, retailer_uuid=retailer_uuid
+        )
+    except Exception:
+        logger.exception("Filter re-run category browse failed for %r", category_uuid)
+        await callback.message.edit_text(t(lang, "search_error"))
+        return
+
+    # Drop the filter-menu message and post fresh results in its place.
+    with contextlib.suppress(TelegramBadRequest):
+        await callback.message.delete()
+
+    if not products:
+        await callback.message.answer(t(lang, "category_empty"))
+        return
+
+    category_name = await _load_category_name(category_uuid, lang)
+    keyboard = category_nav_keyboard(
+        category_uuid=category_uuid,
+        offset=0,
+        total=total,
+        language_code=lang,
+        selected_retailer_name=selected_retailer_name,
+    )
+    await send_product_page(
+        reply_target=callback.message,
+        products=products,
+        total=total,
+        offset=0,
+        header=f"🏷 <b>{html.escape(category_name)}</b>",
+        summary_label=t(lang, "results_found"),
+        page_label=t(lang, "page"),
+        image_unavailable=t(lang, "image_unavailable"),
+        keyboard=keyboard,
+        language_code=lang,
+    )
+
+
 @router.callback_query(CategoryBrowseCB.filter())
 async def category_browse_callback(callback: CallbackQuery, callback_data: CategoryBrowseCB) -> None:
     await callback.answer()
@@ -141,12 +192,17 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
     lang = get_user_language(callback.from_user.id)
     category_uuid = callback_data.category_uuid
     offset = callback_data.offset
+    # Mark category browse as the active view so a later retailer-filter change re-applies here.
+    set_user_last_category(callback.from_user.id, category_uuid)
+    retailer_uuid = get_user_retailer_filter(callback.from_user.id)
+    selected_retailer_name = await _load_retailer_name(retailer_uuid)
     try:
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
         read_repo = await container.get_discounted_product_read_model_repository()
-        # Products are returned most-confident-first (closest to the category prototype).
+        # Products are returned most-confident-first (closest to the category prototype), narrowed to
+        # the active retailer filter when one is set.
         products, total = await read_repo.search_by_category_uuid(
-            category_uuid, offset=offset, limit=PAGE_SIZE
+            category_uuid, offset=offset, limit=PAGE_SIZE, retailer_uuid=retailer_uuid
         )
     except Exception:
         logger.exception("Category browse failed for %r offset %d", category_uuid, offset)
@@ -166,6 +222,7 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
         offset=offset,
         total=total,
         language_code=lang,
+        selected_retailer_name=selected_retailer_name,
     )
     await send_product_page(
         reply_target=callback.message,
@@ -245,6 +302,10 @@ async def retailer_select_callback(callback: CallbackQuery, callback_data: Retai
 
     set_user_retailer_filter(callback.from_user.id, callback_data.retailer_uuid)
     lang = get_user_language(callback.from_user.id)
+    last_category = get_user_last_category(callback.from_user.id)
+    if last_category:
+        await _rerun_category_after_filter_change(callback, last_category, lang)
+        return
     last_query = get_user_last_query(callback.from_user.id)
     if last_query:
         await _rerun_search_after_filter_change(callback, last_query, lang)
@@ -266,6 +327,10 @@ async def retailer_clear_callback(callback: CallbackQuery) -> None:
 
     set_user_retailer_filter(callback.from_user.id, None)
     lang = get_user_language(callback.from_user.id)
+    last_category = get_user_last_category(callback.from_user.id)
+    if last_category:
+        await _rerun_category_after_filter_change(callback, last_category, lang)
+        return
     last_query = get_user_last_query(callback.from_user.id)
     if last_query:
         await _rerun_search_after_filter_change(callback, last_query, lang)

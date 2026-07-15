@@ -9,6 +9,7 @@ class RetailersNames(StrEnum):
     TNTESAKAN_AM = "tntesakan-am"
     ROUGE_AM = "rouge-am"
     VLV_AM = "vlv-am"
+    ZIGZAG_AM = "zigzag-am"
 
 
 def parse_retailer_name(name: str) -> RetailersNames:

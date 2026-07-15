@@ -20,6 +20,9 @@ from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_colle
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
+from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.zigzag_am import (
+    ZigzagAmCollectorService,
+)
 
 
 class YerevanCityDiscountProductCollectorCreator(DiscountedProductCollectorServiceCreator):
@@ -98,5 +101,21 @@ class VlvAmDiscountProductCollectorCreator(DiscountedProductCollectorServiceCrea
     @override
     def create_collector_service(self) -> VlvAmCollectorService:
         return VlvAmCollectorService(
+            retailer=self.__retailer,
+        )
+
+
+class ZigzagAmDiscountProductCollectorCreator(DiscountedProductCollectorServiceCreator):
+    def __init__(
+        self,
+        start_date_of_collecting: dt.datetime,
+        retailer: Retailer,
+    ) -> None:
+        super().__init__(start_date_of_collecting=start_date_of_collecting)
+        self.__retailer = retailer
+
+    @override
+    def create_collector_service(self) -> ZigzagAmCollectorService:
+        return ZigzagAmCollectorService(
             retailer=self.__retailer,
         )

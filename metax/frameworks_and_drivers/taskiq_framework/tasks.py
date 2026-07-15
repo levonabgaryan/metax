@@ -31,6 +31,7 @@ from metax.frameworks_and_drivers.design_patterns.factories.discounted_product_c
     TntesakanAmDiscountProductCollectorCreator,
     VlvAmDiscountProductCollectorCreator,
     YerevanCityDiscountProductCollectorCreator,
+    ZigzagAmDiscountProductCollectorCreator,
 )
 from metax.frameworks_and_drivers.telegram_bot.notifications import send_admin_notification
 from metax_bootstrap import METAX_CONFIGS, METAX_LIFESPAN_MANAGER
@@ -492,4 +493,5 @@ RETAILER_NAME_DISCOUNTED_PRODUCT_COLLECTOR_SERVICE_CREATOR_MAP: dict[
     RetailersNames.TNTESAKAN_AM: TntesakanAmDiscountProductCollectorCreator,
     RetailersNames.ROUGE_AM: RougeAmDiscountProductCollectorCreator,
     RetailersNames.VLV_AM: VlvAmDiscountProductCollectorCreator,
+    RetailersNames.ZIGZAG_AM: ZigzagAmDiscountProductCollectorCreator,
 }

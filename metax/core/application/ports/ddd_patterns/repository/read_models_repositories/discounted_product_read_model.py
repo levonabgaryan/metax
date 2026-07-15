@@ -66,8 +66,13 @@ class DiscountedProductReadModelRepository(ABC):
         category_uuid: str,
         offset: int = 0,
         limit: int = 50,
+        retailer_uuid: str | None = None,
     ) -> tuple[list[DiscountedProductReadModel], int]:
-        """Return all products in a category, sorted by discounted price ascending."""
+        """Return all products in a category, sorted by discounted price ascending.
+
+        When ``retailer_uuid`` is given, results are additionally restricted to that retailer, so a
+        category browse can be filtered by store.
+        """
 
     @abstractmethod
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:

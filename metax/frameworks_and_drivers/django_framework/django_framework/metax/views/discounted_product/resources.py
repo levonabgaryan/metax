@@ -49,9 +49,10 @@ class QueryParamsForCollection(BaseModel):
     def validate_supported_filter_combination(self) -> Self:
         """Constrain filters to the read-side queries the repository actually supports.
 
-        Supported: name alone; name + retailer; name + category; category alone (browse). A
-        request without a name must carry a category to browse, and retailer filtering only
-        applies alongside a name.
+        Supported: name alone; name + retailer; name + category; category alone (browse); and
+        category + retailer (a category browse narrowed to one store, mirroring the bot). A request
+        without a name must carry a category to browse. Retailer and category can be combined only
+        when browsing (no name) — there is no name + retailer + category read-side query.
 
         Returns:
             The validated model.
@@ -59,15 +60,15 @@ class QueryParamsForCollection(BaseModel):
         Raises:
             ValueError: If the filter combination has no supporting read-side query.
         """
-        if self.matched_discounted_product_name is None:
-            if self.category_uuid is None:
-                msg = "Provide a product name to search, or a category to browse."
-                raise ValueError(msg)
-            if self.retailer_uuid is not None:
-                msg = "Retailer filtering requires a product name."
-                raise ValueError(msg)
-        if self.retailer_uuid is not None and self.category_uuid is not None:
-            msg = "Filter by retailer or by category, not both."
+        if self.matched_discounted_product_name is None and self.category_uuid is None:
+            msg = "Provide a product name to search, or a category to browse."
+            raise ValueError(msg)
+        if (
+            self.matched_discounted_product_name is not None
+            and self.retailer_uuid is not None
+            and self.category_uuid is not None
+        ):
+            msg = "With a product name, filter by retailer or by category, not both."
             raise ValueError(msg)
         return self
 

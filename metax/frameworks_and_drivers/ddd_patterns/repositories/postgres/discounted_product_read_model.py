@@ -206,8 +206,11 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         category_uuid: str,
         offset: int = 0,
         limit: int = 50,
+        retailer_uuid: str | None = None,
     ) -> tuple[list[DiscountedProductReadModel], int]:
-        return await sync_to_async(self.__search_by_category_sync)(category_uuid, offset, limit)
+        return await sync_to_async(self.__search_by_category_sync)(
+            category_uuid, offset, limit, retailer_uuid
+        )
 
     @override
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
@@ -273,23 +276,29 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         return items, total
 
     def __search_by_category_sync(
-        self, category_uuid: str, offset: int, limit: int
+        self, category_uuid: str, offset: int, limit: int, retailer_uuid: str | None
     ) -> tuple[list[DiscountedProductReadModel], int]:
         # Most-confident matches first (smallest distance to the category prototype), with NULLs
         # last so any legacy uncategorised-distance rows sink; then cheapest, then a stable tie-break.
+        params: list[Any] = [category_uuid]
+        retailer_filter = ""
+        if retailer_uuid is not None:
+            retailer_filter = " AND dp.retailer_uuid = %s"
+            params.append(retailer_uuid)
+        params.extend([limit, offset])
         select_query = f"""
             SELECT
                 {_READ_MODEL_COLUMNS},
                 dp.category_distance,
                 COUNT(*) OVER() AS total_count
             {_READ_MODEL_JOINS}
-            WHERE dp.category_uuid = %s
+            WHERE dp.category_uuid = %s{retailer_filter}
             ORDER BY dp.category_distance ASC NULLS LAST, dp.discounted_price ASC, dp.uuid ASC
             LIMIT %s OFFSET %s
         """
         cursor: CursorWrapper
         with connection.cursor() as cursor:
-            cursor.execute(select_query, [category_uuid, limit, offset])
+            cursor.execute(select_query, params)
             rows = cursor.fetchall()
         if not rows:
             return [], 0

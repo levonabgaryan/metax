@@ -190,10 +190,11 @@ def category_nav_keyboard(
     total: int,
     *,
     language_code: str,
+    selected_retailer_name: str | None = None,
 ) -> InlineKeyboardMarkup:
     has_prev = offset > 0
     has_next = offset + PAGE_SIZE < total
-    nav_count = 0
+    nav_count = has_prev + has_next
 
     builder = InlineKeyboardBuilder()
     if has_prev:
@@ -204,7 +205,6 @@ def category_nav_keyboard(
                 offset=max(0, offset - PAGE_SIZE),
             ),
         )
-        nav_count += 1
     if has_next:
         builder.button(
             text=t(language_code, "next"),
@@ -213,7 +213,16 @@ def category_nav_keyboard(
                 offset=offset + PAGE_SIZE,
             ),
         )
-        nav_count += 1
+
+    # Same retailer-filter controls as the search view, so a category browse can be narrowed to (or
+    # cleared of) a store without leaving the category.
+    filter_buttons = _filter_control_buttons(language_code, selected_retailer_name)
+    for text, callback_data in filter_buttons:
+        builder.button(text=text, callback_data=callback_data)
+
     builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
-    builder.adjust(nav_count or 1, 1)
+
+    # Nav buttons share one row; each filter control and the categories shortcut sit on their own row.
+    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons) + [1]
+    builder.adjust(*sizes)
     return builder.as_markup()

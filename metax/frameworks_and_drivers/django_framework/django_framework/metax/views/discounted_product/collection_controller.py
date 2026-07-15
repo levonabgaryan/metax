@@ -34,7 +34,8 @@ class DiscountedProductCollectionController(MetaxJsonApiController):
         read_repo = await container.get_discounted_product_read_model_repository()
         name = parsed_query.matched_discounted_product_name
         # The query params are validated to only ever hit a combination the read repo supports:
-        # name alone, name + retailer, name + category, or a category browse with no name.
+        # name alone, name + retailer, name + category, or a category browse (with no name)
+        # optionally narrowed to a retailer.
         if name is None:
             (
                 discounted_product_read_models,
@@ -43,6 +44,9 @@ class DiscountedProductCollectionController(MetaxJsonApiController):
                 category_uuid=str(parsed_query.category_uuid),
                 offset=parsed_query.offset,
                 limit=parsed_query.limit,
+                retailer_uuid=(
+                    str(parsed_query.retailer_uuid) if parsed_query.retailer_uuid is not None else None
+                ),
             )
         elif parsed_query.retailer_uuid is not None:
             (

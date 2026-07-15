@@ -9,8 +9,11 @@ DEFAULT_LANGUAGE = "en"
 
 _USER_LANGUAGES: dict[int, str] = {}
 _USER_RETAILER_FILTERS: dict[int, str | None] = {}
-# Last search query per user, so changing the retailer filter can re-run it.
+# The user's active browse view, so changing the retailer filter re-applies to whatever they are
+# currently looking at. A user is either searching or browsing a category — never both — so the two
+# are kept mutually exclusive: setting one clears the other, and the non-empty one is the live view.
 _USER_LAST_QUERIES: dict[int, str] = {}
+_USER_LAST_CATEGORIES: dict[int, str] = {}
 
 # Pretty display labels for known retailers; unknown ones fall back to a title-cased name.
 _RETAILER_DISPLAY_NAMES: dict[str, str] = {
@@ -19,6 +22,7 @@ _RETAILER_DISPLAY_NAMES: dict[str, str] = {
     "rouge-am": "ROUGE",
     "tntesakan-am": "Tntesakan.am",
     "vlv-am": "VLV",
+    "zigzag-am": "ZigZag",
 }
 
 _TEXTS: dict[str, dict[str, str]] = {
@@ -172,13 +176,29 @@ def get_user_retailer_filter(user_id: int | None) -> str | None:
 
 
 def set_user_last_query(user_id: int, query: str) -> None:
+    # Entering search makes search the live view; drop any category browse so a later filter change
+    # re-runs this query, not a stale category.
     _USER_LAST_QUERIES[user_id] = query
+    _USER_LAST_CATEGORIES.pop(user_id, None)
 
 
 def get_user_last_query(user_id: int | None) -> str | None:
     if user_id is None:
         return None
     return _USER_LAST_QUERIES.get(user_id)
+
+
+def set_user_last_category(user_id: int, category_uuid: str) -> None:
+    # Entering a category makes category browse the live view; drop any last search for the same
+    # reason (see set_user_last_query).
+    _USER_LAST_CATEGORIES[user_id] = category_uuid
+    _USER_LAST_QUERIES.pop(user_id, None)
+
+
+def get_user_last_category(user_id: int | None) -> str | None:
+    if user_id is None:
+        return None
+    return _USER_LAST_CATEGORIES.get(user_id)
 
 
 def retailer_display_name(name: str) -> str:
