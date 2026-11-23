@@ -69,5 +69,19 @@ class DiscountedProductReadModelRepository(ABC):
         """
 
     @abstractmethod
+    async def search_by_retailer_uuid(
+        self,
+        retailer_uuid: str,
+        *,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> ReadModelPage:
+        """Browse one store's discounts, biggest discount (percent) first.
+
+        Returns:
+            One page of the store's products and the store's total product count.
+        """
+
+    @abstractmethod
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         pass

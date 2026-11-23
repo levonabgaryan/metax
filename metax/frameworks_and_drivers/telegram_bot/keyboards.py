@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -39,6 +41,11 @@ class LanguageSelectCB(CallbackData, prefix="lang"):
     language_code: str
 
 
+# Two separate store features, kept apart on purpose so neither hijacks the other:
+#   * Narrowing (🔎, ``RetailerFilter*`` / ``RetailerSelect`` / ``RetailerClear``): limits searches and
+#     category browse to one store. Shown under result pages; changing it re-runs the current view.
+#   * Store browse (🏪, ``OpenStores`` / ``StoreBrowse``): opens one store's discount list. It never
+#     touches the narrowing or the last search.
 class RetailerFilterMenuCB(CallbackData, prefix="rfm"):
     pass
 
@@ -49,6 +56,21 @@ class RetailerSelectCB(CallbackData, prefix="rfs"):
 
 class RetailerClearCB(CallbackData, prefix="rfc"):
     pass
+
+
+class OpenStoresCB(CallbackData, prefix="sto"):
+    pass
+
+
+class StoreBrowseCB(CallbackData, prefix="sb"):
+    retailer_uuid: str
+    offset: int
+
+
+class StoreSearchCB(CallbackData, prefix="ss"):
+    """From a store's page: narrow the next typed search to that store."""
+
+    retailer_uuid: str
 
 
 def clamp_query(query: str) -> str:
@@ -79,31 +101,74 @@ def language_keyboard() -> InlineKeyboardMarkup:
 def _filter_control_buttons(
     language_code: str, selected_retailer_name: str | None
 ) -> list[tuple[str, CallbackData]]:
-    """Retailer-filter controls: one status button that opens the menu, plus Clear when a filter is active.
+    """Search-narrowing controls: a status button that opens the store picker, plus Clear when narrowed.
 
     Returns:
         ``(label, callback_data)`` pairs, one button per row.
     """
     if selected_retailer_name is None:
-        status = f"🏪 {t(language_code, 'current_filter')}: {t(language_code, 'current_filter_none')}"
+        status = f"🔎 {t(language_code, 'current_filter')}: {t(language_code, 'current_filter_none')}"
         return [(status, RetailerFilterMenuCB())]
-    status = f"🏪 {t(language_code, 'current_filter')}: {retailer_display_name(selected_retailer_name)}"
+    status = f"🔎 {t(language_code, 'current_filter')}: {retailer_display_name(selected_retailer_name)}"
     return [
         (status, RetailerFilterMenuCB()),
         (f"✖ {t(language_code, 'clear_retailer_filter')}", RetailerClearCB()),
     ]
 
 
-def retailer_filter_keyboard(
+def _menu_buttons(language_code: str) -> list[tuple[str, CallbackData]]:
+    """The two browse entry points, shown side by side at the bottom of most keyboards.
+
+    Returns:
+        ``(label, callback_data)`` pairs for Stores and Categories.
+    """
+    return [
+        (t(language_code, "browse_stores"), OpenStoresCB()),
+        (t(language_code, "browse_categories"), OpenCategoriesCB()),
+    ]
+
+
+def _build(rows: Sequence[Sequence[tuple[str, CallbackData]]]) -> InlineKeyboardMarkup:
+    """Lay buttons out one input row per keyboard row, skipping empty rows (e.g. no prev/next).
+
+    Returns:
+        The inline keyboard.
+    """
+    builder = InlineKeyboardBuilder()
+    for row in rows:
+        for text, callback_data in row:
+            builder.button(text=text, callback_data=callback_data)
+    builder.adjust(*[len(row) for row in rows if row])
+    return builder.as_markup()
+
+
+def main_menu_keyboard(
     *,
     language_code: str,
     selected_retailer_name: str | None = None,
 ) -> InlineKeyboardMarkup:
+    """Intro/menu keyboard: Stores + Categories, and the search narrowing only while it is active.
+
+    Returns:
+        The inline keyboard.
+    """
+    filter_rows = [[button] for button in _filter_control_buttons(language_code, selected_retailer_name)]
+    return _build([*(filter_rows if selected_retailer_name is not None else []), _menu_buttons(language_code)])
+
+
+def stores_keyboard(retailers: list[tuple[str, str]]) -> InlineKeyboardMarkup:
+    """Store picker for browsing: each button opens that store's discounts.
+
+    Returns:
+        The inline keyboard, two stores per row.
+    """
     builder = InlineKeyboardBuilder()
-    for text, callback_data in _filter_control_buttons(language_code, selected_retailer_name):
-        builder.button(text=text, callback_data=callback_data)
-    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
-    builder.adjust(1)
+    for retailer_uuid, retailer_name in retailers:
+        builder.button(
+            text=f"🏪 {retailer_display_name(retailer_name)}",
+            callback_data=StoreBrowseCB(retailer_uuid=retailer_uuid, offset=0),
+        )
+    builder.adjust(2)
     return builder.as_markup()
 
 
@@ -146,6 +211,25 @@ def search_result_keyboard(
     )
 
 
+def empty_result_keyboard(
+    *, language_code: str, selected_retailer_name: str | None = None
+) -> InlineKeyboardMarkup:
+    """Keyboard under a "nothing found" search or category: narrowing controls and the browse menu.
+
+    Without it an empty result narrowed to one store reads as "this product doesn't exist anywhere";
+    showing the active narrowing (and a one-tap way to clear it) makes it visible.
+
+    Returns:
+        The inline keyboard.
+    """
+    return _results_keyboard(
+        prev_page=None,
+        next_page=None,
+        language_code=language_code,
+        selected_retailer_name=selected_retailer_name,
+    )
+
+
 def categories_keyboard(categories: list[tuple[str, str]]) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     for cat_uuid, cat_name in categories:
@@ -181,6 +265,46 @@ def category_nav_keyboard(
     )
 
 
+def store_nav_keyboard(
+    retailer_uuid: str,
+    retailer_name: str,
+    offset: int,
+    total: int,
+    *,
+    language_code: str,
+) -> InlineKeyboardMarkup:
+    """Keyboard under a store's discount page: prev/next, "search in this store", then the browse menu.
+
+    No narrowing controls here: browsing a store is its own view, independent of the search narrowing.
+
+    Returns:
+        The inline keyboard.
+    """
+    nav = [
+        (t(language_code, label_key), callback_data)
+        for label_key, callback_data in (
+            (
+                "back",
+                StoreBrowseCB(retailer_uuid=retailer_uuid, offset=max(0, offset - PAGE_SIZE))
+                if offset > 0
+                else None,
+            ),
+            (
+                "next",
+                StoreBrowseCB(retailer_uuid=retailer_uuid, offset=offset + PAGE_SIZE)
+                if offset + PAGE_SIZE < total
+                else None,
+            ),
+        )
+        if callback_data is not None
+    ]
+    search_here = (
+        t(language_code, "search_in_store", retailer=retailer_display_name(retailer_name)),
+        StoreSearchCB(retailer_uuid=retailer_uuid),
+    )
+    return _build([nav, [search_here], _menu_buttons(language_code)])
+
+
 def _results_keyboard(
     *,
     prev_page: CallbackData | None,
@@ -188,26 +312,15 @@ def _results_keyboard(
     language_code: str,
     selected_retailer_name: str | None,
 ) -> InlineKeyboardMarkup:
-    """Keyboard under a result page: prev/next on one row, then the retailer filter and categories.
-
-    Shared by search results and category browse, so a store filter can be applied (or cleared)
-    from either view without leaving it.
+    """Keyboard under a search or category page: prev/next, the search narrowing, then the browse menu.
 
     Returns:
         The inline keyboard.
     """
-    builder = InlineKeyboardBuilder()
-    nav_buttons = [
+    nav = [
         (t(language_code, label_key), callback_data)
         for label_key, callback_data in (("back", prev_page), ("next", next_page))
         if callback_data is not None
     ]
-    filter_buttons = _filter_control_buttons(language_code, selected_retailer_name)
-    for text, callback_data in [*nav_buttons, *filter_buttons]:
-        builder.button(text=text, callback_data=callback_data)
-    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
-
-    # Nav buttons share one row; each filter control and the categories shortcut sit on their own row.
-    sizes = ([len(nav_buttons)] if nav_buttons else []) + [1] * len(filter_buttons) + [1]
-    builder.adjust(*sizes)
-    return builder.as_markup()
+    filter_rows = [[button] for button in _filter_control_buttons(language_code, selected_retailer_name)]
+    return _build([nav, *filter_rows, _menu_buttons(language_code)])

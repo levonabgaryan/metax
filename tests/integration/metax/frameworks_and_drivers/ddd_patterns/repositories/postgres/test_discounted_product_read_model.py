@@ -131,6 +131,54 @@ async def test_search_by_category_uuid_orders_by_discounted_price(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
+async def test_search_by_retailer_uuid_lists_only_that_store_biggest_discount_first(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given
+    container = metax_lifespan_manager_for_tests.get_metax_container()
+    uow = container.get_unit_of_work()
+    read_repo = await container.get_discounted_product_read_model_repository()
+    created_at = dt.datetime.now(tz=dt.UTC)
+
+    store = make_retailer_entity(name="sas-am")
+    other_store = make_retailer_entity(name="yerevan-city")
+    small_discount = make_discounted_product_entity(
+        retailer_uuid=store.get_uuid(),
+        created_at=created_at,
+        name="small discount",
+        real_price=Decimal(1000),
+        discounted_price=Decimal(900),
+    )
+    big_discount = make_discounted_product_entity(
+        retailer_uuid=store.get_uuid(),
+        created_at=created_at,
+        name="big discount",
+        real_price=Decimal(1000),
+        discounted_price=Decimal(500),
+    )
+    elsewhere = make_discounted_product_entity(
+        retailer_uuid=other_store.get_uuid(),
+        created_at=created_at,
+        name="other store",
+        real_price=Decimal(1000),
+        discounted_price=Decimal(100),
+    )
+    async with uow as u:
+        await u.retailer_repo.add(store)
+        await u.retailer_repo.add(other_store)
+        await u.discounted_product_repo.add_many([small_discount, big_discount, elsewhere])
+        await u.commit()
+
+    # when (no query and no embedding needed)
+    items, total = await read_repo.search_by_retailer_uuid(str(store.get_uuid()), limit=10)
+
+    # then
+    assert total == 2
+    assert [item["name"] for item in items] == ["big discount", "small discount"]
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
 async def test_get_by_uuid_returns_full_read_model(
     metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
 ) -> None:
@@ -171,9 +219,7 @@ async def test_search_matches_latin_transliteration_of_armenian_name(
     created_at = dt.datetime.now(tz=dt.UTC)
 
     retailer = make_retailer_entity()
-    butter = make_discounted_product_entity(
-        retailer_uuid=retailer.get_uuid(), created_at=created_at, name="կարագ"
-    )
+    butter = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=created_at, name="կարագ")
     async with uow as u:
         await u.retailer_repo.add(retailer)
         await u.discounted_product_repo.add_many([butter])

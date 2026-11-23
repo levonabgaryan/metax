@@ -47,18 +47,23 @@ class QueryParamsForCollection(BaseModel):
 
     @model_validator(mode="after")
     def validate_supported_filter_combination(self) -> Self:
-        """Require something to rank by: a product name to search, or a category to browse.
+        """Require something to rank by: a product name to search, a category or a store to browse.
 
-        Retailer and category filters can be combined freely with either mode.
+        Retailer and category filters can be combined freely with a name or category; a retailer on
+        its own browses that store's discounts.
 
         Returns:
             The validated model.
 
         Raises:
-            ValueError: If neither a name nor a category is given.
+            ValueError: If none of name, category or retailer is given.
         """
-        if self.matched_discounted_product_name is None and self.category_uuid is None:
-            msg = "Provide a product name to search, or a category to browse."
+        if (
+            self.matched_discounted_product_name is None
+            and self.category_uuid is None
+            and self.retailer_uuid is None
+        ):
+            msg = "Provide a product name to search, or a category or retailer to browse."
             raise ValueError(msg)
         return self
 

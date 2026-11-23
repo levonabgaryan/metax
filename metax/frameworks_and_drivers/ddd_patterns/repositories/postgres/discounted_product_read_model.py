@@ -223,6 +223,16 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         return await sync_to_async(self.__search_by_category_sync)(category_uuid, retailer_uuid, offset, limit)
 
     @override
+    async def search_by_retailer_uuid(
+        self,
+        retailer_uuid: str,
+        *,
+        offset: int = 0,
+        limit: int = 50,
+    ) -> ReadModelPage:
+        return await sync_to_async(self.__search_by_retailer_sync)(retailer_uuid, offset, limit)
+
+    @override
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
         return await sync_to_async(self.__get_by_uuid_sync)(uuid_)
 
@@ -302,6 +312,25 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
                 item["category_confidence"] = _confidence_from_distance(category_distance)
             items.append(item)
         return items, _total_count(rows)
+
+    def __search_by_retailer_sync(self, retailer_uuid: str, offset: int, limit: int) -> ReadModelPage:
+        params: dict[str, Any] = {"retailer_uuid": retailer_uuid, "limit": limit, "offset": offset}
+        # A store's deals, biggest discount first; then cheapest, then a stable tie-break for paging.
+        select_query = f"""
+            SELECT
+                {_READ_MODEL_COLUMNS},
+                COUNT(*) OVER() AS total_count
+            {_READ_MODEL_JOINS}
+            WHERE dp.retailer_uuid = %(retailer_uuid)s::uuid
+            ORDER BY CASE WHEN dp.real_price > 0
+                          THEN (dp.real_price - dp.discounted_price) / dp.real_price
+                          ELSE 0 END DESC,
+                     dp.discounted_price ASC,
+                     dp.uuid ASC
+            LIMIT %(limit)s OFFSET %(offset)s
+        """
+        rows = _fetch_all(select_query, params)
+        return [_row_to_read_model(row) for row in rows], _total_count(rows)
 
     def __get_by_uuid_sync(self, uuid_: str) -> DiscountedProductReadModel:
         select_query = f"""

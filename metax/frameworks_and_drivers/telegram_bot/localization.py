@@ -36,6 +36,15 @@ _TEXTS: dict[str, dict[str, str]] = {
         "search_loading": "🔍 Searching...",
         "search_error": "⚠️ Search failed. Please try again later.",
         "search_empty": "🔍 <b>«{query}»</b> — found: 0\n\nNothing matched this query.",
+        "search_empty_filtered": (
+            "🔍 <b>«{query}»</b> · 🏪 {retailer} — found: 0\n\n"
+            "Nothing matched in <b>{retailer}</b>. The retailer filter is on — "
+            "tap «Show all retailers» to search every store."
+        ),
+        "category_empty_filtered": (
+            "📂 No products from <b>{retailer}</b> in this category yet.\n\n"
+            "The retailer filter is on — tap «Show all retailers» to see every store."
+        ),
         "results_found": "found",
         "page": "page",
         "back": "← Back",
@@ -43,12 +52,18 @@ _TEXTS: dict[str, dict[str, str]] = {
         "clear_retailer_filter": "Show all retailers",
         "choose_retailer": "Choose a retailer:",
         "retailer_filter_hint": "Narrow results to one store or browse all stores.",
-        "current_filter": "Retailer filter",
-        "current_filter_none": "All retailers",
+        "current_filter": "Search in",
+        "current_filter_none": "all stores",
         "categories_title": "📂 Choose a category:",
         "categories_none": "No categories yet.",
         "category_empty": "📂 No products in this category yet.",
         "browse_categories": "📂 Categories",
+        "browse_stores": "🏪 Stores",
+        "stores_title": "🏪 Choose a store to see its discounts:",
+        "stores_none": "No stores yet.",
+        "store_empty": "🏪 <b>{retailer}</b> has no discounts right now.",
+        "search_in_store": "🔍 Search in {retailer}",
+        "store_search_prompt": "🔍 Type a product name — I'll search only in <b>{retailer}</b>.",
         "unsupported": "Send a product name to search discounts.",
         "throttle": "⏳ Too fast. Please wait a second.",
         "image_unavailable": "🚫 <i>Image unavailable</i>",
@@ -72,6 +87,15 @@ _TEXTS: dict[str, dict[str, str]] = {
         "search_loading": "🔍 Ищу...",
         "search_error": "⚠️ Ошибка при поиске. Попробуйте позже.",
         "search_empty": "🔍 <b>«{query}»</b> — найдено: 0\n\nПо этому запросу ничего не найдено.",
+        "search_empty_filtered": (
+            "🔍 <b>«{query}»</b> · 🏪 {retailer} — найдено: 0\n\n"
+            "В магазине <b>{retailer}</b> ничего не найдено. Включён фильтр по магазину — "
+            "нажмите «Показать все магазины», чтобы искать везде."
+        ),
+        "category_empty_filtered": (
+            "📂 В этой категории пока нет товаров из <b>{retailer}</b>.\n\n"
+            "Включён фильтр по магазину — нажмите «Показать все магазины», чтобы увидеть все."
+        ),
         "results_found": "найдено",
         "page": "стр.",
         "back": "← Назад",
@@ -79,12 +103,18 @@ _TEXTS: dict[str, dict[str, str]] = {
         "clear_retailer_filter": "Показать все магазины",
         "choose_retailer": "Выберите магазин:",
         "retailer_filter_hint": "Сузьте результаты до одного магазина или смотрите все сразу.",
-        "current_filter": "Фильтр",
-        "current_filter_none": "Все магазины",
+        "current_filter": "Искать в",
+        "current_filter_none": "все магазины",
         "categories_title": "📂 Выберите категорию:",
         "categories_none": "Категорий пока нет.",
         "category_empty": "📂 В этой категории пока нет товаров.",
         "browse_categories": "📂 Категории",
+        "browse_stores": "🏪 Магазины",
+        "stores_title": "🏪 Выберите магазин, чтобы увидеть его скидки:",
+        "stores_none": "Магазинов пока нет.",
+        "store_empty": "🏪 В <b>{retailer}</b> сейчас нет скидок.",
+        "search_in_store": "🔍 Искать в {retailer}",
+        "store_search_prompt": "🔍 Напишите название товара — буду искать только в <b>{retailer}</b>.",
         "unsupported": "Напишите название товара для поиска скидок.",
         "throttle": "⏳ Слишком быстро. Подождите секунду.",
         "image_unavailable": "🚫 <i>Изображение недоступно</i>",
@@ -108,6 +138,15 @@ _TEXTS: dict[str, dict[str, str]] = {
         "search_loading": "🔍 Որոնում եմ...",
         "search_error": "⚠️ Որոնման ժամանակ սխալ առաջացավ։ Խնդրում ենք փորձել ավելի ուշ։",
         "search_empty": "🔍 <b>«{query}»</b> — գտնվել է՝ 0\n\nԱյս հարցման համար ոչինչ չի գտնվել։",
+        "search_empty_filtered": (
+            "🔍 <b>«{query}»</b> · 🏪 {retailer} — գտնվել է՝ 0\n\n"
+            "<b>{retailer}</b> խանութում ոչինչ չի գտնվել։ Միացված է խանութի ֆիլտրը — "
+            "սեղմեք «Ցուցադրել բոլոր խանութները»՝ բոլոր խանութներում որոնելու համար։"
+        ),
+        "category_empty_filtered": (
+            "📂 Այս կատեգորիայում դեռ չկան <b>{retailer}</b> խանութի ապրանքներ։\n\n"
+            "Միացված է խանութի ֆիլտրը — սեղմեք «Ցուցադրել բոլոր խանութները»՝ բոլորը տեսնելու համար։"
+        ),
         "results_found": "գտնվել է",
         "page": "էջ",
         "back": "← Հետ",
@@ -115,12 +154,18 @@ _TEXTS: dict[str, dict[str, str]] = {
         "clear_retailer_filter": "Ցուցադրել բոլոր խանութները",
         "choose_retailer": "Ընտրեք խանութը՝",
         "retailer_filter_hint": "Նեղացրեք արդյունքները մեկ խանութով կամ դիտեք բոլորը։",
-        "current_filter": "Ֆիլտր",
-        "current_filter_none": "Բոլոր խանութները",
+        "current_filter": "Որոնել",
+        "current_filter_none": "բոլոր խանութներում",
         "categories_title": "📂 Ընտրեք կատեգորիան՝",
         "categories_none": "Կատեգորիաներ դեռ չկան։",
         "category_empty": "📂 Այս կատեգորիայում դեռ ապրանքներ չկան։",
         "browse_categories": "📂 Կատեգորիաներ",
+        "browse_stores": "🏪 Խանութներ",
+        "stores_title": "🏪 Ընտրեք խանութը՝ նրա զեղչերը տեսնելու համար՝",
+        "stores_none": "Խանութներ դեռ չկան։",
+        "store_empty": "🏪 <b>{retailer}</b> խանութում այս պահին զեղչեր չկան։",
+        "search_in_store": "🔍 Որոնել {retailer}-ում",
+        "store_search_prompt": "🔍 Գրեք ապրանքի անունը — կորոնեմ միայն <b>{retailer}</b> խանութում։",
         "unsupported": "Գրեք ապրանքի անունը՝ զեղչերը որոնելու համար։",
         "throttle": "⏳ Շատ արագ է։ Խնդրում ենք սպասել մեկ վայրկյան։",
         "image_unavailable": "🚫 <i>Նկարը հասանելի չէ</i>",
@@ -190,6 +235,14 @@ def bot_commands_for_language(language_code: str) -> list[BotCommand]:
                 "hy": "Դիտել ըստ կատեգորիայի",
                 "ru": "Смотреть по категориям",
                 "en": "Browse by category",
+            }[language],
+        ),
+        BotCommand(
+            command="stores",
+            description={
+                "hy": "Դիտել խանութի զեղչերը",
+                "ru": "Скидки по магазинам",
+                "en": "Browse a store's discounts",
             }[language],
         ),
         BotCommand(command="help", description={"hy": "Օգնություն", "ru": "Справка", "en": "Help"}[language]),

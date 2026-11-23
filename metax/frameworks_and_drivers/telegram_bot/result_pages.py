@@ -20,9 +20,12 @@ from metax.core.application.read_models.discounted_product import DiscountedProd
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
     PAGE_SIZE,
     category_nav_keyboard,
+    empty_result_keyboard,
+    main_menu_keyboard,
     search_result_keyboard,
+    store_nav_keyboard,
 )
-from metax.frameworks_and_drivers.telegram_bot.localization import t
+from metax.frameworks_and_drivers.telegram_bot.localization import retailer_display_name, t
 from metax.frameworks_and_drivers.telegram_bot.product_page import send_product_page
 from metax.frameworks_and_drivers.telegram_bot.queries import load_category_name, load_retailer, read_repository
 from metax.frameworks_and_drivers.telegram_bot.user_state import UserSession
@@ -37,8 +40,10 @@ class ResultPage:
     offset: int
     header: str
     keyboard: InlineKeyboardMarkup
-    # Shown instead of the page when nothing matched.
+    # Shown instead of the page when nothing matched, with ``empty_keyboard`` under it so an active
+    # retailer filter is visible (and clearable) even when it hid every result.
     empty_text: str
+    empty_keyboard: InlineKeyboardMarkup
 
     @property
     def is_empty(self) -> bool:
@@ -64,6 +69,29 @@ async def active_retailer_name(session: UserSession) -> str | None:
         return None
 
 
+def _filter_suffix(retailer_name: str | None) -> str:
+    """Header suffix naming the active retailer filter, so a narrowed result set says it is narrowed.
+
+    Returns:
+        `` · 🏪 <Retailer>`` when filtered, else an empty string.
+    """
+    if retailer_name is None:
+        return ""
+    return f" · 🏪 {html.escape(retailer_display_name(retailer_name))}"
+
+
+def _empty_text(session: UserSession, retailer_name: str | None, key: str, **kwargs: str) -> str:
+    """The "nothing found" text, switching to the filter-aware variant when a retailer filter is on.
+
+    Returns:
+        The localized message.
+    """
+    if retailer_name is None:
+        return t(session.language, key, **kwargs)
+    retailer = html.escape(retailer_display_name(retailer_name))
+    return t(session.language, f"{key}_filtered", retailer=retailer, **kwargs)
+
+
 async def build_search_page(session: UserSession, query: str, offset: int = 0) -> ResultPage:
     retailer_name = await active_retailer_name(session)
     products, total = await (await read_repository()).search_by_name(
@@ -74,11 +102,12 @@ async def build_search_page(session: UserSession, query: str, offset: int = 0) -
         products=products,
         total=total,
         offset=offset,
-        header=f"🔍 <b>«{escaped_query}»</b>",
+        header=f"🔍 <b>«{escaped_query}»</b>{_filter_suffix(retailer_name)}",
         keyboard=search_result_keyboard(
             query, offset, total, language_code=session.language, selected_retailer_name=retailer_name
         ),
-        empty_text=t(session.language, "search_empty", query=escaped_query),
+        empty_text=_empty_text(session, retailer_name, "search_empty", query=escaped_query),
+        empty_keyboard=empty_result_keyboard(language_code=session.language, selected_retailer_name=retailer_name),
     )
 
 
@@ -93,11 +122,37 @@ async def build_category_page(session: UserSession, category_uuid: str, offset: 
         products=products,
         total=total,
         offset=offset,
-        header=f"🏷 <b>{html.escape(category_name)}</b>",
+        header=f"🏷 <b>{html.escape(category_name)}</b>{_filter_suffix(retailer_name)}",
         keyboard=category_nav_keyboard(
             category_uuid, offset, total, language_code=session.language, selected_retailer_name=retailer_name
         ),
-        empty_text=t(session.language, "category_empty"),
+        empty_text=_empty_text(session, retailer_name, "category_empty"),
+        empty_keyboard=empty_result_keyboard(language_code=session.language, selected_retailer_name=retailer_name),
+    )
+
+
+async def build_store_page(session: UserSession, retailer_uuid: str, offset: int = 0) -> ResultPage:
+    """One page of a store's discounts, biggest discount first.
+
+    Independent of the search narrowing (``session.retailer_uuid``): browsing a store neither reads
+    nor changes it, and is not the "active view" a narrowing change re-runs.
+
+    Returns:
+        The page.
+    """
+    retailer_name = (await load_retailer(retailer_uuid)).get_name()
+    products, total = await (await read_repository()).search_by_retailer_uuid(
+        retailer_uuid, offset=offset, limit=PAGE_SIZE
+    )
+    display_name = html.escape(retailer_display_name(retailer_name))
+    return ResultPage(
+        products=products,
+        total=total,
+        offset=offset,
+        header=f"🏪 <b>{display_name}</b>",
+        keyboard=store_nav_keyboard(retailer_uuid, retailer_name, offset, total, language_code=session.language),
+        empty_text=t(session.language, "store_empty", retailer=display_name),
+        empty_keyboard=main_menu_keyboard(language_code=session.language),
     )
 
 
@@ -116,7 +171,7 @@ async def build_active_view_page(session: UserSession) -> ResultPage | None:
 
 async def send_result_page(target: Message, page: ResultPage, language_code: str) -> None:
     if page.is_empty:
-        await target.answer(page.empty_text, parse_mode=ParseMode.HTML)
+        await target.answer(page.empty_text, parse_mode=ParseMode.HTML, reply_markup=page.empty_keyboard)
         return
     await send_product_page(
         target,

@@ -34,8 +34,19 @@ class DiscountedProductCollectionController(MetaxJsonApiController):
         read_repo = await container.get_discounted_product_read_model_repository()
         name = parsed_query.matched_discounted_product_name
         retailer_uuid = str(parsed_query.retailer_uuid) if parsed_query.retailer_uuid is not None else None
-        if name is None:
-            # Category browse; ``QueryParamsForCollection`` guarantees a category when there is no name.
+        if name is None and parsed_query.category_uuid is None:
+            # Store browse (mirrors the bot's store view); ``QueryParamsForCollection`` guarantees a
+            # retailer when there is neither a name nor a category.
+            (
+                discounted_product_read_models,
+                total_matching_documents_count,
+            ) = await read_repo.search_by_retailer_uuid(
+                str(parsed_query.retailer_uuid),
+                offset=parsed_query.offset,
+                limit=parsed_query.limit,
+            )
+        elif name is None:
+            # Category browse, optionally narrowed to a store.
             (
                 discounted_product_read_models,
                 total_matching_documents_count,

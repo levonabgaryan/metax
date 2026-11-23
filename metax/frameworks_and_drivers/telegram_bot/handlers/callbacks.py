@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import html
 import logging
 from typing import TYPE_CHECKING
 
@@ -15,15 +16,19 @@ from metax.frameworks_and_drivers.telegram_bot.keyboards import (
     CategoryBrowseCB,
     LanguageSelectCB,
     OpenCategoriesCB,
+    OpenStoresCB,
     RetailerClearCB,
     RetailerFilterMenuCB,
     RetailerSelectCB,
     SearchNavCB,
+    StoreBrowseCB,
+    StoreSearchCB,
     categories_keyboard,
-    retailer_filter_keyboard,
+    main_menu_keyboard,
     retailer_selection_keyboard,
+    stores_keyboard,
 )
-from metax.frameworks_and_drivers.telegram_bot.localization import t
+from metax.frameworks_and_drivers.telegram_bot.localization import retailer_display_name, t
 from metax.frameworks_and_drivers.telegram_bot.queries import load_categories, load_retailers
 from metax.frameworks_and_drivers.telegram_bot.result_pages import (
     ResultPage,
@@ -31,6 +36,7 @@ from metax.frameworks_and_drivers.telegram_bot.result_pages import (
     build_active_view_page,
     build_category_page,
     build_search_page,
+    build_store_page,
     send_result_page,
 )
 from metax.frameworks_and_drivers.telegram_bot.user_state import UserSession, session_for
@@ -55,7 +61,7 @@ async def _show_next_page(message: Message, session: UserSession, build: Awaitab
         await message.edit_text(t(session.language, "search_error"))
         return
     if page.is_empty:
-        await message.answer(page.empty_text, parse_mode=ParseMode.HTML)
+        await message.answer(page.empty_text, parse_mode=ParseMode.HTML, reply_markup=page.empty_keyboard)
         return
     with contextlib.suppress(TelegramBadRequest):
         await message.edit_reply_markup(reply_markup=None)
@@ -67,17 +73,19 @@ async def _show_intro_menu(message: Message, session: UserSession) -> None:
         await message.edit_text(
             t(session.language, "intro"),
             parse_mode=ParseMode.HTML,
-            reply_markup=retailer_filter_keyboard(
+            reply_markup=main_menu_keyboard(
                 language_code=session.language, selected_retailer_name=await active_retailer_name(session)
             ),
         )
 
 
 async def _apply_retailer_filter(callback: CallbackQuery, retailer_uuid: str | None) -> None:
-    """Set (or clear) the retailer filter and re-show the user's active view with it applied.
+    """Set (or clear) the search narrowing and re-show the user's search or category with it applied.
 
-    The filter menu message is replaced by fresh results; with no active view yet, the intro menu is
-    shown instead (now reflecting the new filter).
+    Only reachable from the narrowing controls under a search/category page, so re-running that view
+    is what the user asked for. (Browsing a store is a separate action — see ``StoreBrowseCB``.) The
+    picker message is replaced by fresh results; with no search or category yet, the intro menu is
+    shown instead (now reflecting the new narrowing).
     """
     if not isinstance(callback.message, Message):
         return
@@ -136,6 +144,54 @@ async def open_categories_callback(callback: CallbackQuery) -> None:
             )
         else:
             await callback.message.edit_text(t(lang, "categories_none"))
+
+
+@router.callback_query(OpenStoresCB.filter())
+async def open_stores_callback(callback: CallbackQuery) -> None:
+    await callback.answer()
+    if not isinstance(callback.message, Message):
+        return
+    lang = session_for(callback.from_user.id).language
+    retailers = await load_retailers()
+    with contextlib.suppress(TelegramBadRequest):
+        if retailers:
+            await callback.message.edit_text(t(lang, "stores_title"), reply_markup=stores_keyboard(retailers))
+        else:
+            await callback.message.edit_text(t(lang, "stores_none"))
+
+
+@router.callback_query(StoreBrowseCB.filter())
+async def store_browse_callback(callback: CallbackQuery, callback_data: StoreBrowseCB) -> None:
+    await callback.answer()
+    if not isinstance(callback.message, Message):
+        return
+    session = session_for(callback.from_user.id)
+    # Deliberately no ``enter_*``: browsing a store leaves the last search/category (and the search
+    # narrowing) untouched, so it can never re-run or rescope them.
+    await _show_next_page(
+        callback.message, session, build_store_page(session, callback_data.retailer_uuid, callback_data.offset)
+    )
+
+
+@router.callback_query(StoreSearchCB.filter())
+async def store_search_callback(callback: CallbackQuery, callback_data: StoreSearchCB) -> None:
+    """Narrow the next typed search to the store being browsed, and say so with a way to undo it."""
+    await callback.answer()
+    if not isinstance(callback.message, Message):
+        return
+    session = session_for(callback.from_user.id)
+    session.retailer_uuid = callback_data.retailer_uuid
+    retailer_name = await active_retailer_name(session)
+    if retailer_name is None:  # the store vanished between the tap and now
+        await _show_intro_menu(callback.message, session)
+        return
+    with contextlib.suppress(TelegramBadRequest):
+        await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        t(session.language, "store_search_prompt", retailer=html.escape(retailer_display_name(retailer_name))),
+        parse_mode=ParseMode.HTML,
+        reply_markup=main_menu_keyboard(language_code=session.language, selected_retailer_name=retailer_name),
+    )
 
 
 @router.callback_query(LanguageSelectCB.filter())
