@@ -20,6 +20,20 @@ class CategoryModel(BaseDbModel):
         default="",
         help_text="Example product names for auto-categorization — one per line or comma-separated.",
     )
+    # Exact keyword phrases (one per line or comma-separated). A product whose name — the part before
+    # the brand in «…» — contains one of these words is assigned this category outright, before any
+    # embedding similarity is considered. A phrase may belong to only one category.
+    keywords = models.TextField(
+        blank=True,
+        default="",
+        help_text=(
+            "Exact keywords, one per line. A product whose name (before the «brand») contains one is put in "
+            "this category with full confidence. Words of 4+ letters also match longer word forms "
+            "(շոկոլադ → շոկոլադե). The longest matching phrase wins, so add a phrase like "
+            "«միցելային ջուր» to override a single word like «ջուր». Each keyword may belong to one "
+            "category only."
+        ),
+    )
 
     class Meta(TypedModelMeta):
         db_table = "categories"

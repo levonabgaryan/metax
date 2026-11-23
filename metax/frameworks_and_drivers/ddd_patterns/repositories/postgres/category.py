@@ -1,5 +1,5 @@
 import re
-from typing import override
+from typing import Any, override
 from uuid import UUID
 
 from asgiref.sync import sync_to_async
@@ -16,24 +16,60 @@ from metax.frameworks_and_drivers.ddd_patterns.repositories.postgres.utils impor
 )
 
 
-def _parse_examples(raw: str | None) -> list[str]:
-    """Split the stored ``examples`` text (newline- or comma-separated) into a clean list.
+def _parse_phrases(raw: str | None) -> list[str]:
+    """Split stored ``examples`` / ``keywords`` text (newline- or comma-separated) into a clean list.
 
     Returns:
-        Trimmed, non-empty example phrases in their stored order.
+        Trimmed, non-empty phrases in their stored order.
     """
     if not raw:
         return []
     return [part.strip() for part in re.split(r"[,\n]", raw) if part.strip()]
 
 
-def _serialize_examples(examples: list[str]) -> str:
-    """Render an example list back to the stored newline-separated text.
+def _serialize_phrases(phrases: list[str]) -> str:
+    """Render a phrase list back to the stored newline-separated text.
 
     Returns:
-        The examples joined by newlines (empty string for no examples).
+        The phrases joined by newlines (empty string for none).
     """
-    return "\n".join(examples)
+    return "\n".join(phrases)
+
+
+# Every category read selects these columns, in the order ``_row_to_category`` expects.
+_SELECT_CATEGORIES = """
+    SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples, keywords
+    FROM categories
+"""
+_SELECT_CATEGORIES_PAGE = """
+    SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples, keywords
+    FROM categories
+    ORDER BY name ASC
+    LIMIT %s OFFSET %s
+"""
+_SELECT_CATEGORY_BY_NAME = """
+    SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples, keywords
+    FROM categories
+    WHERE name = %s
+"""
+_SELECT_CATEGORY_BY_UUID = """
+    SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples, keywords
+    FROM categories
+    WHERE uuid = %s
+"""
+
+
+def _row_to_category(row: tuple[Any, ...]) -> Category:
+    return Category(
+        uuid_=row[0],
+        name=row[1],
+        name_hy=row[2],
+        name_ru=row[3],
+        created_at=row[4],
+        updated_at=row[5],
+        examples=_parse_phrases(row[6]),
+        keywords=_parse_phrases(row[7]),
+    )
 
 
 class DjangoPostgresqlCategoryRepository(CategoryRepository):
@@ -41,17 +77,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def all(self) -> list[Category]:
         def _sync_version() -> list[Category]:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples FROM categories"
-                )
+                cursor.execute(_SELECT_CATEGORIES)
                 rows = cursor.fetchall()
-            return [
-                Category(
-                    uuid_=r[0], name=r[1], name_hy=r[2], name_ru=r[3],
-                    created_at=r[4], updated_at=r[5], examples=_parse_examples(r[6]),
-                )
-                for r in rows
-            ]
+            return [_row_to_category(row) for row in rows]
 
         return await sync_to_async(_sync_version)()
 
@@ -61,24 +89,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             with connection.cursor() as cursor:
                 cursor.execute("SELECT COUNT(*)::bigint FROM categories")
                 total_count: int = cursor.fetchone()[0]
-                cursor.execute(
-                    """
-                    SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples
-                    FROM categories
-                    ORDER BY name ASC
-                    LIMIT %s OFFSET %s
-                    """,
-                    [_limit, _offset],
-                )
+                cursor.execute(_SELECT_CATEGORIES_PAGE, [_limit, _offset])
                 rows = cursor.fetchall()
-            categories = [
-                Category(
-                    uuid_=r[0], name=r[1], name_hy=r[2], name_ru=r[3],
-                    created_at=r[4], updated_at=r[5], examples=_parse_examples(r[6]),
-                )
-                for r in rows
-            ]
-            return total_count, categories
+            return total_count, [_row_to_category(row) for row in rows]
 
         return await sync_to_async(_sync_version)(limit, offset)
 
@@ -88,14 +101,16 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
             with connection.cursor() as cursor:
                 cursor.execute(
                     """
-                    INSERT INTO categories (uuid, name, name_hy, name_ru, created_at, updated_at, examples)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO categories
+                        (uuid, name, name_hy, name_ru, created_at, updated_at, examples, keywords)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     [
                         _category.get_uuid(), _category.get_name(),
                         _category.get_name_hy(), _category.get_name_ru(),
                         _category.get_created_at(), _category.get_updated_at(),
-                        _serialize_examples(_category.get_examples()),
+                        _serialize_phrases(_category.get_examples()),
+                        _serialize_phrases(_category.get_keywords()),
                     ],
                 )
 
@@ -126,23 +141,9 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _get_by_name(self, name: str) -> Category | None:
         def _sync_version(_name: str) -> Category | None:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples "
-                    "FROM categories WHERE name = %s",
-                    [_name],
-                )
+                cursor.execute(_SELECT_CATEGORY_BY_NAME, [_name])
                 row = cursor.fetchone()
-            if row is None:
-                return None
-            return Category(
-                uuid_=row[0],
-                name=row[1],
-                name_hy=row[2],
-                name_ru=row[3],
-                created_at=row[4],
-                updated_at=row[5],
-                examples=_parse_examples(row[6]),
-            )
+            return _row_to_category(row) if row is not None else None
 
         return await sync_to_async(_sync_version)(name)
 
@@ -150,31 +151,17 @@ class DjangoPostgresqlCategoryRepository(CategoryRepository):
     async def _get_by_uuid(self, uuid_: UUID) -> Category | None:
         def _sync_version(_uuid: UUID) -> Category | None:
             with connection.cursor() as cursor:
-                cursor.execute(
-                    "SELECT uuid, name, name_hy, name_ru, created_at, updated_at, examples "
-                    "FROM categories WHERE uuid = %s",
-                    [_uuid],
-                )
+                cursor.execute(_SELECT_CATEGORY_BY_UUID, [_uuid])
                 row = cursor.fetchone()
-            if row is None:
-                return None
-            return Category(
-                uuid_=row[0],
-                name=row[1],
-                name_hy=row[2],
-                name_ru=row[3],
-                created_at=row[4],
-                updated_at=row[5],
-                examples=_parse_examples(row[6]),
-            )
+            return _row_to_category(row) if row is not None else None
 
         return await sync_to_async(_sync_version)(uuid_)
 
     @override
     async def _update(self, updated_category: Category) -> None:
         def _sync_version(_cat: Category) -> None:
-            # ``examples`` is intentionally not updated here: it is curated via the Django admin
-            # (or the seed migration), so the entity-update path must not clobber it.
+            # ``examples`` and ``keywords`` are intentionally not updated here: they are curated via the
+            # Django admin (or the seed migrations), so the entity-update path must not clobber them.
             with connection.cursor() as cursor:
                 cursor.execute(
                     "UPDATE categories SET name = %s, name_hy = %s, name_ru = %s, updated_at = %s WHERE uuid = %s",

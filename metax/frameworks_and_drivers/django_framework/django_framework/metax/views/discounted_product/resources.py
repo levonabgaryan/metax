@@ -47,28 +47,18 @@ class QueryParamsForCollection(BaseModel):
 
     @model_validator(mode="after")
     def validate_supported_filter_combination(self) -> Self:
-        """Constrain filters to the read-side queries the repository actually supports.
+        """Require something to rank by: a product name to search, or a category to browse.
 
-        Supported: name alone; name + retailer; name + category; category alone (browse); and
-        category + retailer (a category browse narrowed to one store, mirroring the bot). A request
-        without a name must carry a category to browse. Retailer and category can be combined only
-        when browsing (no name) — there is no name + retailer + category read-side query.
+        Retailer and category filters can be combined freely with either mode.
 
         Returns:
             The validated model.
 
         Raises:
-            ValueError: If the filter combination has no supporting read-side query.
+            ValueError: If neither a name nor a category is given.
         """
         if self.matched_discounted_product_name is None and self.category_uuid is None:
             msg = "Provide a product name to search, or a category to browse."
-            raise ValueError(msg)
-        if (
-            self.matched_discounted_product_name is not None
-            and self.retailer_uuid is not None
-            and self.category_uuid is not None
-        ):
-            msg = "With a product name, filter by retailer or by category, not both."
             raise ValueError(msg)
         return self
 

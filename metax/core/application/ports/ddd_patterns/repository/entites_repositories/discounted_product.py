@@ -66,6 +66,23 @@ class DiscountedProductRepository(ABC):
         """
 
     @abstractmethod
+    async def delete_created_since_by_retailer_and_return_deleted_count(
+        self, date_limit: dt.datetime, retailer_uuid: UUID
+    ) -> int:
+        """Delete ``retailer_uuid``'s products created at/after ``date_limit`` (the current run's rows).
+
+        Used to discard what a collector saved before it failed, so the retailer's previous set stays
+        the live one.
+        """
+
+    @abstractmethod
+    async def update_category_assignments(self, discounted_products: list[DiscountedProduct]) -> None:
+        """Persist each product's current ``category_uuid`` / ``category_distance`` (and nothing else).
+
+        Used to re-apply the classifier to products that are already stored.
+        """
+
+    @abstractmethod
     async def delete_category_by_uuid(self, category_uuid: UUID) -> int:
         pass
 

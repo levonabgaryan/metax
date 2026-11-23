@@ -38,9 +38,13 @@ EMBEDDING_DIM=1024
 EMBEDDING_CONCURRENCY=6
 EMBEDDING_TIMEOUT=120.0
 
-# Embedding-based product category classification during crawling (no LLM); always on.
-# Max cosine distance to assign a category (lower = stricter).
-CATEGORY_MATCH_MAX_DISTANCE=0.40
+# Product category classification during crawling; always on. Curated keywords (Django admin) decide.
+# The embedding fallback for products no keyword matched is off by default (it was right only ~half the
+# time on real data). If enabled, it assigns a category only when it is close enough (max cosine
+# distance, lower = stricter) AND clearly ahead of the runner-up category (min margin, higher = stricter).
+CATEGORY_EMBEDDING_FALLBACK=false
+CATEGORY_MATCH_MAX_DISTANCE=0.33
+CATEGORY_MATCH_MIN_MARGIN=0.03
 
 # Embed newly collected products (for search) right after a crawl. Set false to make a crawl
 # just load raw data into the DB fast; embed later with scripts/backfill_embeddings.py.

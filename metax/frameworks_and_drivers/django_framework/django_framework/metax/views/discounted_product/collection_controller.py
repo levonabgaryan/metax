@@ -33,44 +33,23 @@ class DiscountedProductCollectionController(MetaxJsonApiController):
         container = METAX_LIFESPAN_MANAGER.get_metax_container()
         read_repo = await container.get_discounted_product_read_model_repository()
         name = parsed_query.matched_discounted_product_name
-        # The query params are validated to only ever hit a combination the read repo supports:
-        # name alone, name + retailer, name + category, or a category browse (with no name)
-        # optionally narrowed to a retailer.
+        retailer_uuid = str(parsed_query.retailer_uuid) if parsed_query.retailer_uuid is not None else None
         if name is None:
+            # Category browse; ``QueryParamsForCollection`` guarantees a category when there is no name.
             (
                 discounted_product_read_models,
                 total_matching_documents_count,
             ) = await read_repo.search_by_category_uuid(
-                category_uuid=str(parsed_query.category_uuid),
-                offset=parsed_query.offset,
-                limit=parsed_query.limit,
-                retailer_uuid=(
-                    str(parsed_query.retailer_uuid) if parsed_query.retailer_uuid is not None else None
-                ),
-            )
-        elif parsed_query.retailer_uuid is not None:
-            (
-                discounted_product_read_models,
-                total_matching_documents_count,
-            ) = await read_repo.search_by_name_and_by_retailer_uuid(
-                name=name,
-                retailer_uuid=str(parsed_query.retailer_uuid),
-                offset=parsed_query.offset,
-                limit=parsed_query.limit,
-            )
-        elif parsed_query.category_uuid is not None:
-            (
-                discounted_product_read_models,
-                total_matching_documents_count,
-            ) = await read_repo.search_by_name_and_by_category_uuid(
-                name=name,
-                category_uuid=str(parsed_query.category_uuid),
+                str(parsed_query.category_uuid),
+                retailer_uuid=retailer_uuid,
                 offset=parsed_query.offset,
                 limit=parsed_query.limit,
             )
         else:
             discounted_product_read_models, total_matching_documents_count = await read_repo.search_by_name(
-                name=name,
+                name,
+                retailer_uuid=retailer_uuid,
+                category_uuid=str(parsed_query.category_uuid) if parsed_query.category_uuid is not None else None,
                 offset=parsed_query.offset,
                 limit=parsed_query.limit,
             )

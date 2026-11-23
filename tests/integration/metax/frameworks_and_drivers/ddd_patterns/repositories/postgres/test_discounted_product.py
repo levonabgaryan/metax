@@ -549,3 +549,38 @@ async def test_by_created_at_chunk_size(
     # then
     assert len(rows) == 5
     assert {r.entity.get_name() for r in rows} == {f"c{i}" for i in range(5)}
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_update_category_assignments_sets_and_clears_categories(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given: one product with a category, one without
+    unit_of_work = metax_lifespan_manager_for_tests.get_metax_container().get_unit_of_work()
+    retailer = make_retailer_entity()
+    old_category = make_category_entity(name="old")
+    new_category = make_category_entity(name="new")
+    now = dt.datetime.now(tz=dt.UTC)
+    categorised = make_discounted_product_entity(
+        retailer_uuid=retailer.get_uuid(), category_uuid=old_category.get_uuid(), created_at=now
+    )
+    uncategorised = make_discounted_product_entity(retailer_uuid=retailer.get_uuid(), created_at=now)
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.category_repo.add(old_category)
+        await uow.category_repo.add(new_category)
+        await uow.discounted_product_repo.add_many([categorised, uncategorised])
+        await uow.commit()
+
+    # when: the first loses its category, the second gains one
+    categorised.clear_category()
+    uncategorised.set_category_uuid(new_category.get_uuid(), distance=0.0)
+    async with unit_of_work as uow:
+        await uow.discounted_product_repo.update_category_assignments([categorised, uncategorised])
+        await uow.commit()
+
+    # then
+    assert not (await unit_of_work.discounted_product_repo.get_by_uuid(categorised.get_uuid())).has_category()
+    reloaded = await unit_of_work.discounted_product_repo.get_by_uuid(uncategorised.get_uuid())
+    assert reloaded.get_category_uuid() == new_category.get_uuid()

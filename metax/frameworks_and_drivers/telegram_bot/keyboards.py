@@ -14,8 +14,11 @@ from metax.frameworks_and_drivers.telegram_bot.localization import (
 
 PAGE_SIZE = 5
 
-# Telegram caps callback_data at 64 bytes.
-_QUERY_BYTE_BUDGET = 32
+# Telegram caps callback_data at 64 bytes. A packed ``SearchNavCB`` is ``sn:<query>:<offset>``, so the
+# prefix, two separators and a generous 6-digit offset leave 55 bytes; keep a little headroom.
+_QUERY_BYTE_BUDGET = 48
+# aiogram's CallbackData separator; a value containing it cannot be packed.
+_CALLBACK_SEPARATOR = ":"
 
 
 class SearchNavCB(CallbackData, prefix="sn"):
@@ -49,10 +52,20 @@ class RetailerClearCB(CallbackData, prefix="rfc"):
 
 
 def clamp_query(query: str) -> str:
-    encoded = query.encode("utf-8")
+    """Make a search query safe to carry in ``SearchNavCB``.
+
+    Replaces the callback separator (``:`` would make packing raise) and trims the query to the byte
+    budget without splitting a multi-byte character. The clamped form is what gets searched, so every
+    page of a result set is computed from the same query.
+
+    Returns:
+        The callback-safe query.
+    """
+    cleaned = " ".join(query.replace(_CALLBACK_SEPARATOR, " ").split())
+    encoded = cleaned.encode("utf-8")
     if len(encoded) <= _QUERY_BYTE_BUDGET:
-        return query
-    return encoded[:_QUERY_BYTE_BUDGET].decode("utf-8", errors="ignore")
+        return cleaned
+    return encoded[:_QUERY_BYTE_BUDGET].decode("utf-8", errors="ignore").rstrip()
 
 
 def language_keyboard() -> InlineKeyboardMarkup:
@@ -124,53 +137,13 @@ def search_result_keyboard(
     *,
     language_code: str,
     selected_retailer_name: str | None = None,
-) -> InlineKeyboardMarkup | None:
-    builder = InlineKeyboardBuilder()
-    has_prev = offset > 0
-    has_next = offset + PAGE_SIZE < total
-    nav_count = has_prev + has_next
-    if has_prev:
-        builder.button(
-            text=t(language_code, "back"),
-            callback_data=SearchNavCB(query=query, offset=max(0, offset - PAGE_SIZE)),
-        )
-    if has_next:
-        builder.button(
-            text=t(language_code, "next"),
-            callback_data=SearchNavCB(query=query, offset=offset + PAGE_SIZE),
-        )
-
-    filter_buttons = _filter_control_buttons(language_code, selected_retailer_name)
-    for text, callback_data in filter_buttons:
-        builder.button(text=text, callback_data=callback_data)
-
-    builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
-
-    # Nav buttons share one row; each filter control and the categories shortcut sit on their own row.
-    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons) + [1]
-    builder.adjust(*sizes)
-    return builder.as_markup()
-
-
-def search_nav_keyboard(query: str, offset: int, total: int) -> InlineKeyboardMarkup | None:
-    has_prev = offset > 0
-    has_next = offset + PAGE_SIZE < total
-    if not has_prev and not has_next:
-        return None
-
-    builder = InlineKeyboardBuilder()
-    if has_prev:
-        builder.button(
-            text="← Назад",
-            callback_data=SearchNavCB(query=query, offset=max(0, offset - PAGE_SIZE)),
-        )
-    if has_next:
-        builder.button(
-            text="Далее →",
-            callback_data=SearchNavCB(query=query, offset=offset + PAGE_SIZE),
-        )
-    builder.adjust(2)
-    return builder.as_markup()
+) -> InlineKeyboardMarkup:
+    return _results_keyboard(
+        prev_page=SearchNavCB(query=query, offset=max(0, offset - PAGE_SIZE)) if offset > 0 else None,
+        next_page=SearchNavCB(query=query, offset=offset + PAGE_SIZE) if offset + PAGE_SIZE < total else None,
+        language_code=language_code,
+        selected_retailer_name=selected_retailer_name,
+    )
 
 
 def categories_keyboard(categories: list[tuple[str, str]]) -> InlineKeyboardMarkup:
@@ -192,37 +165,49 @@ def category_nav_keyboard(
     language_code: str,
     selected_retailer_name: str | None = None,
 ) -> InlineKeyboardMarkup:
-    has_prev = offset > 0
-    has_next = offset + PAGE_SIZE < total
-    nav_count = has_prev + has_next
+    return _results_keyboard(
+        prev_page=(
+            CategoryBrowseCB(category_uuid=category_uuid, offset=max(0, offset - PAGE_SIZE))
+            if offset > 0
+            else None
+        ),
+        next_page=(
+            CategoryBrowseCB(category_uuid=category_uuid, offset=offset + PAGE_SIZE)
+            if offset + PAGE_SIZE < total
+            else None
+        ),
+        language_code=language_code,
+        selected_retailer_name=selected_retailer_name,
+    )
 
+
+def _results_keyboard(
+    *,
+    prev_page: CallbackData | None,
+    next_page: CallbackData | None,
+    language_code: str,
+    selected_retailer_name: str | None,
+) -> InlineKeyboardMarkup:
+    """Keyboard under a result page: prev/next on one row, then the retailer filter and categories.
+
+    Shared by search results and category browse, so a store filter can be applied (or cleared)
+    from either view without leaving it.
+
+    Returns:
+        The inline keyboard.
+    """
     builder = InlineKeyboardBuilder()
-    if has_prev:
-        builder.button(
-            text=t(language_code, "back"),
-            callback_data=CategoryBrowseCB(
-                category_uuid=category_uuid,
-                offset=max(0, offset - PAGE_SIZE),
-            ),
-        )
-    if has_next:
-        builder.button(
-            text=t(language_code, "next"),
-            callback_data=CategoryBrowseCB(
-                category_uuid=category_uuid,
-                offset=offset + PAGE_SIZE,
-            ),
-        )
-
-    # Same retailer-filter controls as the search view, so a category browse can be narrowed to (or
-    # cleared of) a store without leaving the category.
+    nav_buttons = [
+        (t(language_code, label_key), callback_data)
+        for label_key, callback_data in (("back", prev_page), ("next", next_page))
+        if callback_data is not None
+    ]
     filter_buttons = _filter_control_buttons(language_code, selected_retailer_name)
-    for text, callback_data in filter_buttons:
+    for text, callback_data in [*nav_buttons, *filter_buttons]:
         builder.button(text=text, callback_data=callback_data)
-
     builder.button(text=t(language_code, "browse_categories"), callback_data=OpenCategoriesCB())
 
     # Nav buttons share one row; each filter control and the categories shortcut sit on their own row.
-    sizes = ([nav_count] if nav_count else []) + [1] * len(filter_buttons) + [1]
+    sizes = ([len(nav_buttons)] if nav_buttons else []) + [1] * len(filter_buttons) + [1]
     builder.adjust(*sizes)
     return builder.as_markup()

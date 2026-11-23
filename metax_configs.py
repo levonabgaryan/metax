@@ -63,11 +63,15 @@ class BaseConfigs(BaseSettings):
     # first boot) plus a batch of embeddings under concurrent load.
     embedding_timeout: Annotated[float, Field(alias="EMBEDDING_TIMEOUT")] = 120.0
 
-    # Embedding-based product category classification during crawling (no LLM); always on.
-    # Max cosine distance (0=identical, 2=opposite) between a product and a category for the
-    # product to be assigned that category. Lower = stricter. With curated example prototypes a
-    # true match sits near 0, so this gate mainly rejects borderline guesses. Tune against real data.
-    category_match_max_distance: Annotated[float, Field(alias="CATEGORY_MATCH_MAX_DISTANCE")] = 0.40
+    # Product category classification during crawling; always on. Curated keywords (Django admin) decide.
+    # The embedding fallback for products no keyword matched is OFF by default: measured on real data it
+    # was right only about half the time, at any distance, and a wrong category is worse than none. When
+    # enabled, a category is assigned only if its cosine distance (0=identical, 2=opposite) is at most
+    # ``max_distance`` AND it beats the runner-up category by at least ``min_margin``. Check any change
+    # against real data with scripts/reclassify_categories.py --dry-run first.
+    category_embedding_fallback: Annotated[bool, Field(alias="CATEGORY_EMBEDDING_FALLBACK")] = False
+    category_match_max_distance: Annotated[float, Field(alias="CATEGORY_MATCH_MAX_DISTANCE")] = 0.33
+    category_match_min_margin: Annotated[float, Field(alias="CATEGORY_MATCH_MIN_MARGIN")] = 0.03
 
     # Whether to embed newly collected products (for search) right after a crawl. On by default;
     # set false to make a crawl just load raw data into the DB fast — embed later on demand with

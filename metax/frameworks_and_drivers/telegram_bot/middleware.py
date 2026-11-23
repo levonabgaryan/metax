@@ -9,7 +9,8 @@ from typing import Any, override
 from aiogram import BaseMiddleware
 from aiogram.types import Message, TelegramObject, User
 
-from metax.frameworks_and_drivers.telegram_bot.localization import get_user_language, t
+from metax.frameworks_and_drivers.telegram_bot.localization import t
+from metax.frameworks_and_drivers.telegram_bot.user_state import session_for
 
 
 class ThrottleMiddleware(BaseMiddleware):
@@ -35,7 +36,7 @@ class ThrottleMiddleware(BaseMiddleware):
             if user is not None:
                 now = time.monotonic()
                 if now - self._last_call.get(user.id, 0.0) < self._rate:
-                    await event.answer(t(get_user_language(user.id), "throttle"))
+                    await event.answer(t(session_for(user.id).language, "throttle"))
                     return None
                 self._last_call[user.id] = now
         return await handler(event, data)

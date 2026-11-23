@@ -14,6 +14,8 @@ from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import (
     FakeDiscountedProductsCreator,
     FakeProductSpec,
+    make_category_entity,
+    make_discounted_product_entity,
     make_retailer_entity,
 )
 
@@ -64,3 +66,44 @@ async def test_collected_products_appear_in_read_model(
     assert created_at.tzinfo is not None, "JSON:API timestamps must be timezone-aware"
     assert created_at <= updated_at
     assert abs((dt.datetime.now(dt.UTC) - created_at).total_seconds()) < 60
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_search_endpoint_accepts_name_with_retailer_and_category_filters(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+    dmr_async_client: DMRAsyncClient,
+) -> None:
+    # given: one matching product in the requested retailer + category
+    container = metax_lifespan_manager_for_tests.get_metax_container()
+    uow = container.get_unit_of_work()
+    retailer = make_retailer_entity(name="sas-am")
+    category = make_category_entity(name="Snacks")
+    product = make_discounted_product_entity(
+        retailer_uuid=retailer.get_uuid(),
+        category_uuid=category.get_uuid(),
+        created_at=dt.datetime.now(tz=dt.UTC),
+        name="lays chips 100g",
+    )
+    async with uow as u:
+        await u.retailer_repo.add(retailer)
+        await u.category_repo.add(category)
+        await u.discounted_product_repo.add_many([product])
+        await u.commit()
+    await (await container.get_discounted_product_read_model_repository()).embed_pending()
+
+    # when
+    response = await dmr_async_client.get(
+        path=(
+            "/api/discountedProduct?page[offset]=0&page[limit]=10"
+            "&filter[match][discountedProduct.name]=lays"
+            f"&filter[eq][retailer.retailer_uuid]={retailer.get_uuid()}"
+            f"&filter[eq][category.category_uuid]={category.get_uuid()}"
+        ),
+        content_type="application/vnd.api+json",
+    )
+
+    # then
+    assert response.status_code == 200
+    body = json.loads(response.content)
+    assert [item["id"] for item in body["data"]] == [str(product.get_uuid())]

@@ -7,12 +7,16 @@ across all retailers). See ``taskiq_framework/locks.py``.
 
 from __future__ import annotations
 
+import uuid
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 import metax.frameworks_and_drivers.taskiq_framework.tasks as tasks_module
 from metax.frameworks_and_drivers.taskiq_framework.locks import CollectionLock
+from metax_bootstrap import METAX_CONFIGS, METAX_LIFESPAN_MANAGER
+
+_COLLECTED_RETAILER_UUID = uuid.uuid4()
 
 
 def _make_lock(client: MagicMock) -> CollectionLock:
@@ -81,7 +85,7 @@ def _mock_container(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     container = MagicMock()
     container.get_event_bus = AsyncMock()
     monkeypatch.setattr(
-        tasks_module.METAX_LIFESPAN_MANAGER, "get_metax_container", lambda: container
+        METAX_LIFESPAN_MANAGER, "get_metax_container", lambda: container
     )
     return container
 
@@ -111,9 +115,11 @@ async def test_collection_hands_lock_to_embed_job_without_releasing_it(
     held = "tok-123"
     fake_lock = _FakeLock(held)
     monkeypatch.setattr(tasks_module, "get_collection_lock", lambda: fake_lock)
-    monkeypatch.setattr(tasks_module.METAX_CONFIGS, "embed_after_collect", True)
+    monkeypatch.setattr(METAX_CONFIGS, "embed_after_collect", True)
     monkeypatch.setattr(
-        tasks_module, "collect_discounted_products_from_all_retailers", AsyncMock()
+        tasks_module,
+        "collect_discounted_products_from_all_retailers",
+        AsyncMock(return_value=[_COLLECTED_RETAILER_UUID]),
     )
     embed_task = MagicMock()
     embed_task.kiq = AsyncMock()
@@ -122,10 +128,36 @@ async def test_collection_hands_lock_to_embed_job_without_releasing_it(
     # when
     await tasks_module._taskiq_collect_discounted_products_from_all_retailers(request_id="rid")  # noqa: SLF001
 
-    # then: the token is handed to step 2 and NOT released here (step 2 owns it now)
+    # then: the token is handed to step 2 and NOT released here (step 2 owns it now), and step 2 is
+    # told to publish only the retailers that were collected
     _, kwargs = embed_task.kiq.call_args
     assert kwargs["lock_token"] == held
+    assert kwargs["retailer_uuids"] == [str(_COLLECTED_RETAILER_UUID)]
     assert fake_lock.released_tokens == []
+
+
+async def test_collection_skips_step_2_and_releases_lock_when_nothing_was_collected(
+    monkeypatch: pytest.MonkeyPatch,
+    _mock_container: MagicMock,
+) -> None:
+    # given: every collector failed, so no retailer has a new set to publish
+    held = "tok-empty"
+    fake_lock = _FakeLock(held)
+    monkeypatch.setattr(tasks_module, "get_collection_lock", lambda: fake_lock)
+    monkeypatch.setattr(METAX_CONFIGS, "embed_after_collect", True)
+    monkeypatch.setattr(
+        tasks_module, "collect_discounted_products_from_all_retailers", AsyncMock(return_value=[])
+    )
+    embed_task = MagicMock()
+    embed_task.kiq = AsyncMock()
+    monkeypatch.setattr(tasks_module, "taskiq_embed_discounted_products", embed_task)
+
+    # when
+    await tasks_module._taskiq_collect_discounted_products_from_all_retailers(request_id="rid")  # noqa: SLF001
+
+    # then: no publish is scheduled (the previous set stays live) and the lock is freed here
+    embed_task.kiq.assert_not_awaited()
+    assert fake_lock.released_tokens == [held]
 
 
 async def test_collection_releases_lock_when_embedding_is_disabled(
@@ -136,9 +168,11 @@ async def test_collection_releases_lock_when_embedding_is_disabled(
     held = "tok-xyz"
     fake_lock = _FakeLock(held)
     monkeypatch.setattr(tasks_module, "get_collection_lock", lambda: fake_lock)
-    monkeypatch.setattr(tasks_module.METAX_CONFIGS, "embed_after_collect", False)
+    monkeypatch.setattr(METAX_CONFIGS, "embed_after_collect", False)
     monkeypatch.setattr(
-        tasks_module, "collect_discounted_products_from_all_retailers", AsyncMock()
+        tasks_module,
+        "collect_discounted_products_from_all_retailers",
+        AsyncMock(return_value=[_COLLECTED_RETAILER_UUID]),
     )
 
     # when

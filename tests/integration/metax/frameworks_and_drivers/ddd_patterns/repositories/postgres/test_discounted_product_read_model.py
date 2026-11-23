@@ -53,7 +53,7 @@ async def test_embed_pending_then_search_by_name_floats_exact_match_first(
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
-async def test_search_by_name_and_by_retailer_uuid_filters_to_one_retailer(
+async def test_search_by_name_with_retailer_filter_returns_only_that_retailer(
     metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
 ) -> None:
     # given
@@ -78,9 +78,7 @@ async def test_search_by_name_and_by_retailer_uuid_filters_to_one_retailer(
     await read_repo.embed_pending()
 
     # when
-    items, total = await read_repo.search_by_name_and_by_retailer_uuid(
-        "lays", retailer_uuid=str(retailer_a.get_uuid()), limit=10
-    )
+    items, total = await read_repo.search_by_name("lays", retailer_uuid=str(retailer_a.get_uuid()), limit=10)
 
     # then
     assert total == 1
@@ -188,3 +186,46 @@ async def test_search_matches_latin_transliteration_of_armenian_name(
     # then: the Armenian product is found via the transliterated name
     assert total >= 1
     assert any(item["uuid_"] == str(butter.get_uuid()) for item in items)
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_search_by_name_combines_retailer_and_category_filters(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given: the same product name at two retailers, in two categories
+    container = metax_lifespan_manager_for_tests.get_metax_container()
+    uow = container.get_unit_of_work()
+    read_repo = await container.get_discounted_product_read_model_repository()
+    created_at = dt.datetime.now(tz=dt.UTC)
+
+    retailer_a = make_retailer_entity(name="sas-am")
+    retailer_b = make_retailer_entity(name="yerevan-city")
+    snacks = make_category_entity(name="Snacks")
+    other = make_category_entity(name="Other")
+    wanted = make_discounted_product_entity(
+        retailer_uuid=retailer_a.get_uuid(), category_uuid=snacks.get_uuid(), created_at=created_at, name="lays a"
+    )
+    wrong_category = make_discounted_product_entity(
+        retailer_uuid=retailer_a.get_uuid(), category_uuid=other.get_uuid(), created_at=created_at, name="lays b"
+    )
+    wrong_retailer = make_discounted_product_entity(
+        retailer_uuid=retailer_b.get_uuid(), category_uuid=snacks.get_uuid(), created_at=created_at, name="lays c"
+    )
+    async with uow as u:
+        await u.retailer_repo.add(retailer_a)
+        await u.retailer_repo.add(retailer_b)
+        await u.category_repo.add(snacks)
+        await u.category_repo.add(other)
+        await u.discounted_product_repo.add_many([wanted, wrong_category, wrong_retailer])
+        await u.commit()
+    await read_repo.embed_pending()
+
+    # when
+    items, total = await read_repo.search_by_name(
+        "lays", retailer_uuid=str(retailer_a.get_uuid()), category_uuid=str(snacks.get_uuid()), limit=10
+    )
+
+    # then
+    assert total == 1
+    assert items[0]["uuid_"] == str(wanted.get_uuid())

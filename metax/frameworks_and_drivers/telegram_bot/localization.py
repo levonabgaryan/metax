@@ -1,4 +1,4 @@
-"""Telegram bot text and language preference helpers."""
+"""Telegram bot texts, language helpers and display names (pure, stateless)."""
 
 from __future__ import annotations
 
@@ -6,14 +6,6 @@ from aiogram.types import BotCommand
 
 SUPPORTED_LANGUAGES = ("hy", "ru", "en")
 DEFAULT_LANGUAGE = "en"
-
-_USER_LANGUAGES: dict[int, str] = {}
-_USER_RETAILER_FILTERS: dict[int, str | None] = {}
-# The user's active browse view, so changing the retailer filter re-applies to whatever they are
-# currently looking at. A user is either searching or browsing a category — never both — so the two
-# are kept mutually exclusive: setting one clears the other, and the non-empty one is the live view.
-_USER_LAST_QUERIES: dict[int, str] = {}
-_USER_LAST_CATEGORIES: dict[int, str] = {}
 
 # Pretty display labels for known retailers; unknown ones fall back to a title-cased name.
 _RETAILER_DISPLAY_NAMES: dict[str, str] = {
@@ -48,12 +40,9 @@ _TEXTS: dict[str, dict[str, str]] = {
         "page": "page",
         "back": "← Back",
         "next": "Next →",
-        "filter_by_retailer": "Filter by retailer",
         "clear_retailer_filter": "Show all retailers",
         "choose_retailer": "Choose a retailer:",
         "retailer_filter_hint": "Narrow results to one store or browse all stores.",
-        "retailer_filter_set": "Retailer filter: {retailer_name}",
-        "retailer_filter_cleared": "Retailer filter cleared.",
         "current_filter": "Retailer filter",
         "current_filter_none": "All retailers",
         "categories_title": "📂 Choose a category:",
@@ -63,6 +52,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "unsupported": "Send a product name to search discounts.",
         "throttle": "⏳ Too fast. Please wait a second.",
         "image_unavailable": "🚫 <i>Image unavailable</i>",
+        "open_link": "Open →",
     },
     "ru": {
         "choose_language": "Выберите язык:",
@@ -86,12 +76,9 @@ _TEXTS: dict[str, dict[str, str]] = {
         "page": "стр.",
         "back": "← Назад",
         "next": "Далее →",
-        "filter_by_retailer": "Фильтр по магазину",
         "clear_retailer_filter": "Показать все магазины",
         "choose_retailer": "Выберите магазин:",
         "retailer_filter_hint": "Сузьте результаты до одного магазина или смотрите все сразу.",
-        "retailer_filter_set": "Фильтр по магазину: {retailer_name}",
-        "retailer_filter_cleared": "Фильтр по магазину отключен.",
         "current_filter": "Фильтр",
         "current_filter_none": "Все магазины",
         "categories_title": "📂 Выберите категорию:",
@@ -101,6 +88,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "unsupported": "Напишите название товара для поиска скидок.",
         "throttle": "⏳ Слишком быстро. Подождите секунду.",
         "image_unavailable": "🚫 <i>Изображение недоступно</i>",
+        "open_link": "Открыть →",
     },
     "hy": {
         "choose_language": "Ընտրեք լեզուն՝",
@@ -124,12 +112,9 @@ _TEXTS: dict[str, dict[str, str]] = {
         "page": "էջ",
         "back": "← Հետ",
         "next": "Հաջորդ →",
-        "filter_by_retailer": "Ֆիլտրել ըստ խանութի",
         "clear_retailer_filter": "Ցուցադրել բոլոր խանութները",
         "choose_retailer": "Ընտրեք խանութը՝",
         "retailer_filter_hint": "Նեղացրեք արդյունքները մեկ խանութով կամ դիտեք բոլորը։",
-        "retailer_filter_set": "Խանութի ֆիլտր՝ {retailer_name}",
-        "retailer_filter_cleared": "Խանութի ֆիլտրը հանված է։",
         "current_filter": "Ֆիլտր",
         "current_filter_none": "Բոլոր խանութները",
         "categories_title": "📂 Ընտրեք կատեգորիան՝",
@@ -139,6 +124,7 @@ _TEXTS: dict[str, dict[str, str]] = {
         "unsupported": "Գրեք ապրանքի անունը՝ զեղչերը որոնելու համար։",
         "throttle": "⏳ Շատ արագ է։ Խնդրում ենք սպասել մեկ վայրկյան։",
         "image_unavailable": "🚫 <i>Նկարը հասանելի չէ</i>",
+        "open_link": "Բացել →",
     },
 }
 
@@ -153,52 +139,6 @@ def normalize_language(language_code: str | None) -> str:
     if language_code in SUPPORTED_LANGUAGES:
         return language_code
     return DEFAULT_LANGUAGE
-
-
-def set_user_language(user_id: int, language_code: str) -> None:
-    _USER_LANGUAGES[user_id] = normalize_language(language_code)
-
-
-def get_user_language(user_id: int | None) -> str:
-    if user_id is None:
-        return DEFAULT_LANGUAGE
-    return normalize_language(_USER_LANGUAGES.get(user_id))
-
-
-def set_user_retailer_filter(user_id: int, retailer_uuid: str | None) -> None:
-    _USER_RETAILER_FILTERS[user_id] = retailer_uuid
-
-
-def get_user_retailer_filter(user_id: int | None) -> str | None:
-    if user_id is None:
-        return None
-    return _USER_RETAILER_FILTERS.get(user_id)
-
-
-def set_user_last_query(user_id: int, query: str) -> None:
-    # Entering search makes search the live view; drop any category browse so a later filter change
-    # re-runs this query, not a stale category.
-    _USER_LAST_QUERIES[user_id] = query
-    _USER_LAST_CATEGORIES.pop(user_id, None)
-
-
-def get_user_last_query(user_id: int | None) -> str | None:
-    if user_id is None:
-        return None
-    return _USER_LAST_QUERIES.get(user_id)
-
-
-def set_user_last_category(user_id: int, category_uuid: str) -> None:
-    # Entering a category makes category browse the live view; drop any last search for the same
-    # reason (see set_user_last_query).
-    _USER_LAST_CATEGORIES[user_id] = category_uuid
-    _USER_LAST_QUERIES.pop(user_id, None)
-
-
-def get_user_last_category(user_id: int | None) -> str | None:
-    if user_id is None:
-        return None
-    return _USER_LAST_CATEGORIES.get(user_id)
 
 
 def retailer_display_name(name: str) -> str:
@@ -233,7 +173,9 @@ def language_buttons() -> list[tuple[str, str]]:
 def bot_commands_for_language(language_code: str) -> list[BotCommand]:
     language = normalize_language(language_code)
     return [
-        BotCommand(command="start", description={"hy": "Սկսել", "ru": "Запустить бота", "en": "Start bot"}[language]),
+        BotCommand(
+            command="start", description={"hy": "Սկսել", "ru": "Запустить бота", "en": "Start bot"}[language]
+        ),
         BotCommand(
             command="search",
             description={

@@ -3,10 +3,10 @@ from __future__ import annotations
 from dependency_injector import providers
 from dependency_injector.containers import DeclarativeContainer
 
-from metax.core.application.ddd_patterns.services.embedding_category_classifier_service import (
-    EmbeddingCategoryClassifierService,
-)
 from metax.core.application.ddd_patterns.services.embedding_http_service import HttpEmbeddingService
+from metax.core.application.ddd_patterns.services.hybrid_category_classifier_service import (
+    HybridCategoryClassifierService,
+)
 from metax.core.application.event_handlers.event_bus import EventBus
 from metax.core.application.ports.ddd_patterns.service.category_classifier_service import (
     CategoryClassifierService,
@@ -30,9 +30,11 @@ class ResourceContainer(DeclarativeContainer):
         timeout=config.embedding_timeout,
     )
     category_classifier_service: providers.Provider[CategoryClassifierService] = providers.Singleton(
-        EmbeddingCategoryClassifierService,
+        HybridCategoryClassifierService,
         embedding_service=embedding_service,
+        embedding_fallback=config.category_embedding_fallback,
         max_distance=config.category_match_max_distance,
+        min_margin=config.category_match_min_margin,
     )
     event_bus: providers.Resource[EventBus] = providers.Resource(
         event_bus_resource,

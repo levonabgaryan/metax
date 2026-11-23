@@ -51,13 +51,14 @@ logger = logging.getLogger(__name__)
 
 # The daily refresh is split into two independently-tracked TaskIQ jobs so each step's
 # success/failure is recorded separately in the result backend:
-#   step 1 — collect today's discounts (rows stamped with this run's start time); on success it
-#            enqueues step 2.
-#   step 2 — embed every still-unembedded row, then publish the new set by deleting the previous
-#            run's rows.
+#   step 1 — collect today's discounts (rows stamped with this run's start time) and enqueue step 2
+#            with the retailers whose collector succeeded.
+#   step 2 — embed every still-unembedded row, then publish the new set by deleting those retailers'
+#            previous-run rows.
 # The previous run's rows (already embedded) keep serving search until step 2 has embedded the new
-# set and only then deletes them — a zero-downtime swap. If embedding fails, the delete never runs,
-# so search keeps serving the previous set rather than going empty.
+# set and only then deletes them — a zero-downtime swap. The swap is per retailer: a retailer whose
+# collector failed has its partial new rows discarded in step 1 and is left out of the publish, so it
+# keeps serving yesterday's set instead of going empty. If embedding fails, no delete runs at all.
 
 # Embedding hits the embeddings service, which can transiently fail (e.g. a ReadTimeout while the
 # model loads into memory on a cold start). ``embed_pending`` is idempotent — it only fetches rows
@@ -105,7 +106,18 @@ async def collect_discounted_products_from_all_retailers(
     event_bus: EventBus,
     start_date_of_collecting: dt.datetime,
     category_classifier: CategoryClassifierService | None = None,
-) -> None:
+) -> list[UUID]:
+    """Collect every retailer concurrently, then send the nightly digest.
+
+    A retailer whose collector raises does not fail the run: its partial rows are discarded so its
+    previous set stays live, and it is reported as failed in the digest.
+
+    Returns:
+        The UUIDs of the retailers whose collector succeeded (their new set is ready to publish).
+
+    Raises:
+        NoRetailersError: If there are no retailers to collect.
+    """
     uow = await unit_of_work_provider.provide()
     async with uow:
         retailers = [r async for r in uow.retailer_repo.all()]
@@ -127,19 +139,42 @@ async def collect_discounted_products_from_all_retailers(
 
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
-    previous_counts, samples = await _load_digest_context(
-        unit_of_work_provider, start_date_of_collecting
-    )
-    outcomes: list[RetailerCrawlOutcome] = []
+    collected_retailer_uuids: list[UUID] = []
+    extracted_counts: list[int | None] = []
     for retailer, result in zip(retailers, results, strict=True):
         if isinstance(result, BaseException):
-            logger.error("Error during collection: %s", result, exc_info=result)
-            extracted: int | None = None
+            logger.error("Error during collection of %s: %s", retailer.get_name(), result, exc_info=result)
+            await _discard_partial_collection(unit_of_work_provider, retailer.get_uuid(), start_date_of_collecting)
+            extracted_counts.append(None)
         else:
-            extracted = result.added_count
-        outcomes.append(_to_outcome(retailer, extracted, previous_counts, samples))
+            collected_retailer_uuids.append(retailer.get_uuid())
+            extracted_counts.append(result.added_count)
 
+    previous_counts, samples = await _load_digest_context(unit_of_work_provider, start_date_of_collecting)
+    outcomes = [
+        _to_outcome(retailer, extracted, previous_counts, samples)
+        for retailer, extracted in zip(retailers, extracted_counts, strict=True)
+    ]
     await _send_crawl_digest(outcomes, run_date=start_date_of_collecting)
+    return collected_retailer_uuids
+
+
+async def _discard_partial_collection(
+    unit_of_work_provider: IUnitOfWorkProvider, retailer_uuid: UUID, collected_since: dt.datetime
+) -> None:
+    """Delete the rows a failed collector saved before it raised (it saves in batches).
+
+    Without this, a retailer that failed mid-crawl would serve a mix of its previous set and a
+    truncated new one, and the leftovers would be counted as "previous" in the next digest.
+    """
+    uow = await unit_of_work_provider.provide()
+    async with uow:
+        discarded = await uow.discounted_product_repo.delete_created_since_by_retailer_and_return_deleted_count(
+            date_limit=collected_since, retailer_uuid=retailer_uuid
+        )
+        await uow.commit()
+    if discarded:
+        logger.warning("Discarded %d partially collected row(s) for retailer %s", discarded, retailer_uuid)
 
 
 async def _load_digest_context(
@@ -217,6 +252,7 @@ async def collect_discounted_products_for_retailer(
     runs its collector. Sends a one-row "manual crawl" digest with the outcome — including when the
     collector fails, since a manual run is usually a verification and its result is exactly what the
     operator is waiting on — before propagating any collector error so the job is still marked failed.
+    On failure the partial rows are discarded first, so the retailer's previous set stays live.
 
     Returns:
         The retailer's UUID, so step 2 can scope its publish swap to this retailer only.
@@ -242,6 +278,7 @@ async def collect_discounted_products_for_retailer(
         extracted = response.added_count
     except Exception as exc:
         logger.error("Error during collection of %s: %s", retailer_name, exc, exc_info=exc)
+        await _discard_partial_collection(unit_of_work_provider, retailer.get_uuid(), start_date_of_collecting)
         extracted = None
         error = exc
 
@@ -261,7 +298,7 @@ async def collect_discounted_products_for_retailer(
 async def _run_collection_job_under_lock(
     effective_id: str,
     label: str,
-    collect: Callable[[MetaxContainer, dt.datetime], Awaitable[UUID | None]],
+    collect: Callable[[MetaxContainer, dt.datetime], Awaitable[list[UUID]]],
 ) -> None:
     """Run one crawl (step 1) under the global collection lock and hand it off to step 2.
 
@@ -269,13 +306,14 @@ async def _run_collection_job_under_lock(
     queued) — the lock exists precisely to keep a manual and the nightly run from overlapping. On
     success the lock's release token is handed to the embed job (step 2), which releases it after the
     publish swap; the whole collect → embed → publish lifecycle is thus mutually exclusive. If step 2
-    is not enqueued (collection failed, or ``EMBED_AFTER_COLLECT`` is off) the lock is released here.
+    is not enqueued (collection failed, nothing was collected, or ``EMBED_AFTER_COLLECT`` is off) the
+    lock is released here.
 
     Args:
         effective_id: Request-id used to correlate this run's logs and the step-2 job it enqueues.
         label: Human-readable run description for log lines (e.g. ``"collection: retailer sas-am"``).
-        collect: Runs the actual collection and returns the retailer UUID for a single-retailer run
-            (so step 2 scopes its publish swap) or ``None`` for the all-retailers run (global swap).
+        collect: Runs the actual collection and returns the UUIDs of the retailers whose collector
+            succeeded — exactly the retailers step 2 will publish.
     """
     with request_id_scope(effective_id):
         lock = get_collection_lock()
@@ -290,17 +328,20 @@ async def _run_collection_job_under_lock(
         try:
             container = METAX_LIFESPAN_MANAGER.get_metax_container()
             started_at = dt.datetime.now(tz=dt.UTC)
-            retailer_uuid = await collect(container, started_at)
+            collected_retailer_uuids = await collect(container, started_at)
 
             # Hand off to step 2 (embed + publish) as its own job so its success/failure is tracked
             # independently. ``collected_since`` tells step 2 which rows are the previous run's, to
-            # delete once the new set is embedded; ``retailer_uuid`` (single-retailer run) scopes that
-            # delete so re-running one crawler never touches another retailer's live rows.
-            if METAX_CONFIGS.embed_after_collect:
+            # delete once the new set is embedded; ``retailer_uuids`` scopes that delete to the
+            # retailers that were actually re-collected, so a failed or untouched retailer keeps its
+            # live rows.
+            if not collected_retailer_uuids:
+                logger.warning("Step 1 (%s): NOTHING COLLECTED | step 2 SKIPPED, previous set stays live", label)
+            elif METAX_CONFIGS.embed_after_collect:
                 await taskiq_embed_discounted_products.kiq(
                     request_id=effective_id,
                     collected_since=started_at.isoformat(),
-                    retailer_uuid=str(retailer_uuid) if retailer_uuid is not None else None,
+                    retailer_uuids=[str(retailer_uuid) for retailer_uuid in collected_retailer_uuids],
                     lock_token=token,
                 )
                 # Step 2 now owns the lock and releases it after publishing — don't release it here.
@@ -320,9 +361,9 @@ async def _run_collection_job_under_lock(
 async def _taskiq_collect_discounted_products_from_all_retailers(request_id: str | None = None) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
 
-    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> None:
+    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> list[UUID]:
         # Category classification always runs; it no-ops by itself if no categories are seeded.
-        await collect_discounted_products_from_all_retailers(
+        return await collect_discounted_products_from_all_retailers(
             unit_of_work_provider=container.get_unit_of_work_provider(),
             event_bus=await container.get_event_bus(),
             start_date_of_collecting=started_at,
@@ -345,14 +386,15 @@ async def _taskiq_collect_discounted_products_for_retailer(
 ) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
 
-    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> UUID:
-        return await collect_discounted_products_for_retailer(
+    async def _collect(container: MetaxContainer, started_at: dt.datetime) -> list[UUID]:
+        retailer_uuid = await collect_discounted_products_for_retailer(
             unit_of_work_provider=container.get_unit_of_work_provider(),
             event_bus=await container.get_event_bus(),
             retailer_name=retailer_name,
             start_date_of_collecting=started_at,
             category_classifier=container.get_category_classifier(),
         )
+        return [retailer_uuid]
 
     await _run_collection_job_under_lock(effective_id, f"collection: retailer {retailer_name}", _collect)
 
@@ -417,7 +459,7 @@ async def embed_all_pending(repo: DiscountedProductReadModelRepository) -> int:
 async def _taskiq_embed_discounted_products(
     request_id: str | None = None,
     collected_since: str | None = None,
-    retailer_uuid: str | None = None,
+    retailer_uuids: list[str] | None = None,
     lock_token: str | None = None,
 ) -> None:
     effective_id = request_id or f"gen-{uuid.uuid7()}"
@@ -430,26 +472,13 @@ async def _taskiq_embed_discounted_products(
             embedded_count = await embed_all_pending(repo)
             logger.info("Step 2 (embedding): SUCCESS | Embedded: [%s]", embedded_count)
 
-            # Publish the new set: now that it is fully embedded and searchable, drop the previous
-            # run's rows. Skipped for manual backfills (no ``collected_since``), which only fill in
-            # embeddings. When ``retailer_uuid`` is set (a single-retailer re-run) the swap is scoped
-            # to that retailer so other retailers' live rows — older than the cutoff but not
-            # re-collected — are left alone.
-            if collected_since is not None:
-                cutoff = dt.datetime.fromisoformat(collected_since)
-                uow = await container.get_unit_of_work_provider().provide()
-                async with uow:
-                    dp_repo = uow.discounted_product_repo
-                    if retailer_uuid is not None:
-                        deleted = await dp_repo.delete_older_than_by_retailer_and_return_deleted_count(
-                            date_limit=cutoff, retailer_uuid=UUID(retailer_uuid)
-                        )
-                    else:
-                        deleted = await dp_repo.delete_older_than_and_return_deleted_count(
-                            date_limit=cutoff
-                        )
-                    await uow.commit()
-                logger.info("Step 2 (publish): SUCCESS | removed [%s] row(s) from previous runs", deleted)
+            # Manual backfills (no ``collected_since``) only fill in embeddings; crawl runs publish.
+            if collected_since is not None and retailer_uuids:
+                await _publish_new_sets(
+                    container.get_unit_of_work_provider(),
+                    collected_since=dt.datetime.fromisoformat(collected_since),
+                    retailer_uuids=[UUID(retailer_uuid) for retailer_uuid in retailer_uuids],
+                )
         finally:
             # Release the global collection lock the step-1 job handed us — the crawl lifecycle is now
             # complete (or failed). Manual backfills run without a token, so nothing is released then.
@@ -457,17 +486,39 @@ async def _taskiq_embed_discounted_products(
                 await get_collection_lock().release(lock_token)
 
 
+async def _publish_new_sets(
+    unit_of_work_provider: IUnitOfWorkProvider, collected_since: dt.datetime, retailer_uuids: list[UUID]
+) -> None:
+    """Make the freshly embedded sets live by dropping these retailers' previous-run rows.
+
+    Runs in one transaction, so search never sees some retailers swapped and others not.
+    """
+    uow = await unit_of_work_provider.provide()
+    async with uow:
+        deleted = 0
+        for retailer_uuid in retailer_uuids:
+            deleted += await uow.discounted_product_repo.delete_older_than_by_retailer_and_return_deleted_count(
+                date_limit=collected_since, retailer_uuid=retailer_uuid
+            )
+        await uow.commit()
+    logger.info(
+        "Step 2 (publish): SUCCESS | removed [%s] previous-run row(s) across [%s] retailer(s)",
+        deleted,
+        len(retailer_uuids),
+    )
+
+
 @broker_.task(task_name="EmbedDiscountedProducts")
 async def taskiq_embed_discounted_products(
     request_id: str | None = None,
     collected_since: str | None = None,
-    retailer_uuid: str | None = None,
+    retailer_uuids: list[str] | None = None,
     lock_token: str | None = None,
 ) -> None:
     await _taskiq_embed_discounted_products(
         request_id=request_id,
         collected_since=collected_since,
-        retailer_uuid=retailer_uuid,
+        retailer_uuids=retailer_uuids,
         lock_token=lock_token,
     )
 

@@ -1,20 +1,17 @@
-"""Callback query handlers: search pagination and language selection."""
+"""Callback query handlers: pagination, category browse, language selection and the retailer filter."""
 
 from __future__ import annotations
 
 import contextlib
-import html
 import logging
-from uuid import UUID
+from typing import TYPE_CHECKING
 
 from aiogram import Router
 from aiogram.enums import ParseMode
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import CallbackQuery, Message
 
-from metax.frameworks_and_drivers.telegram_bot.handlers.commands import load_categories, send_product_page
 from metax.frameworks_and_drivers.telegram_bot.keyboards import (
-    PAGE_SIZE,
     CategoryBrowseCB,
     LanguageSelectCB,
     OpenCategoriesCB,
@@ -23,163 +20,92 @@ from metax.frameworks_and_drivers.telegram_bot.keyboards import (
     RetailerSelectCB,
     SearchNavCB,
     categories_keyboard,
-    category_nav_keyboard,
     retailer_filter_keyboard,
     retailer_selection_keyboard,
-    search_result_keyboard,
 )
-from metax.frameworks_and_drivers.telegram_bot.localization import (
-    get_user_language,
-    get_user_last_category,
-    get_user_last_query,
-    get_user_retailer_filter,
-    localized_category_name,
-    set_user_language,
-    set_user_last_category,
-    set_user_last_query,
-    set_user_retailer_filter,
-    t,
+from metax.frameworks_and_drivers.telegram_bot.localization import t
+from metax.frameworks_and_drivers.telegram_bot.queries import load_categories, load_retailers
+from metax.frameworks_and_drivers.telegram_bot.result_pages import (
+    ResultPage,
+    active_retailer_name,
+    build_active_view_page,
+    build_category_page,
+    build_search_page,
+    send_result_page,
 )
-from metax_bootstrap import METAX_LIFESPAN_MANAGER
+from metax.frameworks_and_drivers.telegram_bot.user_state import UserSession, session_for
+
+if TYPE_CHECKING:
+    from collections.abc import Awaitable
 
 logger = logging.getLogger(__name__)
 
 router = Router()
 
 
-async def _load_retailer_name(retailer_uuid: str | None) -> str | None:
-    if retailer_uuid is None:
-        return None
-    container = METAX_LIFESPAN_MANAGER.get_metax_container()
-    uow_provider = container.get_unit_of_work_provider()
-    uow = await uow_provider.provide()
-    async with uow:
-        retailer = await uow.retailer_repo.get_by_uuid(UUID(retailer_uuid))
-    return retailer.get_name()
+async def _show_next_page(message: Message, session: UserSession, build: Awaitable[ResultPage]) -> None:
+    """Show another page of the current result set below the previous one.
 
-
-async def _load_category_name(category_uuid: str, language_code: str) -> str:
-    """Load a category's name in the user's language, so the header isn't limited by callback size.
-
-    Returns:
-        The localized category name, falling back to the English name when no translation exists.
+    The previous page's keyboard is removed so only the newest page is navigable.
     """
-    container = METAX_LIFESPAN_MANAGER.get_metax_container()
-    uow_provider = container.get_unit_of_work_provider()
-    uow = await uow_provider.provide()
-    async with uow:
-        category = await uow.category_repo.get_by_uuid(UUID(category_uuid))
-    return localized_category_name(
-        category.get_name(), category.get_name_hy(), category.get_name_ru(), language_code
-    )
+    try:
+        page = await build
+    except Exception:
+        logger.exception("Loading a result page failed")
+        await message.edit_text(t(session.language, "search_error"))
+        return
+    if page.is_empty:
+        await message.answer(page.empty_text, parse_mode=ParseMode.HTML)
+        return
+    with contextlib.suppress(TelegramBadRequest):
+        await message.edit_reply_markup(reply_markup=None)
+    await send_result_page(message, page, session.language)
 
 
-async def _load_retailers() -> list[tuple[str, str]]:
-    container = METAX_LIFESPAN_MANAGER.get_metax_container()
-    uow_provider = container.get_unit_of_work_provider()
-    uow = await uow_provider.provide()
-    async with uow:
-        retailers = [r async for r in uow.retailer_repo.all()]
-    return [(str(retailer.get_uuid()), retailer.get_name()) for retailer in retailers]
+async def _show_intro_menu(message: Message, session: UserSession) -> None:
+    with contextlib.suppress(TelegramBadRequest):
+        await message.edit_text(
+            t(session.language, "intro"),
+            parse_mode=ParseMode.HTML,
+            reply_markup=retailer_filter_keyboard(
+                language_code=session.language, selected_retailer_name=await active_retailer_name(session)
+            ),
+        )
 
 
-async def _rerun_search_after_filter_change(callback: CallbackQuery, query: str, lang: str) -> None:
-    """Re-run the user's last search with the current retailer filter, replacing the menu with results."""
+async def _apply_retailer_filter(callback: CallbackQuery, retailer_uuid: str | None) -> None:
+    """Set (or clear) the retailer filter and re-show the user's active view with it applied.
+
+    The filter menu message is replaced by fresh results; with no active view yet, the intro menu is
+    shown instead (now reflecting the new filter).
+    """
     if not isinstance(callback.message, Message):
         return
-    retailer_uuid = get_user_retailer_filter(callback.from_user.id)
-    selected_retailer_name = await _load_retailer_name(retailer_uuid)
+    session = session_for(callback.from_user.id)
+    session.retailer_uuid = retailer_uuid
     try:
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        read_repo = await container.get_discounted_product_read_model_repository()
-        if retailer_uuid is None:
-            products, total = await read_repo.search_by_name(name=query, offset=0, limit=PAGE_SIZE)
-        else:
-            products, total = await read_repo.search_by_name_and_by_retailer_uuid(
-                name=query, retailer_uuid=retailer_uuid, offset=0, limit=PAGE_SIZE
-            )
+        page = await build_active_view_page(session)
     except Exception:
-        logger.exception("Filter re-run search failed for query %r", query)
-        await callback.message.edit_text(t(lang, "search_error"))
+        logger.exception("Re-running the active view after a filter change failed")
+        await callback.message.edit_text(t(session.language, "search_error"))
         return
-
-    # Drop the filter-menu message and post fresh results in its place.
+    if page is None:
+        await _show_intro_menu(callback.message, session)
+        return
     with contextlib.suppress(TelegramBadRequest):
         await callback.message.delete()
-
-    if not products:
-        await callback.message.answer(
-            t(lang, "search_empty", query=html.escape(query)), parse_mode=ParseMode.HTML
-        )
-        return
-
-    keyboard = search_result_keyboard(
-        query,
-        offset=0,
-        total=total,
-        language_code=lang,
-        selected_retailer_name=selected_retailer_name,
-    )
-    await send_product_page(
-        reply_target=callback.message,
-        products=products,
-        total=total,
-        offset=0,
-        header=f"🔍 <b>«{html.escape(query)}»</b>",
-        summary_label=t(lang, "results_found"),
-        page_label=t(lang, "page"),
-        image_unavailable=t(lang, "image_unavailable"),
-        keyboard=keyboard,
-        language_code=lang,
-    )
+    await send_result_page(callback.message, page, session.language)
 
 
-async def _rerun_category_after_filter_change(
-    callback: CallbackQuery, category_uuid: str, lang: str
-) -> None:
-    """Re-run the user's current category browse with the new retailer filter, replacing the menu."""
+@router.callback_query(SearchNavCB.filter())
+async def search_page_callback(callback: CallbackQuery, callback_data: SearchNavCB) -> None:
+    await callback.answer()
     if not isinstance(callback.message, Message):
         return
-    retailer_uuid = get_user_retailer_filter(callback.from_user.id)
-    selected_retailer_name = await _load_retailer_name(retailer_uuid)
-    try:
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        read_repo = await container.get_discounted_product_read_model_repository()
-        products, total = await read_repo.search_by_category_uuid(
-            category_uuid, offset=0, limit=PAGE_SIZE, retailer_uuid=retailer_uuid
-        )
-    except Exception:
-        logger.exception("Filter re-run category browse failed for %r", category_uuid)
-        await callback.message.edit_text(t(lang, "search_error"))
-        return
-
-    # Drop the filter-menu message and post fresh results in its place.
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.delete()
-
-    if not products:
-        await callback.message.answer(t(lang, "category_empty"))
-        return
-
-    category_name = await _load_category_name(category_uuid, lang)
-    keyboard = category_nav_keyboard(
-        category_uuid=category_uuid,
-        offset=0,
-        total=total,
-        language_code=lang,
-        selected_retailer_name=selected_retailer_name,
-    )
-    await send_product_page(
-        reply_target=callback.message,
-        products=products,
-        total=total,
-        offset=0,
-        header=f"🏷 <b>{html.escape(category_name)}</b>",
-        summary_label=t(lang, "results_found"),
-        page_label=t(lang, "page"),
-        image_unavailable=t(lang, "image_unavailable"),
-        keyboard=keyboard,
-        language_code=lang,
+    session = session_for(callback.from_user.id)
+    session.enter_search(callback_data.query)
+    await _show_next_page(
+        callback.message, session, build_search_page(session, callback_data.query, callback_data.offset)
     )
 
 
@@ -188,53 +114,11 @@ async def category_browse_callback(callback: CallbackQuery, callback_data: Categ
     await callback.answer()
     if not isinstance(callback.message, Message):
         return
-
-    lang = get_user_language(callback.from_user.id)
-    category_uuid = callback_data.category_uuid
-    offset = callback_data.offset
+    session = session_for(callback.from_user.id)
     # Mark category browse as the active view so a later retailer-filter change re-applies here.
-    set_user_last_category(callback.from_user.id, category_uuid)
-    retailer_uuid = get_user_retailer_filter(callback.from_user.id)
-    selected_retailer_name = await _load_retailer_name(retailer_uuid)
-    try:
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        read_repo = await container.get_discounted_product_read_model_repository()
-        # Products are returned most-confident-first (closest to the category prototype), narrowed to
-        # the active retailer filter when one is set.
-        products, total = await read_repo.search_by_category_uuid(
-            category_uuid, offset=offset, limit=PAGE_SIZE, retailer_uuid=retailer_uuid
-        )
-    except Exception:
-        logger.exception("Category browse failed for %r offset %d", category_uuid, offset)
-        await callback.message.edit_text(t(lang, "search_error"))
-        return
-
-    if not products:
-        await callback.message.answer(t(lang, "category_empty"))
-        return
-
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_reply_markup(reply_markup=None)
-
-    category_name = await _load_category_name(category_uuid, lang)
-    keyboard = category_nav_keyboard(
-        category_uuid=category_uuid,
-        offset=offset,
-        total=total,
-        language_code=lang,
-        selected_retailer_name=selected_retailer_name,
-    )
-    await send_product_page(
-        reply_target=callback.message,
-        products=products,
-        total=total,
-        offset=offset,
-        header=f"🏷 <b>{html.escape(category_name)}</b>",
-        summary_label=t(lang, "results_found"),
-        page_label=t(lang, "page"),
-        image_unavailable=t(lang, "image_unavailable"),
-        keyboard=keyboard,
-        language_code=lang,
+    session.enter_category(callback_data.category_uuid)
+    await _show_next_page(
+        callback.message, session, build_category_page(session, callback_data.category_uuid, callback_data.offset)
     )
 
 
@@ -243,17 +127,15 @@ async def open_categories_callback(callback: CallbackQuery) -> None:
     await callback.answer()
     if not isinstance(callback.message, Message):
         return
-
-    lang = get_user_language(callback.from_user.id)
+    lang = session_for(callback.from_user.id).language
     categories = await load_categories(lang)
-    if not categories:
-        with contextlib.suppress(TelegramBadRequest):
-            await callback.message.edit_text(t(lang, "categories_none"))
-        return
     with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_text(
-            t(lang, "categories_title"), reply_markup=categories_keyboard(categories)
-        )
+        if categories:
+            await callback.message.edit_text(
+                t(lang, "categories_title"), reply_markup=categories_keyboard(categories)
+            )
+        else:
+            await callback.message.edit_text(t(lang, "categories_none"))
 
 
 @router.callback_query(LanguageSelectCB.filter())
@@ -261,18 +143,9 @@ async def language_select_callback(callback: CallbackQuery, callback_data: Langu
     await callback.answer()
     if not isinstance(callback.message, Message):
         return
-
-    set_user_language(callback.from_user.id, callback_data.language_code)
-    selected_retailer_name = await _load_retailer_name(get_user_retailer_filter(callback.from_user.id))
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_text(
-            t(callback_data.language_code, "intro"),
-            parse_mode=ParseMode.HTML,
-            reply_markup=retailer_filter_keyboard(
-                language_code=callback_data.language_code,
-                selected_retailer_name=selected_retailer_name,
-            ),
-        )
+    session = session_for(callback.from_user.id)
+    session.set_language(callback_data.language_code)
+    await _show_intro_menu(callback.message, session)
 
 
 @router.callback_query(RetailerFilterMenuCB.filter())
@@ -280,16 +153,14 @@ async def retailer_filter_menu_callback(callback: CallbackQuery) -> None:
     await callback.answer()
     if not isinstance(callback.message, Message):
         return
-
-    lang = get_user_language(callback.from_user.id)
-    retailers = await _load_retailers()
-    selected_uuid = get_user_retailer_filter(callback.from_user.id)
+    session = session_for(callback.from_user.id)
+    retailers = await load_retailers()
     with contextlib.suppress(TelegramBadRequest):
         await callback.message.edit_text(
-            f"{t(lang, 'choose_retailer')}\n{t(lang, 'retailer_filter_hint')}",
+            f"{t(session.language, 'choose_retailer')}\n{t(session.language, 'retailer_filter_hint')}",
             parse_mode=ParseMode.HTML,
             reply_markup=retailer_selection_keyboard(
-                retailers, language_code=lang, selected_uuid=selected_uuid
+                retailers, language_code=session.language, selected_uuid=session.retailer_uuid
             ),
         )
 
@@ -297,102 +168,10 @@ async def retailer_filter_menu_callback(callback: CallbackQuery) -> None:
 @router.callback_query(RetailerSelectCB.filter())
 async def retailer_select_callback(callback: CallbackQuery, callback_data: RetailerSelectCB) -> None:
     await callback.answer()
-    if not isinstance(callback.message, Message):
-        return
-
-    set_user_retailer_filter(callback.from_user.id, callback_data.retailer_uuid)
-    lang = get_user_language(callback.from_user.id)
-    last_category = get_user_last_category(callback.from_user.id)
-    if last_category:
-        await _rerun_category_after_filter_change(callback, last_category, lang)
-        return
-    last_query = get_user_last_query(callback.from_user.id)
-    if last_query:
-        await _rerun_search_after_filter_change(callback, last_query, lang)
-        return
-    retailer_name = await _load_retailer_name(callback_data.retailer_uuid)
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_text(
-            t(lang, "intro"),
-            parse_mode=ParseMode.HTML,
-            reply_markup=retailer_filter_keyboard(language_code=lang, selected_retailer_name=retailer_name),
-        )
+    await _apply_retailer_filter(callback, callback_data.retailer_uuid)
 
 
 @router.callback_query(RetailerClearCB.filter())
 async def retailer_clear_callback(callback: CallbackQuery) -> None:
     await callback.answer()
-    if not isinstance(callback.message, Message):
-        return
-
-    set_user_retailer_filter(callback.from_user.id, None)
-    lang = get_user_language(callback.from_user.id)
-    last_category = get_user_last_category(callback.from_user.id)
-    if last_category:
-        await _rerun_category_after_filter_change(callback, last_category, lang)
-        return
-    last_query = get_user_last_query(callback.from_user.id)
-    if last_query:
-        await _rerun_search_after_filter_change(callback, last_query, lang)
-        return
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_text(
-            t(lang, "intro"),
-            parse_mode=ParseMode.HTML,
-            reply_markup=retailer_filter_keyboard(language_code=lang, selected_retailer_name=None),
-        )
-
-
-@router.callback_query(SearchNavCB.filter())
-async def search_page_callback(callback: CallbackQuery, callback_data: SearchNavCB) -> None:
-    await callback.answer()
-    if not isinstance(callback.message, Message):
-        return
-
-    lang = get_user_language(callback.from_user.id if callback.from_user else None)
-    query = callback_data.query
-    offset = callback_data.offset
-    if callback.from_user:
-        set_user_last_query(callback.from_user.id, query)
-
-    try:
-        container = METAX_LIFESPAN_MANAGER.get_metax_container()
-        read_repo = await container.get_discounted_product_read_model_repository()
-        retailer_uuid = get_user_retailer_filter(callback.from_user.id if callback.from_user else None)
-        selected_retailer_name = await _load_retailer_name(retailer_uuid)
-        if retailer_uuid is None:
-            products, total = await read_repo.search_by_name(name=query, offset=offset, limit=PAGE_SIZE)
-        else:
-            products, total = await read_repo.search_by_name_and_by_retailer_uuid(
-                name=query,
-                retailer_uuid=retailer_uuid,
-                offset=offset,
-                limit=PAGE_SIZE,
-            )
-    except Exception:
-        logger.exception("Paginated search failed for query %r offset %d", query, offset)
-        await callback.message.edit_text(t(lang, "search_error"))
-        return
-
-    with contextlib.suppress(TelegramBadRequest):
-        await callback.message.edit_reply_markup(reply_markup=None)
-
-    keyboard = search_result_keyboard(
-        query,
-        offset=offset,
-        total=total,
-        language_code=lang,
-        selected_retailer_name=selected_retailer_name,
-    )
-    await send_product_page(
-        reply_target=callback.message,
-        products=products,
-        total=total,
-        offset=offset,
-        header=f"🔍 <b>«{html.escape(query)}»</b>",
-        summary_label=t(lang, "results_found"),
-        page_label=t(lang, "page"),
-        image_unavailable=t(lang, "image_unavailable"),
-        keyboard=keyboard,
-        language_code=lang,
-    )
+    await _apply_retailer_filter(callback, None)

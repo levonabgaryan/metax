@@ -9,15 +9,23 @@ pgvector, all inside a single PostgreSQL database.
 | Component | Role |
 |-----------|------|
 | **PostgreSQL + pgvector** | The single data store for every environment. Holds entities (categories, retailers, discounted products) **and** the search index — a `vector(1024)` embedding column on `discounted_products` with an HNSW (cosine) index, plus a `pg_trgm` GIN index for the exact-match boost. |
-| **metax-embeddings** | sentence-transformers (PyTorch, CPU) service serving `Metric-AI/armenian-text-embeddings-2-large` (a multilingual E5 model fine-tuned for Armenian). Runs as a container; the model is downloaded on first boot. The same service also powers embedding-based category classification. |
+| **metax-embeddings** | sentence-transformers (PyTorch, CPU) service serving `Metric-AI/armenian-text-embeddings-2-large` (a multilingual E5 model fine-tuned for Armenian). Runs as a container; the model is downloaded on first boot. It can also power the (off by default) embedding fallback of category classification. |
 | **Redis** | Message broker / result backend for the Taskiq worker (not a data store). |
 | **metax (HTTP)** | Gunicorn/uvicorn Django ASGI app (JSON:API). Runs DB migrations on startup. |
-| **metax-taskiq** | Background worker: nightly crawl of retailers, optional embedding-based category classification, then embeds the newly collected products. |
+| **metax-taskiq** | Background worker: nightly crawl of retailers, keyword-based category classification, then embeds the newly collected products. |
 | **metax-telegram-bot** | Long-polling Telegram bot for end users (search + retailer/category filters). |
 | **fluent-bit** | Log shipping (prod only). |
 
-Search ranking: order by vector cosine distance, with a literal `ILIKE` boost so exact
-brand/SKU queries surface their exact matches first.
+Categorization: each category has curated **keywords** (Django admin → Categories). A product whose
+name — the part before the «brand» — contains a keyword gets that category with full confidence; the
+longest matching phrase wins, and a keyword may belong to one category only. Products no keyword
+matches stay uncategorised (an optional embedding fallback exists, `CATEGORY_EMBEDDING_FALLBACK`, but
+is off because it was right only about half the time). After editing keywords, re-apply them to
+current products with `python scripts/reclassify_categories.py --dry-run`, then without `--dry-run`.
+
+Search ranking: whole-word lexical matches first (on the name and its Latin transliteration, so
+`karag` finds `կարագ`), then semantic neighbours by cosine distance within a relevance ceiling.
+Retailer and category filters can be combined with any search.
 
 ## Environments
 

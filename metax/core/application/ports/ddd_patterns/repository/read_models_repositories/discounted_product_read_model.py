@@ -4,6 +4,9 @@ from metax.core.application.read_models.discounted_product import (
     DiscountedProductReadModel,
 )
 
+# One page of results plus the total match count across all pages (for pagination).
+type ReadModelPage = tuple[list[DiscountedProductReadModel], int]
+
 
 class DiscountedProductReadModelRepository(ABC):
     """Read side of search (CQRS): queries the ``discounted_products`` table directly.
@@ -35,43 +38,34 @@ class DiscountedProductReadModelRepository(ABC):
         self,
         name: str,
         *,
+        retailer_uuid: str | None = None,
+        category_uuid: str | None = None,
         offset: int = 0,
         limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        pass
+    ) -> ReadModelPage:
+        """Rank products by relevance to ``name`` (lexical matches first, then semantic neighbours).
 
-    @abstractmethod
-    async def search_by_name_and_by_retailer_uuid(
-        self,
-        name: str,
-        retailer_uuid: str,
-        offset: int = 0,
-        limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        pass
+        ``retailer_uuid`` / ``category_uuid`` optionally narrow the results; they can be combined.
 
-    @abstractmethod
-    async def search_by_name_and_by_category_uuid(
-        self,
-        name: str,
-        category_uuid: str,
-        offset: int = 0,
-        limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        pass
+        Returns:
+            One page of matches and the total number of matches across all pages.
+        """
 
     @abstractmethod
     async def search_by_category_uuid(
         self,
         category_uuid: str,
+        *,
+        retailer_uuid: str | None = None,
         offset: int = 0,
         limit: int = 50,
-        retailer_uuid: str | None = None,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        """Return all products in a category, sorted by discounted price ascending.
+    ) -> ReadModelPage:
+        """Browse a category, most confidently classified products first.
 
-        When ``retailer_uuid`` is given, results are additionally restricted to that retailer, so a
-        category browse can be filtered by store.
+        ``retailer_uuid`` optionally narrows the browse to a single store.
+
+        Returns:
+            One page of the category's products and the category's total product count.
         """
 
     @abstractmethod

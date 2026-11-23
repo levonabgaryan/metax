@@ -81,6 +81,11 @@ class DiscountedProduct(AggregateRootEntity):
         self.__category_distance = distance
         self._touch()
 
+    def clear_category(self) -> None:
+        self.__category_uuid_value_object = None
+        self.__category_distance = None
+        self._touch()
+
     def set_name(self, name: str) -> None:
         self.__name = name
         self._touch()

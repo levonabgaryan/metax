@@ -52,8 +52,7 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
             """
             cursor: CursorWrapper
             with connection.cursor() as cursor:
-                cursor.execute(delete_query, [date_limit])
-
+                cursor.execute(delete_query, [_date_limit])
                 return int(cursor.rowcount)
 
         return await sync_to_async(_sync_version)(date_limit)
@@ -141,6 +140,22 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
         return await sync_to_async(_sync_version)(date_limit, retailer_uuid)
 
     @override
+    async def delete_created_since_by_retailer_and_return_deleted_count(
+        self, date_limit: dt.datetime, retailer_uuid: UUID
+    ) -> int:
+        def _sync_version(_date_limit: dt.datetime, _retailer_uuid: UUID) -> int:
+            delete_query = """
+                DELETE FROM discounted_products
+                WHERE created_at >= %s AND retailer_uuid = %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.execute(delete_query, [_date_limit, _retailer_uuid])
+                return int(cursor.rowcount)
+
+        return await sync_to_async(_sync_version)(date_limit, retailer_uuid)
+
+    @override
     async def delete_by_retailer_uuid_and_return_deleted_count(self, retailer_uuid: UUID) -> int:
         def _sync_version(_retailer_uuid: UUID) -> int:
             delete_query = """
@@ -153,6 +168,30 @@ class DjangoPostgresqlDiscountedProductRepository(DiscountedProductRepository):
                 return int(cursor.rowcount)
 
         return await sync_to_async(_sync_version)(retailer_uuid)
+
+    @override
+    async def update_category_assignments(self, discounted_products: list[DiscountedProduct]) -> None:
+        def _sync_version(_discounted_products: list[DiscountedProduct]) -> None:
+            update_query = """
+                UPDATE discounted_products
+                SET category_uuid = %s, category_distance = %s
+                WHERE uuid = %s
+            """
+            cursor: CursorWrapper
+            with connection.cursor() as cursor:
+                cursor.executemany(
+                    update_query,
+                    [
+                        (
+                            product.get_category_uuid() if product.has_category() else None,
+                            product.get_category_distance(),
+                            product.get_uuid(),
+                        )
+                        for product in _discounted_products
+                    ],
+                )
+
+        await sync_to_async(_sync_version)(discounted_products)
 
     @override
     async def delete_category_by_uuid(self, category_uuid: UUID) -> int:

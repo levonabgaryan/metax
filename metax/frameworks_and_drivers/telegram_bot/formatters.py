@@ -9,22 +9,13 @@ from metax.frameworks_and_drivers.telegram_bot.localization import (
     DEFAULT_LANGUAGE,
     localized_category_name,
     retailer_display_name,
+    t,
 )
 
 _MAX_NAME_LEN = 80
 
 
-def get_first_image_url(products: list[DiscountedProductReadModel]) -> str | None:
-    for p in products:
-        url = p.get("image_url")
-        if url:
-            return url
-    return None
-
-
-def format_product(
-    product: DiscountedProductReadModel, index: int, language_code: str = DEFAULT_LANGUAGE
-) -> str:
+def format_product(product: DiscountedProductReadModel, index: int, language_code: str = DEFAULT_LANGUAGE) -> str:
     name = html.escape(product["name"][:_MAX_NAME_LEN])
     real_price = product["real_price"]
     discounted_price = product["discounted_price"]
@@ -45,5 +36,5 @@ def format_product(
         f"<b>{index}. {name}</b>\n"
         f"   💸 <s>{real_price:,.0f}</s> → <b>{discounted_price:,.0f} ֏</b> <i>(-{discount_pct}%)</i>\n"
         f"   🏪 {retailer}{cat_line}\n"
-        f'   <a href="{html.escape(url)}">Открыть →</a>'
+        f'   <a href="{html.escape(url)}">{t(language_code, "open_link")}</a>'
     )

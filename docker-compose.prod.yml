@@ -38,9 +38,10 @@ x-metax-env: &metax-env
   EMBEDDING_DIM: ${EMBEDDING_DIM}
   EMBEDDING_CONCURRENCY: ${EMBEDDING_CONCURRENCY}
   EMBEDDING_TIMEOUT: ${EMBEDDING_TIMEOUT}
-  # Embedding-based category classification during crawling.
-  CATEGORY_CLASSIFICATION_ENABLED: ${CATEGORY_CLASSIFICATION_ENABLED}
+  # Category classification during crawling (keywords first, then the embedding fallback's gates).
+  CATEGORY_EMBEDDING_FALLBACK: ${CATEGORY_EMBEDDING_FALLBACK}
   CATEGORY_MATCH_MAX_DISTANCE: ${CATEGORY_MATCH_MAX_DISTANCE}
+  CATEGORY_MATCH_MIN_MARGIN: ${CATEGORY_MATCH_MIN_MARGIN}
   # Embed newly collected products for search right after a crawl.
   EMBED_AFTER_COLLECT: ${EMBED_AFTER_COLLECT}
   # Telegram bot (only consumed by the metax-telegram-bot service).

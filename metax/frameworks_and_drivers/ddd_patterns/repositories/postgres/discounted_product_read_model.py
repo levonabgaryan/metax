@@ -20,6 +20,7 @@ from django.db.backends.utils import CursorWrapper
 
 from metax.core.application.ports.ddd_patterns.repository.read_models_repositories.discounted_product_read_model import (  # noqa: E501
     DiscountedProductReadModelRepository,
+    ReadModelPage,
 )
 from metax.core.application.ports.ddd_patterns.service.embedding_service import EmbeddingService
 from metax.core.application.read_models.discounted_product import (
@@ -66,6 +67,7 @@ _READ_MODEL_COLUMNS = """
     r.uuid, r.created_at, r.updated_at, r.name, r.home_page_url, r.phone_number,
     c.uuid, c.created_at, c.updated_at, c.name, c.name_hy, c.name_ru
 """
+_READ_MODEL_COLUMN_COUNT = 20
 
 _READ_MODEL_JOINS = """
     FROM discounted_products dp
@@ -83,6 +85,33 @@ _SEARCH_ORDER_BY = """
                   ELSE 0 END DESC,
              dp.uuid ASC
 """
+
+
+# Expressions shared by the search SELECT list and its WHERE gate (named parameters, so the two
+# uses stay in sync without a hand-maintained positional parameter list).
+_EXACT_MATCH_SQL = "(dp.name ~* %(word_pattern)s OR COALESCE(dp.name_translit ~* %(translit_pattern)s, FALSE))"
+_DISTANCE_SQL = "(dp.name_embedding <=> %(vector)s::vector)"
+
+# Optional narrowing filters: a NULL parameter disables its filter.
+_RETAILER_FILTER_SQL = "(%(retailer_uuid)s::uuid IS NULL OR dp.retailer_uuid = %(retailer_uuid)s::uuid)"
+_CATEGORY_FILTER_SQL = "(%(category_uuid)s::uuid IS NULL OR dp.category_uuid = %(category_uuid)s::uuid)"
+
+
+def _fetch_all(query: str, params: dict[str, Any]) -> list[tuple[Any, ...]]:
+    cursor: CursorWrapper
+    with connection.cursor() as cursor:
+        cursor.execute(query, params)
+        rows: list[tuple[Any, ...]] = cursor.fetchall()
+    return rows
+
+
+def _total_count(rows: list[tuple[Any, ...]]) -> int:
+    """Read the ``COUNT(*) OVER()`` window value, carried as the last column of every row.
+
+    Returns:
+        The total number of matches across all pages (``0`` when the page is empty).
+    """
+    return int(rows[0][-1]) if rows else 0
 
 
 def _confidence_from_distance(distance: float | None) -> float:
@@ -172,45 +201,26 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         self,
         name: str,
         *,
+        retailer_uuid: str | None = None,
+        category_uuid: str | None = None,
         offset: int = 0,
         limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
+    ) -> ReadModelPage:
         query_vector = await self.__embedding_service.embed_query(name)
-        return await sync_to_async(self.__search_sync)(name, query_vector, offset, limit, None, None)
-
-    @override
-    async def search_by_name_and_by_retailer_uuid(
-        self,
-        name: str,
-        retailer_uuid: str,
-        offset: int = 0,
-        limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        query_vector = await self.__embedding_service.embed_query(name)
-        return await sync_to_async(self.__search_sync)(name, query_vector, offset, limit, retailer_uuid, None)
-
-    @override
-    async def search_by_name_and_by_category_uuid(
-        self,
-        name: str,
-        category_uuid: str,
-        offset: int = 0,
-        limit: int = 50,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        query_vector = await self.__embedding_service.embed_query(name)
-        return await sync_to_async(self.__search_sync)(name, query_vector, offset, limit, None, category_uuid)
+        return await sync_to_async(self.__search_sync)(
+            name, query_vector, retailer_uuid, category_uuid, offset, limit
+        )
 
     @override
     async def search_by_category_uuid(
         self,
         category_uuid: str,
+        *,
+        retailer_uuid: str | None = None,
         offset: int = 0,
         limit: int = 50,
-        retailer_uuid: str | None = None,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        return await sync_to_async(self.__search_by_category_sync)(
-            category_uuid, offset, limit, retailer_uuid
-        )
+    ) -> ReadModelPage:
+        return await sync_to_async(self.__search_by_category_sync)(category_uuid, retailer_uuid, offset, limit)
 
     @override
     async def get_by_uuid(self, uuid_: str) -> DiscountedProductReadModel:
@@ -220,97 +230,78 @@ class PostgresDiscountedProductReadModelRepository(DiscountedProductReadModelRep
         self,
         name: str,
         query_vector: list[float],
-        offset: int,
-        limit: int,
         retailer_uuid: str | None,
         category_uuid: str | None,
-    ) -> tuple[list[DiscountedProductReadModel], int]:
-        vector = _vector_literal(query_vector)
-        word_pattern = _word_match_pattern(name)
-        # Cross-script phonetic match: a Latin query ("karag") matches the transliterated Armenian
-        # name ("կարագ" -> "karag"), and an Armenian query transliterates to the same key.
-        translit_pattern = _word_match_pattern(transliterate_armenian_to_latin(name))
-        # Param order must match the %s placeholders top-to-bottom: SELECT exact_match
-        # (word_pattern, translit_pattern), SELECT distance (vector), WHERE (word_pattern,
-        # translit_pattern, vector), optional filters, then LIMIT/OFFSET.
-        params: list[Any] = [word_pattern, translit_pattern, vector, word_pattern, translit_pattern, vector]
-        filters = ""
-        if retailer_uuid is not None:
-            filters += " AND dp.retailer_uuid = %s"
-            params.append(retailer_uuid)
-        if category_uuid is not None:
-            filters += " AND dp.category_uuid = %s"
-            params.append(category_uuid)
-        params.extend([limit, offset])
-
+        offset: int,
+        limit: int,
+    ) -> ReadModelPage:
+        params: dict[str, Any] = {
+            "word_pattern": _word_match_pattern(name),
+            # Cross-script phonetic match: a Latin query ("karag") matches the transliterated
+            # Armenian name ("կարագ" -> "karag"), and an Armenian query transliterates to the same key.
+            "translit_pattern": _word_match_pattern(transliterate_armenian_to_latin(name)),
+            "vector": _vector_literal(query_vector),
+            "max_distance": _MAX_COSINE_DISTANCE,
+            "retailer_uuid": retailer_uuid,
+            "category_uuid": category_uuid,
+            "limit": limit,
+            "offset": offset,
+        }
         select_query = f"""
             SELECT
                 {_READ_MODEL_COLUMNS},
-                (dp.name ~* %s OR COALESCE(dp.name_translit ~* %s, FALSE)) AS exact_match,
-                (dp.name_embedding <=> %s::vector) AS distance,
+                {_EXACT_MATCH_SQL} AS exact_match,
+                {_DISTANCE_SQL} AS distance,
                 COUNT(*) OVER() AS total_count
             {_READ_MODEL_JOINS}
             WHERE dp.name_embedding IS NOT NULL
-              AND (
-                    dp.name ~* %s
-                    OR COALESCE(dp.name_translit ~* %s, FALSE)
-                    OR (dp.name_embedding <=> %s::vector) <= {_MAX_COSINE_DISTANCE}
-                  )
-              {filters}
+              AND ({_EXACT_MATCH_SQL} OR {_DISTANCE_SQL} <= %(max_distance)s)
+              AND {_RETAILER_FILTER_SQL}
+              AND {_CATEGORY_FILTER_SQL}
             {_SEARCH_ORDER_BY}
-            LIMIT %s OFFSET %s
+            LIMIT %(limit)s OFFSET %(offset)s
         """
-        cursor: CursorWrapper
-        with connection.cursor() as cursor:
-            cursor.execute(select_query, params)
-            rows = cursor.fetchall()
-        if not rows:
-            return [], 0
-        total = int(rows[0][-1])
-        # Column layout: read-model columns (0..19), exact_match (20), distance (21), total (22).
+        rows = _fetch_all(select_query, params)
+        # Trailing columns after the read model: exact_match, distance, total_count.
         items: list[DiscountedProductReadModel] = []
         for row in rows:
             item = _row_to_read_model(row)
-            item["match_confidence"] = _confidence_from_distance(row[21])
+            item["match_confidence"] = _confidence_from_distance(row[_READ_MODEL_COLUMN_COUNT + 1])
             items.append(item)
-        return items, total
+        return items, _total_count(rows)
 
     def __search_by_category_sync(
-        self, category_uuid: str, offset: int, limit: int, retailer_uuid: str | None
-    ) -> tuple[list[DiscountedProductReadModel], int]:
+        self, category_uuid: str, retailer_uuid: str | None, offset: int, limit: int
+    ) -> ReadModelPage:
+        params: dict[str, Any] = {
+            "category_uuid": category_uuid,
+            "retailer_uuid": retailer_uuid,
+            "limit": limit,
+            "offset": offset,
+        }
         # Most-confident matches first (smallest distance to the category prototype), with NULLs
         # last so any legacy uncategorised-distance rows sink; then cheapest, then a stable tie-break.
-        params: list[Any] = [category_uuid]
-        retailer_filter = ""
-        if retailer_uuid is not None:
-            retailer_filter = " AND dp.retailer_uuid = %s"
-            params.append(retailer_uuid)
-        params.extend([limit, offset])
         select_query = f"""
             SELECT
                 {_READ_MODEL_COLUMNS},
                 dp.category_distance,
                 COUNT(*) OVER() AS total_count
             {_READ_MODEL_JOINS}
-            WHERE dp.category_uuid = %s{retailer_filter}
+            WHERE dp.category_uuid = %(category_uuid)s::uuid
+              AND {_RETAILER_FILTER_SQL}
             ORDER BY dp.category_distance ASC NULLS LAST, dp.discounted_price ASC, dp.uuid ASC
-            LIMIT %s OFFSET %s
+            LIMIT %(limit)s OFFSET %(offset)s
         """
-        cursor: CursorWrapper
-        with connection.cursor() as cursor:
-            cursor.execute(select_query, params)
-            rows = cursor.fetchall()
-        if not rows:
-            return [], 0
-        total = int(rows[0][-1])
-        # Column layout: read-model columns (0..19), category_distance (20), total (21).
+        rows = _fetch_all(select_query, params)
+        # Trailing columns after the read model: category_distance, total_count.
         items: list[DiscountedProductReadModel] = []
         for row in rows:
             item = _row_to_read_model(row)
-            if row[20] is not None:
-                item["category_confidence"] = _confidence_from_distance(row[20])
+            category_distance = row[_READ_MODEL_COLUMN_COUNT]
+            if category_distance is not None:
+                item["category_confidence"] = _confidence_from_distance(category_distance)
             items.append(item)
-        return items, total
+        return items, _total_count(rows)
 
     def __get_by_uuid_sync(self, uuid_: str) -> DiscountedProductReadModel:
         select_query = f"""

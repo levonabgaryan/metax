@@ -1,6 +1,5 @@
 import datetime as dt
-from dataclasses import dataclass, field
-from typing import Annotated
+from dataclasses import dataclass
 from uuid import UUID
 
 from metax.core.application.base_dtos.base_dtos import RequestDTO, ResponseDTO
@@ -11,7 +10,7 @@ class CreateRetailerRequestDTO(RequestDTO):
     name: str
     home_page_url: str
     phone_number: str
-    default_category_uuid: Annotated[UUID | None, field(default=None)]
+    default_category_uuid: UUID | None = None
 
 
 @dataclass(frozen=True)
@@ -27,13 +26,13 @@ class CreateRetailerResponseDTO(ResponseDTO):
 @dataclass(frozen=True)
 class UpdateRetailerRequestDTO(RequestDTO):
     retailer_uuid: UUID
-    new_name: Annotated[str | None, field(default=None)]
-    new_home_page_url: Annotated[str | None, field(default=None)]
-    new_phone_number: Annotated[str | None, field(default=None)]
+    new_name: str | None = None
+    new_home_page_url: str | None = None
+    new_phone_number: str | None = None
     # Unlike the other fields, ``None`` here is a real value ("no fixed category"), not "leave
     # unchanged": ``set_default_category`` toggles whether the request applies it (see the service).
-    new_default_category_uuid: Annotated[UUID | None, field(default=None)]
-    set_default_category: Annotated[bool, field(default=False)]
+    new_default_category_uuid: UUID | None = None
+    set_default_category: bool = False
 
 
 @dataclass(frozen=True)

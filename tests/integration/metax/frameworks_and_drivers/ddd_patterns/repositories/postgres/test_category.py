@@ -215,3 +215,62 @@ async def test_category_repo_update_duplicate_name_raises_entity_already_exists(
     assert err.value.error_code == ErrorCodes.ENTITY_ALREADY_EXISTS
     assert err.value.title == "category already exists."
     assert err.value.details == "An existing category was found by 'name' = 'category-a-unique'."
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_category_repo_loads_keywords_and_update_does_not_clobber_them(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+) -> None:
+    # given: keywords are curated in the admin, outside the entity-update path
+    unit_of_work = metax_lifespan_manager_for_tests.get_metax_container().get_unit_of_work()
+    category = make_category_entity()
+    category.set_keywords(["պանիր", "միցելային ջուր"])
+    async with unit_of_work as uow:
+        await uow.category_repo.add(category)
+        await uow.commit()
+
+    # when: the name is updated through the domain service path
+    category.set_name("renamed")
+    async with unit_of_work as uow:
+        await uow.category_repo.update(updated_category=category)
+        await uow.commit()
+
+    # then
+    loaded = await unit_of_work.category_repo.get_by_uuid(category.get_uuid())
+    assert loaded.get_keywords() == ["պանիր", "միցելային ջուր"]
+    assert [
+        c.get_keywords() for c in await unit_of_work.category_repo.all() if c.get_uuid() == category.get_uuid()
+    ] == [["պանիր", "միցելային ջուր"]]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_admin_form_rejects_a_keyword_owned_by_another_category() -> None:
+    from django_framework.metax.admin.category import CategoryAdminForm
+    from django_framework.metax.models import CategoryModel
+
+    # given
+    CategoryModel.objects.create(uuid=uuid7(), name="Groceries", keywords="պանիր\nկաթ")
+
+    # when: another category claims «Պանիր» (case and spacing don't matter)
+    form = CategoryAdminForm(
+        data={"name": "Dairy", "name_hy": "", "name_ru": "", "examples": "", "keywords": " Պանիր\nմածուն"}
+    )
+
+    # then
+    assert not form.is_valid()
+    assert "պանիր" in form.errors["keywords"][0]
+    assert "Groceries" in form.errors["keywords"][0]
+
+
+@pytest.mark.django_db(transaction=True)
+def test_admin_form_accepts_unique_keywords() -> None:
+    from django_framework.metax.admin.category import CategoryAdminForm
+    from django_framework.metax.models import CategoryModel
+
+    CategoryModel.objects.create(uuid=uuid7(), name="Groceries", keywords="պանիր")
+    form = CategoryAdminForm(
+        data={"name": "Drinks", "name_hy": "", "name_ru": "", "examples": "", "keywords": "ջուր"}
+    )
+
+    assert form.is_valid(), form.errors
