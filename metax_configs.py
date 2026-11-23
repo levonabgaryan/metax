@@ -134,6 +134,14 @@ class DevConfigs(BaseConfigs):
 
     embedding_host: str = "http://localhost:8082"
 
+    # The one secret dev needs from ``.env``: every process (bot, taskiq worker sending the crawl
+    # digest, HTTP server) must see the same token. An exported ``TELEGRAM_BOT_TOKEN`` still wins.
+    # Without this the worker had no token in dev and silently skipped the crawl digest.
+    telegram_bot_token: Annotated[
+        str | None,
+        Field(alias="TELEGRAM_BOT_TOKEN", default_factory=lambda: _read_dotenv_value("TELEGRAM_BOT_TOKEN")),
+    ]
+
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
 
@@ -191,22 +199,31 @@ class ProdConfigs(BaseConfigs):
     model_config = SettingsConfigDict(env_file=None, extra="ignore", env_ignore_empty=True)
 
 
-def _read_env_name_from_dotenv() -> str | None:
-    """Peek at ``.env`` for ``ENV`` without polluting ``os.environ``.
-
-    Allows ``ENV=dev`` in ``.env`` to drive environment selection while keeping
-    ``DevConfigs`` independent of any other ``.env`` values.
+def _read_dotenv_value(key: str) -> str | None:
+    """Peek at one key of ``.env`` without loading the file into ``os.environ``.
 
     Returns:
-        The value of ``ENV`` defined in ``.env``, or ``None`` if the file does
-        not exist or does not declare ``ENV``.
+        The key's non-empty value, or ``None`` if ``.env`` is missing or does not define it.
     """
     env_file = Path(__file__).resolve().parent / ".env"
     if not env_file.exists():
         return None
     from dotenv import dotenv_values
 
-    return dotenv_values(str(env_file)).get("ENV")
+    return dotenv_values(str(env_file)).get(key) or None
+
+
+def _read_env_name_from_dotenv() -> str | None:
+    """Peek at ``.env`` for ``ENV`` without polluting ``os.environ``.
+
+    Allows ``ENV=dev`` in ``.env`` to drive environment selection while keeping
+    ``DevConfigs`` independent of other ``.env`` values (except the bot token, see ``DevConfigs``).
+
+    Returns:
+        The value of ``ENV`` defined in ``.env``, or ``None`` if the file does
+        not exist or does not declare ``ENV``.
+    """
+    return _read_dotenv_value("ENV")
 
 
 def configuration_factory() -> BaseConfigs:
