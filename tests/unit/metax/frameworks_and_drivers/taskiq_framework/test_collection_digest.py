@@ -50,6 +50,18 @@ def test_collector_error_is_distinct_from_zero() -> None:
     assert "prev 383" in line
 
 
+def test_failed_crawler_shows_reason_and_that_previous_rows_were_kept() -> None:
+    line = _digest(
+        RetailerCrawlOutcome(name="sas-am", previous=1234, extracted=None, failure="0 products collected")
+    )
+    assert "❌ <b>sas-am</b> — collector failed: 0 products collected (prev 1,234, not deleted)" in line
+
+
+def test_failure_reason_is_html_escaped() -> None:
+    line = _digest(RetailerCrawlOutcome(name="sas-am", previous=1, extracted=None, failure="bad <tag>"))
+    assert "bad &lt;tag&gt;" in line
+
+
 def test_first_run_has_no_baseline_to_compare() -> None:
     line = _digest(RetailerCrawlOutcome(name="newshop-am", previous=0, extracted=40))
     assert "🆕" in line

@@ -4,6 +4,7 @@ import asyncio
 import datetime as dt
 from collections.abc import AsyncIterator
 from decimal import Decimal
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -17,7 +18,12 @@ from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_colle
 from metax.frameworks_and_drivers.ddd_patterns.services.discounted_product_collector_services.yerevan_city import (
     YerevanCityCollectorService,
 )
-from metax.frameworks_and_drivers.taskiq_framework.tasks import collect_discounted_products_from_all_retailers
+from metax.frameworks_and_drivers.taskiq_framework import tasks
+from metax.frameworks_and_drivers.taskiq_framework.errors import NothingCollectedError
+from metax.frameworks_and_drivers.taskiq_framework.tasks import (
+    collect_discounted_products_for_retailer,
+    collect_discounted_products_from_all_retailers,
+)
 from metax_lifespan import MetaxAppLifespanManager
 from tests.utils import make_discounted_product_entity, make_retailer_entity
 
@@ -151,3 +157,98 @@ async def test_failed_retailer_keeps_previous_set_and_is_left_out_of_publish(
         remaining = [product async for product in uow.discounted_product_repo.all()]
     broken_rows = [product for product in remaining if product.get_retailer_uuid() == broken.get_uuid()]
     assert [product.get_uuid() for product in broken_rows] == [broken_previous.get_uuid()]
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_empty_crawl_is_a_failure_that_keeps_previous_rows_and_is_reported(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # given: SAS has yesterday's rows; today its collector swallows a request error and yields nothing
+    metax_container = metax_lifespan_manager_for_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
+    started_time = dt.datetime.now(tz=dt.UTC)
+    healthy = make_retailer_entity(name=RetailersNames.YEREVAN_CITY)
+    empty = make_retailer_entity(name=RetailersNames.SAS_AM)
+    yesterday = make_discounted_product_entity(
+        retailer_uuid=empty.get_uuid(), created_at=started_time - dt.timedelta(days=1)
+    )
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(healthy)
+        await uow.retailer_repo.add(empty)
+        await uow.discounted_product_repo.add_many([yesterday])
+        await uow.commit()
+
+    async def healthy_collect(
+        self: YerevanCityCollectorService,  # noqa: ARG001
+        start_date_of_collecting: dt.datetime,
+    ) -> AsyncIterator[DiscountedProduct]:
+        yield make_discounted_product_entity(retailer_uuid=healthy.get_uuid(), created_at=start_date_of_collecting)
+        await asyncio.sleep(0)
+
+    async def empty_collect(
+        self: SasAmCollectorService,  # noqa: ARG001
+        start_date_of_collecting: dt.datetime,  # noqa: ARG001
+    ) -> AsyncIterator[DiscountedProduct]:
+        await asyncio.sleep(0)
+        return
+        yield  # an async generator that yields nothing
+
+    monkeypatch.setattr(YerevanCityCollectorService, "collect", healthy_collect)
+    monkeypatch.setattr(SasAmCollectorService, "collect", empty_collect)
+    notify = AsyncMock()
+    monkeypatch.setattr(tasks, "send_admin_notification", notify)
+
+    # when
+    collected = await collect_discounted_products_from_all_retailers(
+        unit_of_work_provider=metax_container.get_unit_of_work_provider(),
+        event_bus=await metax_container.get_event_bus(),
+        start_date_of_collecting=started_time,
+    )
+
+    # then: SAS is not published (so yesterday's rows are not deleted) and the digest says it failed
+    assert collected == [healthy.get_uuid()]
+    async with unit_of_work as uow:
+        remaining = [product async for product in uow.discounted_product_repo.all()]
+    assert yesterday.get_uuid() in {product.get_uuid() for product in remaining}
+    digest = notify.await_args.args[0]
+    assert "❌ <b>sas-am</b> — collector failed: 0 products collected (prev 1, not deleted)" in digest
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_manual_empty_crawl_fails_the_job_and_reports_it(
+    metax_lifespan_manager_for_tests: MetaxAppLifespanManager,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # given
+    metax_container = metax_lifespan_manager_for_tests.get_metax_container()
+    unit_of_work = metax_container.get_unit_of_work()
+    retailer = make_retailer_entity(name=RetailersNames.SAS_AM)
+    async with unit_of_work as uow:
+        await uow.retailer_repo.add(retailer)
+        await uow.commit()
+
+    async def empty_collect(
+        self: SasAmCollectorService,  # noqa: ARG001
+        start_date_of_collecting: dt.datetime,  # noqa: ARG001
+    ) -> AsyncIterator[DiscountedProduct]:
+        await asyncio.sleep(0)
+        return
+        yield
+
+    monkeypatch.setattr(SasAmCollectorService, "collect", empty_collect)
+    notify = AsyncMock()
+    monkeypatch.setattr(tasks, "send_admin_notification", notify)
+
+    # when / then: the job fails (so admin marks it FAILED and step 2 never publishes)...
+    with pytest.raises(NothingCollectedError):
+        await collect_discounted_products_for_retailer(
+            unit_of_work_provider=metax_container.get_unit_of_work_provider(),
+            event_bus=await metax_container.get_event_bus(),
+            retailer_name=RetailersNames.SAS_AM,
+            start_date_of_collecting=dt.datetime.now(tz=dt.UTC),
+        )
+    # ...and the operator is still told why
+    assert "collector failed: 0 products collected" in notify.await_args.args[0]

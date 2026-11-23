@@ -37,15 +37,16 @@ class ProductSample:
 class RetailerCrawlOutcome:
     """One retailer's result from a crawl run.
 
-    ``extracted`` is ``None`` when the collector raised (the crawl failed for that retailer), which is
-    reported distinctly from a collector that ran fine but returned zero products. ``sample`` is one
-    arbitrary product from this run (``None`` when nothing was collected).
+    ``extracted`` is ``None`` when the crawl failed for that retailer (its collector raised, or
+    returned no products at all); ``failure`` then says why. A failed retailer's existing rows are not
+    deleted. ``sample`` is one arbitrary product from this run (``None`` when nothing was collected).
     """
 
     name: str
     previous: int
     extracted: int | None
     sample: ProductSample | None = None
+    failure: str | None = None
 
 
 def _classify(extracted: int | None, previous: int) -> tuple[str, str]:
@@ -77,8 +78,9 @@ def format_crawl_digest(
     for outcome in outcomes:
         name = escape(outcome.name)
         if outcome.extracted is None:
-            # Collector raised — reported distinctly from a clean run that returned zero.
-            lines.append(f"❌ <b>{name}</b> — collector failed (prev {outcome.previous:,})")
+            # Crawl failed: nothing was replaced, so the previous rows are still there.
+            reason = f": {escape(outcome.failure)}" if outcome.failure else ""
+            lines.append(f"❌ <b>{name}</b> — collector failed{reason} (prev {outcome.previous:,}, not deleted)")
             continue
         glyph, note = _classify(outcome.extracted, outcome.previous)
         lines.append(

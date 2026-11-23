@@ -13,3 +13,19 @@ class NoRetailersError(MetaxError):
             error_code=ErrorCodes.NO_RETAILERS,
             details=details,
         )
+
+
+class NothingCollectedError(MetaxError):
+    """Raised when a retailer's collector finishes without a single product.
+
+    Collectors swallow request errors (a down or blocking site ends the crawl quietly), so "0 products"
+    almost always means the crawl broke, not that the store has no discounts. Raising turns it into a
+    regular crawler failure: the retailer's existing rows are not deleted and the digest reports it.
+    """
+
+    def __init__(self, retailer_name: str) -> None:
+        super().__init__(
+            title="Collector returned no products.",
+            error_code=ErrorCodes.NOTHING_COLLECTED,
+            details=f"Collector for retailer {retailer_name!r} finished with 0 products.",
+        )

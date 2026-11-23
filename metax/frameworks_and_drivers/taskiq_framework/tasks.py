@@ -39,7 +39,7 @@ from metax_logger.request_id_filter import request_id_scope
 
 from .broker import broker_
 from .collection_digest import ProductSample, RetailerCrawlOutcome, format_crawl_digest
-from .errors import NoRetailersError
+from .errors import NoRetailersError, NothingCollectedError
 from .locks import get_collection_lock
 
 if TYPE_CHECKING:
@@ -101,6 +101,44 @@ def _build_collect_use_case_for_retailer(
     )
 
 
+# Longest exception text quoted in the digest; the full traceback is in the logs.
+_FAILURE_REASON_MAX_LEN = 120
+
+
+async def _collect_retailer(
+    use_case: CollectDiscountedProducts, retailer: Retailer, started_at: dt.datetime
+) -> int:
+    """Run one retailer's collection, treating "0 products" as a failure.
+
+    Collectors swallow request errors, so a down or blocking site yields an empty crawl rather than an
+    exception. Without this guard that empty set would be published and wipe the retailer's rows.
+
+    Returns:
+        The number of products collected (always > 0).
+
+    Raises:
+        NothingCollectedError: If the collector finished without a single product.
+    """
+    response = await use_case.handle_use_case(
+        request=CollectDiscountedProductsRequest(start_date_of_collecting=started_at)
+    )
+    if response.added_count == 0:
+        raise NothingCollectedError(retailer.get_name())
+    return response.added_count
+
+
+def _failure_reason(error: BaseException) -> str:
+    """Short, human-readable reason for the digest's failed-crawler line.
+
+    Returns:
+        ``"0 products collected"`` for an empty crawl, else the exception type and (truncated) message.
+    """
+    if isinstance(error, NothingCollectedError):
+        return "0 products collected"
+    reason = f"{type(error).__name__}: {error}" if str(error) else type(error).__name__
+    return reason if len(reason) <= _FAILURE_REASON_MAX_LEN else reason[: _FAILURE_REASON_MAX_LEN - 1] + "…"
+
+
 async def collect_discounted_products_from_all_retailers(
     unit_of_work_provider: IUnitOfWorkProvider,
     event_bus: EventBus,
@@ -109,8 +147,9 @@ async def collect_discounted_products_from_all_retailers(
 ) -> list[UUID]:
     """Collect every retailer concurrently, then send the nightly digest.
 
-    A retailer whose collector raises does not fail the run: its partial rows are discarded so its
-    previous set stays live, and it is reported as failed in the digest.
+    A retailer whose collector raises — or returns no products at all — does not fail the run: its
+    partial rows are discarded, its previous rows are not deleted, and it is reported as failed in the
+    digest.
 
     Returns:
         The UUIDs of the retailers whose collector succeeded (their new set is ready to publish).
@@ -125,14 +164,16 @@ async def collect_discounted_products_from_all_retailers(
         raise NoRetailersError
 
     tasks = [
-        _build_collect_use_case_for_retailer(
-            retailer=retailer,
-            unit_of_work_provider=unit_of_work_provider,
-            event_bus=event_bus,
-            start_date_of_collecting=start_date_of_collecting,
-            category_classifier=category_classifier,
-        ).handle_use_case(
-            request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
+        _collect_retailer(
+            _build_collect_use_case_for_retailer(
+                retailer=retailer,
+                unit_of_work_provider=unit_of_work_provider,
+                event_bus=event_bus,
+                start_date_of_collecting=start_date_of_collecting,
+                category_classifier=category_classifier,
+            ),
+            retailer,
+            start_date_of_collecting,
         )
         for retailer in retailers
     ]
@@ -141,19 +182,22 @@ async def collect_discounted_products_from_all_retailers(
 
     collected_retailer_uuids: list[UUID] = []
     extracted_counts: list[int | None] = []
+    failures: list[str | None] = []
     for retailer, result in zip(retailers, results, strict=True):
         if isinstance(result, BaseException):
             logger.error("Error during collection of %s: %s", retailer.get_name(), result, exc_info=result)
             await _discard_partial_collection(unit_of_work_provider, retailer.get_uuid(), start_date_of_collecting)
             extracted_counts.append(None)
+            failures.append(_failure_reason(result))
         else:
             collected_retailer_uuids.append(retailer.get_uuid())
-            extracted_counts.append(result.added_count)
+            extracted_counts.append(result)
+            failures.append(None)
 
     previous_counts, samples = await _load_digest_context(unit_of_work_provider, start_date_of_collecting)
     outcomes = [
-        _to_outcome(retailer, extracted, previous_counts, samples)
-        for retailer, extracted in zip(retailers, extracted_counts, strict=True)
+        _to_outcome(retailer, extracted, previous_counts, samples, failure=failure)
+        for retailer, extracted, failure in zip(retailers, extracted_counts, failures, strict=True)
     ]
     await _send_crawl_digest(outcomes, run_date=start_date_of_collecting)
     return collected_retailer_uuids
@@ -201,6 +245,8 @@ def _to_outcome(
     extracted: int | None,
     previous_counts: dict[UUID, int],
     samples: dict[UUID, DiscountedProduct],
+    *,
+    failure: str | None = None,
 ) -> RetailerCrawlOutcome:
     """Assemble one retailer's digest row from its extracted count and the shared DB context.
 
@@ -224,6 +270,7 @@ def _to_outcome(
         previous=previous_counts.get(retailer.get_uuid(), 0),
         extracted=extracted,
         sample=sample,
+        failure=failure,
     )
 
 
@@ -272,10 +319,8 @@ async def collect_discounted_products_for_retailer(
     error: Exception | None = None
     extracted: int | None
     try:
-        response = await use_case.handle_use_case(
-            request=CollectDiscountedProductsRequest(start_date_of_collecting=start_date_of_collecting)
-        )
-        extracted = response.added_count
+        # Raises ``NothingCollectedError`` on an empty crawl, so it fails like any other crawler error.
+        extracted = await _collect_retailer(use_case, retailer, start_date_of_collecting)
     except Exception as exc:
         logger.error("Error during collection of %s: %s", retailer_name, exc, exc_info=exc)
         await _discard_partial_collection(unit_of_work_provider, retailer.get_uuid(), start_date_of_collecting)
@@ -285,7 +330,8 @@ async def collect_discounted_products_for_retailer(
     previous_counts, samples = await _load_digest_context(
         unit_of_work_provider, start_date_of_collecting
     )
-    outcome = _to_outcome(retailer, extracted, previous_counts, samples)
+    failure = _failure_reason(error) if error is not None else None
+    outcome = _to_outcome(retailer, extracted, previous_counts, samples, failure=failure)
     await _send_crawl_digest(
         [outcome], run_date=start_date_of_collecting, title="🔧 <b>Manual crawl</b>"
     )

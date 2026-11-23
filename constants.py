@@ -15,3 +15,4 @@ class ErrorCodes(StrEnum):
     INVALID_URL_FOR_SCRAPING = auto()
     NO_RETAILERS = auto()
     INVALID_RETAILER_NAME = auto()
+    NOTHING_COLLECTED = auto()
